@@ -1,0 +1,45 @@
+{
+  "AboutUs": {
+    "title": "Sobre Nosotros",
+    "subtitle": "Conocé a Trackifly, la plataforma que conecta personas con sus envíos.",
+    "btnShip": "Hacer un envío →",
+    "btnRegister": "Crear cuenta gratis →",
+    "badge1": "✅ Seguimiento en tiempo real",
+    "badge2": "✅ Seguro incluido",
+    "badge3": "✅ Soporte 24/7",
+    "historyTitle": "Nuestra historia",
+    "historyP1": "Trackifly nació de la necesidad de simplificar la logística de paquetería para personas. Desde nuestros inicios, nos enfocamos en hacer que cada envío sea una experiencia simple, confiable y transparente.",
+    "historyP2": "Hoy somos una plataforma que gestiona múltiples envíos de forma simultánea, conectando a usuarios con sus paquetes en tiempo real, sin importar la cantidad o el destino.",
+    "missionTitle": "Misión",
+    "missionDesc": "Facilitar el envío de paquetes múltiples a cualquier destino, brindando a nuestros usuarios una experiencia de logística simple, rápida y totalmente rastreable.",
+    "visionTitle": "Visión",
+    "visionDesc": "Convertirnos en la plataforma de paquetería múltiple más confiable de Latinoamérica, transformando la forma en que las personas gestionan sus envíos.",
+    "valuesTitle": "Nuestros valores",
+    "values": [
+      {
+        "title": "Transparencia",
+        "desc": "Cada paquete tiene seguimiento en tiempo real. Sin sorpresas, sin incertidumbre."
+      },
+      {
+        "title": "Confiabilidad",
+        "desc": "Nos comprometemos con cada envío como si fuera el nuestro."
+      },
+      {
+        "title": "Simplicidad",
+        "desc": "Gestionar múltiples paquetes tiene que ser fácil. Eso es Trackifly."
+      },
+      {
+        "title": "Cercanía",
+        "desc": "Estamos disponibles para ayudarte en cada paso del proceso."
+      },
+      {
+        "title": "Innovación",
+        "desc": "Mejoramos constantemente nuestra plataforma para darte la mejor experiencia."
+      }
+    ],
+    "ctaTitle": "¿Listo para enviar con Trackifly?",
+    "ctaSubtitle": "Registrate gratis y gestioná todos tus envíos desde un solo lugar.",
+    "btnRegisterCta": "Registrarse",
+    "btnServices": "Ver servicios"
+  }
+}
