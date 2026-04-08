@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+// responsive
 const AboutUs = () => {
   return (
     <div>
@@ -13,7 +14,7 @@ const AboutUs = () => {
             Conocé a Trackifly, la plataforma que conecta personas con sus
             envíos.
           </p>
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-wrap gap-4 items-center">
             <Link href="/register">
               <button className="bg-[#D96B4A] hover:bg-[#c45f40] text-white px-6 py-3 rounded-lg font-medium transition-colors">
                 Hacer un envío →
@@ -26,7 +27,7 @@ const AboutUs = () => {
               Crear cuenta gratis →
             </Link>
           </div>
-          <div className="flex gap-6 text-sm text-green-600 font-medium">
+          <div className="flex flex-wrap gap-6 text-sm text-green-600 font-medium">
             <span>✅ Seguimiento en tiempo real</span>
             <span>✅ Seguro incluido</span>
             <span>✅ Soporte 24/7</span>
@@ -134,7 +135,7 @@ const AboutUs = () => {
           <p className="text-gray-500 max-w-md">
             Registrate gratis y gestioná todos tus envíos desde un solo lugar.
           </p>
-          <div className="flex gap-4 mt-2">
+          <div className="flex flex-wrap gap-4 mt-2">
             <Link href="/register">
               <button className="bg-[#D96B4A] hover:bg-[#c45f40] text-white px-6 py-3 rounded-lg font-medium transition-colors">
                 Registrarse
