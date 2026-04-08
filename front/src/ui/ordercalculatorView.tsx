@@ -1,4 +1,6 @@
 "use client";
+
+import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 
 const COSTO_M3 = 500; 
@@ -6,11 +8,11 @@ const COSTO_KM = 120;
 const RECARGOS = { FRAGIL: 0.15, PELIGROSO: 0.30, REFRIGERADO: 0.20, URGENTE: 0.50 };
 
 export default function CalcularEnvioPage() {
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  // Esta función es la que "traduce" la calle a coordenadas por detrás
+  // 1. Traducir texto de calle a coordenadas (Geocoding)
   const traducirDireccionACoordenadas = async (direccion: string) => {
     try {
-      // Agregamos limit=1 para que sea más rápido
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`
       );
@@ -24,9 +26,11 @@ export default function CalcularEnvioPage() {
     return null;
   };
 
+  // 2. Calcular ruta por carretera (Routing)
   const calcularRutaInterna = async (origen: string, destino: string, setFieldValue: any) => {
-    if (origen.length < 5 || destino.length < 5) return; // Evitamos búsquedas con texto muy corto
+    if (origen.length < 5 || destino.length < 5) return;
 
+    setIsCalculating(true);
     const coordsOrg = await traducirDireccionACoordenadas(origen);
     const coordsDest = await traducirDireccionACoordenadas(destino);
 
@@ -43,6 +47,8 @@ export default function CalcularEnvioPage() {
         }
       } catch (error) {
         console.error("Error calculando ruta:", error);
+      } finally {
+        setIsCalculating(false);
       }
     }
   };
@@ -53,14 +59,21 @@ export default function CalcularEnvioPage() {
 
       <Formik
         initialValues={{ 
-          alto: 0, ancho: 0, profundidad: 0, 
+          alto: '', ancho: '', profundidad: '', 
+          unidad: 'cm', // Agregado: Selector de unidad
           origen: '', destino: '', distancia: 0,
           fragil: false, peligroso: false, refrigerado: false, urgente: false 
         }}
         onSubmit={(values) => console.log("Cotización aceptada:", values)}
       >
         {({ values, setFieldValue }) => {
-          const volumen = values.alto * values.ancho * values.profundidad;
+          // Lógica de conversión de unidades a Metros
+          const factor = values.unidad === 'cm' ? 0.01 : 0.0254;
+          const altoM = (Number(values.alto) || 0) * factor;
+          const anchoM = (Number(values.ancho) || 0) * factor;
+          const profM = (Number(values.profundidad) || 0) * factor;
+
+          const volumen = altoM * anchoM * profM;
           const precioBase = (volumen * COSTO_M3) + (values.distancia * COSTO_KM);
           
           let porcentajeExtra = 0;
@@ -73,19 +86,27 @@ export default function CalcularEnvioPage() {
 
           return (
             <Form>
-              {/* Medidas */}
-              <Field name="alto" type="number" placeholder="Alto (m)" />
-              <Field name="ancho" type="number" placeholder="Ancho (m)" />
-              <Field name="profundidad" type="number" placeholder="Profundidad (m)" />
+              {/* Selector de Unidad */}
+              <div>
+                <label>Unidad de medida:</label>
+                <Field name="unidad" as="select">
+                  <option value="cm">Centímetros (cm)</option>
+                  <option value="in">Pulgadas (in)</option>
+                </Field>
+              </div>
+
+              {/* Medidas con placeholders dinámicos y sin el 0 inicial */}
+              <Field name="alto" type="number" placeholder={`Alto (${values.unidad})`} />
+              <Field name="ancho" type="number" placeholder={`Ancho (${values.unidad})`} />
+              <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unidad})`} />
 
               <hr />
               
-              {/* Entradas de texto simples para el usuario */}
               <label>Punto de Retiro:</label>
               <Field 
                 name="origen" 
                 placeholder="Calle y altura, Ciudad" 
-                onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)}
+                onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)} 
               />
 
               <label>Punto de Entrega:</label>
@@ -95,20 +116,26 @@ export default function CalcularEnvioPage() {
                 onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)}
               />
 
-              {values.distancia > 0 && (
-                <p>Distancia detectada por el sistema: <strong>{values.distancia.toFixed(2)} km</strong></p>
-              )}
+              <div style={{ minHeight: '25px', color: 'white' }}>
+                {isCalculating ? "Calculando distancia..." : values.distancia > 0 ? `Distancia detectada: ${values.distancia.toFixed(2)} km` : null}
+              </div>
 
               <hr />
 
+              {/* Checkboxes completos */}
               <label><Field type="checkbox" name="fragil" /> Frágil</label>
+              <br />
               <label><Field type="checkbox" name="peligroso" /> Peligroso</label>
+              <br />
+              <label><Field type="checkbox" name="refrigerado" /> Refrigerado</label>
+              <br />
               <label><Field type="checkbox" name="urgente" /> Urgente</label>
 
               <hr />
 
               <section>
-                <h3>Presupuesto: ${precioFinal.toLocaleString('es-AR')}</h3>
+                <p>Volumen calculado: {volumen.toFixed(4)} m³</p>
+                <h3>Presupuesto Final: ${precioFinal.toLocaleString('es-AR')}</h3>
               </section>
 
               <button type="submit">Aceptar Envío</button>
