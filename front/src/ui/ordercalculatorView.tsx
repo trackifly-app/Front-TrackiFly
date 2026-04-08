@@ -1,71 +1,117 @@
 "use client";
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { validateCalculator } from '@/lib/validates';
+import { Formik, Form, Field } from 'formik';
+
 const COSTO_M3 = 500; 
 const COSTO_KM = 120;
+const RECARGOS = { FRAGIL: 0.15, PELIGROSO: 0.30, REFRIGERADO: 0.20, URGENTE: 0.50 };
 
 export default function CalcularEnvioPage() {
+
+  // Esta función es la que "traduce" la calle a coordenadas por detrás
+  const traducirDireccionACoordenadas = async (direccion: string) => {
+    try {
+      // Agregamos limit=1 para que sea más rápido
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return { lat: data[0].lat, lon: data[0].lon };
+      }
+    } catch (error) {
+      console.error("Error traduciendo dirección:", error);
+    }
+    return null;
+  };
+
+  const calcularRutaInterna = async (origen: string, destino: string, setFieldValue: any) => {
+    if (origen.length < 5 || destino.length < 5) return; // Evitamos búsquedas con texto muy corto
+
+    const coordsOrg = await traducirDireccionACoordenadas(origen);
+    const coordsDest = await traducirDireccionACoordenadas(destino);
+
+    if (coordsOrg && coordsDest) {
+      try {
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`
+        );
+        const data = await response.json();
+
+        if (data.routes && data.routes[0]) {
+          const kms = data.routes[0].distance / 1000;
+          setFieldValue('distancia', kms);
+        }
+      } catch (error) {
+        console.error("Error calculando ruta:", error);
+      }
+    }
+  };
+
   return (
-    <main style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>Calculá tu Envío</h1>
-      <p>Ingresá las medidas y la distancia para obtener un presupuesto estimado.</p>
+    <main>
+      <h1>Calculadora Trackifly</h1>
 
       <Formik
-        initialValues={{ alto: 0, ancho: 0, profundidad: 0, distancia: 0 }}
-        validate={validateCalculator}
+        initialValues={{ 
+          alto: 0, ancho: 0, profundidad: 0, 
+          origen: '', destino: '', distancia: 0,
+          fragil: false, peligroso: false, refrigerado: false, urgente: false 
+        }}
         onSubmit={(values) => console.log("Cotización aceptada:", values)}
       >
-        {({ values }) => {
-          // Cálculo en tiempo real
+        {({ values, setFieldValue }) => {
           const volumen = values.alto * values.ancho * values.profundidad;
-          const precioFinal = (volumen * COSTO_M3) + (values.distancia * COSTO_KM);
+          const precioBase = (volumen * COSTO_M3) + (values.distancia * COSTO_KM);
+          
+          let porcentajeExtra = 0;
+          if (values.fragil) porcentajeExtra += RECARGOS.FRAGIL;
+          if (values.peligroso) porcentajeExtra += RECARGOS.PELIGROSO;
+          if (values.refrigerado) porcentajeExtra += RECARGOS.REFRIGERADO;
+          if (values.urgente) porcentajeExtra += RECARGOS.URGENTE;
+
+          const precioFinal = precioBase + (precioBase * porcentajeExtra);
 
           return (
-            <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div>
-                <label>Alto (m)</label>
-                <Field name="alto" type="number" step="0.1" />
-                <ErrorMessage name="alto" component="div" style={{color: 'red', fontSize: '12px'}} />
-              </div>
+            <Form>
+              {/* Medidas */}
+              <Field name="alto" type="number" placeholder="Alto (m)" />
+              <Field name="ancho" type="number" placeholder="Ancho (m)" />
+              <Field name="profundidad" type="number" placeholder="Profundidad (m)" />
 
-              <div>
-                <label>Ancho (m)</label>
-                <Field name="ancho" type="number" step="0.1" />
-                <ErrorMessage name="ancho" component="div" style={{color: 'red', fontSize: '12px'}} />
-              </div>
+              <hr />
+              
+              {/* Entradas de texto simples para el usuario */}
+              <label>Punto de Retiro:</label>
+              <Field 
+                name="origen" 
+                placeholder="Calle y altura, Ciudad" 
+                onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)}
+              />
 
-              <div>
-                <label>Profundidad (m)</label>
-                <Field name="profundidad" type="number" step="0.1" />
-                <ErrorMessage name="profundidad" component="div" style={{color: 'red', fontSize: '12px'}} />
-              </div>
+              <label>Punto de Entrega:</label>
+              <Field 
+                name="destino" 
+                placeholder="Calle y altura, Ciudad" 
+                onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)}
+              />
 
-              <div>
-                <label>Distancia aproximada (km)</label>
-                <Field name="distancia" type="number" />
-                <ErrorMessage name="distancia" component="div" style={{color: 'red', fontSize: '12px'}} />
-              </div>
+              {values.distancia > 0 && (
+                <p>Distancia detectada por el sistema: <strong>{values.distancia.toFixed(2)} km</strong></p>
+              )}
 
-              {/* CARD DE RESULTADO */}
-              <div style={{ 
-                marginTop: '30px', 
-                padding: '20px', 
-                backgroundColor: '#1a1a1a', 
-                color: 'white', 
-                borderRadius: '12px' 
-              }}>
-                <h3>Resumen de Cotización</h3>
-                <p>Volumen Total: <strong>{volumen.toFixed(3)} m³</strong></p>
-                <p>Distancia: <strong>{values.distancia} km</strong></p>
-                <hr />
-                <h2 style={{ color: '#ffd700' }}>
-                  Total: ${precioFinal.toLocaleString('es-AR')}
-                </h2>
-              </div>
+              <hr />
 
-              <button type="button" onClick={() => window.print()} style={{ marginTop: '10px' }}>
-                Imprimir Presupuesto
-              </button>
+              <label><Field type="checkbox" name="fragil" /> Frágil</label>
+              <label><Field type="checkbox" name="peligroso" /> Peligroso</label>
+              <label><Field type="checkbox" name="urgente" /> Urgente</label>
+
+              <hr />
+
+              <section>
+                <h3>Presupuesto: ${precioFinal.toLocaleString('es-AR')}</h3>
+              </section>
+
+              <button type="submit">Aceptar Envío</button>
             </Form>
           );
         }}
