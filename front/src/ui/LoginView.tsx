@@ -3,6 +3,7 @@
 import { validateFormLogin } from '@/lib/validate';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
+import Swal from 'sweetalert2';
 
 const LoginView = () => {
   return (
@@ -13,8 +14,15 @@ const LoginView = () => {
         <Formik
           initialValues={{ email: '', password: '' }}
           validate={validateFormLogin}
-          onSubmit={(values) => {
-            console.log('Login exitoso', values);
+          onSubmit={(values, { resetForm }) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Login exitoso',
+              text: 'Has iniciado sesión correctamente',
+              confirmButtonColor: '#e76f51',
+            });
+
+            resetForm();
           }}
         >
           {({ errors }) => (
