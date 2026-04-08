@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from 'react'; 
+import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { CATEGORIES } from '@/lib/categories';
 import { validateShipment } from '@/lib/validates';
 
 const COSTO_M3 = 500; 
 const COSTO_KM = 120;
+const KM_A_MILLAS = 0.621371;
 const RECARGOS = { FRAGIL: 0.15, PELIGROSO: 0.30, REFRIGERADO: 0.20, URGENTE: 0.50 };
 
 const OrderView = () => {
@@ -16,12 +17,13 @@ const OrderView = () => {
     nombre: '',
     descripcion: '',
     id_categoria: '',
-    direccion_retiro: '',
+    direccion_retiro: '', 
     direccion_entrega: '',
     distancia: 0,
-    alto: 0,
-    ancho: 0,
-    profundidad: 0,
+    alto: '',        
+    ancho: '',       
+    profundidad: '', 
+    unidad: 'cm',    
     imagen: '',
     fragil: false,
     peligroso: false,
@@ -31,12 +33,10 @@ const OrderView = () => {
 
   const calcularDistanciaOSM = async (origen: string, destino: string, setFieldValue: any) => {
     if (origen.length < 5 || destino.length < 5) return;
-
-    setIsCalculating(true); 
+    setIsCalculating(true);
     try {
       const resOrg = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(origen)}&limit=1`);
       const dataOrg = await resOrg.json();
-      
       const resDest = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destino)}&limit=1`);
       const dataDest = await resDest.json();
 
@@ -45,7 +45,6 @@ const OrderView = () => {
           `https://router.project-osrm.org/route/v1/driving/${dataOrg[0].lon},${dataOrg[0].lat};${dataDest[0].lon},${dataDest[0].lat}?overview=false`
         );
         const dataRoute = await resRoute.json();
-
         if (dataRoute.routes && dataRoute.routes[0]) {
           const kms = dataRoute.routes[0].distance / 1000;
           setFieldValue('distancia', kms);
@@ -54,7 +53,7 @@ const OrderView = () => {
     } catch (error) {
       console.error("Error en el mapa:", error);
     } finally {
-      setIsCalculating(false); 
+      setIsCalculating(false);
     }
   };
 
@@ -62,11 +61,22 @@ const OrderView = () => {
     <Formik
       initialValues={initialValues}
       validate={validateShipment}
-      onSubmit={(values) => console.log("Orden generada:", values)}
+      onSubmit={(values) => console.log("Orden Final:", values)}
     >
       {({ values, setFieldValue }) => {
-        const volumen = values.alto * values.ancho * values.profundidad;
-        const precioBase = (volumen * COSTO_M3) + (values.distancia * COSTO_KM);
+        
+        // --- LA MATEMÁTICA CORRECTA ESTÁ AQUÍ ---
+        // Si es 'cm' divide por 100 (0.01). 
+        // Si es 'in' (pulgadas) multiplica por 0.0254.
+        const factor = values.unidad === 'cm' ? 0.01 : 0.0254;
+
+        // Convertimos cada lado a metros antes de multiplicar
+        const altoM = (Number(values.alto) || 0) * factor;
+        const anchoM = (Number(values.ancho) || 0) * factor;
+        const profM = (Number(values.profundidad) || 0) * factor;
+
+        const volumenM3 = altoM * anchoM * profM;
+        const precioBase = (volumenM3 * COSTO_M3) + (values.distancia * COSTO_KM);
         
         let porcentajeExtra = 0;
         if (values.fragil) porcentajeExtra += RECARGOS.FRAGIL;
@@ -74,12 +84,16 @@ const OrderView = () => {
         if (values.refrigerado) porcentajeExtra += RECARGOS.REFRIGERADO;
         if (values.urgente) porcentajeExtra += RECARGOS.URGENTE;
 
-        const precioFinal = precioBase + (precioBase * porcentajeExtra);
+        const montoRecargo = precioBase * porcentajeExtra;
+        const precioFinal = precioBase + montoRecargo;
 
         return (
           <Form>
+            <h2>Detalles del Envío</h2>
             <Field name="nombre" placeholder="Nombre del producto" />
-            <Field name="descripcion" as="textarea" placeholder="Descripción" />
+            <ErrorMessage name="nombre" component="div" />
+
+            <Field name="descripcion" as="textarea" placeholder="Descripción breve" />
 
             <Field name="id_categoria" as="select">
               <option value="">Selecciona Categoría</option>
@@ -88,41 +102,43 @@ const OrderView = () => {
               ))}
             </Field>
 
+            <Field name="imagen" placeholder="URL de la imagen" />
+
             <hr />
             
-            {/* DIRECCIONES CON FEEDBACK INMEDIATO */}
-            <div>
-              <label>Punto de Retiro:</label>
-              <Field 
-                name="direccion_retiro" 
-                placeholder="Calle y altura, Ciudad" 
-                onBlur={() => calcularDistanciaOSM(values.direccion_retiro, values.direccion_entrega, setFieldValue)}
-              />
-            </div>
+            <label>Punto de Retiro:</label>
+            <Field 
+              name="direccion_retiro" 
+              placeholder="Calle y altura, Ciudad" 
+              onBlur={() => calcularDistanciaOSM(values.direccion_retiro, values.direccion_entrega, setFieldValue)}
+            />
             
-            <div>
-              <label>Destino Final:</label>
-              <Field 
-                name="direccion_entrega" 
-                placeholder="Calle y altura, Ciudad" 
-                onBlur={() => calcularDistanciaOSM(values.direccion_retiro, values.direccion_entrega, setFieldValue)}
-              />
-            </div>
+            <label>Dirección de Entrega:</label>
+            <Field 
+              name="direccion_entrega" 
+              placeholder="Calle y altura, Ciudad" 
+              onBlur={() => calcularDistanciaOSM(values.direccion_retiro, values.direccion_entrega, setFieldValue)}
+            />
 
-            {/* Muestra la distancia apenas se calcula */}
-            <div style={{ height: '24px', margin: '10px 0' }}>
-              {isCalculating ? (
-                <span>⌛ Calculando distancia óptima...</span>
-              ) : values.distancia > 0 ? (
-                <span>📍 Distancia: <strong>{values.distancia.toFixed(2)} km</strong></span>
+            <div>
+              {isCalculating ? "Calculando..." : values.distancia > 0 ? (
+                `Distancia: ${values.distancia.toFixed(2)} km / ${(values.distancia * KM_A_MILLAS).toFixed(2)} mi`
               ) : null}
             </div>
 
             <hr />
 
-            <Field name="alto" type="number" placeholder="Alto (m)" />
-            <Field name="ancho" type="number" placeholder="Ancho (m)" />
-            <Field name="profundidad" type="number" placeholder="Profundidad (m)" />
+            <label>Unidad:</label>
+            <Field name="unidad" as="select">
+              <option value="cm">Centímetros (cm)</option>
+              <option value="in">Pulgadas (in)</option>
+            </Field>
+
+            <div>
+              <Field name="alto" type="number" placeholder={`Alto (${values.unidad})`} />
+              <Field name="ancho" type="number" placeholder={`Ancho (${values.unidad})`} />
+              <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unidad})`} />
+            </div>
 
             <hr />
 
@@ -136,15 +152,19 @@ const OrderView = () => {
 
             <hr />
 
-            {/* RESUMEN DE COSTOS ACTUALIZADO AL INSTANTE */}
             <section>
-              <p>Volumen: {volumen.toFixed(3)} m³</p>
-              <p>Costo por Distancia: ${ (values.distancia * COSTO_KM).toLocaleString('es-AR') }</p>
-              {porcentajeExtra > 0 && <p>Recargo Cuidados: +{porcentajeExtra * 100}%</p>}
+              <h3>Presupuesto</h3>
+              <p>Volumen Total: {volumenM3.toFixed(4)} m³</p>
+              <p>Trayecto: {values.distancia.toFixed(1)} km</p>
+              
+              {porcentajeExtra > 0 && (
+                <p>Recargos: +${montoRecargo.toLocaleString('es-AR')}</p>
+              )}
+              
               <h2>Total: ${precioFinal.toLocaleString('es-AR')}</h2>
             </section>
 
-            <button type="submit">Confirmar Orden</button>
+            <button type="submit">Generar Orden de Envío</button>
           </Form>
         );
       }}
