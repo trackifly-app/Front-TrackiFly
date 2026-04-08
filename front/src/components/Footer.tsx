@@ -64,7 +64,7 @@ const Footer = () => {
       </div>
 
       <div className="flex justify-between items-center px-8 py-4 border-t border-gray-700 text-sm text-gray-500">
-        <p>© 2024 VelozShip. Todos los derechos reservados.</p>
+        <p>© 2024 Trackifly. Todos los derechos reservados.</p>
         <div className="flex gap-6 items-center">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>{" "}

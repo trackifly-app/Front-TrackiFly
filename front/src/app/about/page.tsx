@@ -71,7 +71,7 @@ const AboutUs = () => {
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 px-8 md:px-20 py-12 max-w-7xl mx-auto">
-          <div className="flex flex-col gap-3 bg-white border border-gray-100 rounded-2xl p-8">
+          <div className="flex flex-col gap-3 bg-[#ffd8cc] border border-gray-100 rounded-2xl p-8">
             <h2 className="text-xl font-bold text-gray-900">Misión</h2>
             <p className="text-gray-500 leading-relaxed">
               Facilitar el envío de paquetes múltiples a cualquier destino,
@@ -79,7 +79,7 @@ const AboutUs = () => {
               rápida y totalmente rastreable.
             </p>
           </div>
-          <div className="flex flex-col gap-3 bg-[#D96B4A] rounded-2xl p-8">
+          <div className="flex flex-col gap-3 bg-[#ffd8cc] rounded-2xl p-8">
             <h2 className="text-xl font-bold text-gray-900">Visión</h2>
             <p className="text-gray-500 leading-relaxed">
               Convertirnos en la plataforma de paquetería múltiple más confiable
@@ -116,7 +116,7 @@ const AboutUs = () => {
             ].map((v) => (
               <div
                 key={v.title}
-                className="flex flex-col gap-2 border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow"
+                className="flex flex-col gap-2 border bg-blue-100 border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow"
               >
                 <h3 className="font-semibold text-gray-900">{v.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">
