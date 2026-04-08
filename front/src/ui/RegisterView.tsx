@@ -3,6 +3,7 @@ import { validateFormRegister } from '@/lib/validate';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import CountrySelect from '@/components/CountrySelect';
+import Swal from 'sweetalert2';
 
 const RegisterView = () => {
   return (
@@ -23,8 +24,16 @@ const RegisterView = () => {
             country: '',
           }}
           validate={validateFormRegister}
-          onSubmit={(values) => {
-            console.log('Registro exitoso', values);
+          onSubmit={(values, { resetForm, setFieldValue }) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Registro exitoso',
+              text: 'Usuario registrado correctamente',
+              confirmButtonColor: '#e76f51',
+            });
+
+            resetForm();
+            setFieldValue('country', '');
           }}
         >
           {({ errors, setFieldValue, setFieldTouched, values }) => (
@@ -35,7 +44,6 @@ const RegisterView = () => {
                 { label: 'Nombre', name: 'name', type: 'text' },
                 { label: 'Dirección', name: 'address', type: 'text' },
                 { label: 'Teléfono', name: 'phone', type: 'number' },
-                { label: 'Género', name: 'gender', type: 'text' },
                 { label: 'Fecha de nacimiento', name: 'birthdate', type: 'date' },
               ].map((field) => (
                 <div key={field.name} className="flex flex-col gap-1">
@@ -48,13 +56,26 @@ const RegisterView = () => {
               ))}
 
               <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-500">Género</label>
+
+                <Field as="select" name="gender" className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition focus:border-[#e76f51] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#f4a261]/40">
+                  <option value="">Selecciona una opción</option>
+                  <option value="masculino">Masculino</option>
+                  <option value="femenino">Femenino</option>
+                  <option value="otros">Otros</option>
+                </Field>
+
+                <ErrorMessage name="gender" component="div" className="text-xs text-red-500" />
+              </div>
+
+              <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500">País</label>
 
                 <CountrySelect
+                  key={values.country}
                   value={values.country}
                   onChange={(value) => {
-                    setFieldValue('country', value);
-                    setFieldTouched('country', true);
+                    setFieldValue('country', value, true);
                   }}
                   onBlur={() => setFieldTouched('country', true)}
                 />
