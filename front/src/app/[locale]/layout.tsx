@@ -4,7 +4,7 @@ import { Inter, Poppins } from "next/font/google";
 // import next-intl para idiomas
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import "./globals.css";
+import "../globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
@@ -26,11 +26,12 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params: { locale },
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }>) {
+  const { locale } = await params;
   const messages = await getMessages();
   return (
     // aplicación de las fuentes
