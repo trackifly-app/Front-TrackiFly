@@ -1,10 +1,11 @@
 'use client';
 
-import { validateFormLogin } from '@/lib/validate';
+import { validateFormLogin } from '@/lib/validates';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import Swal from 'sweetalert2';
 
+// Componente que renderiza el formulario de login con validación usando Formik
 const LoginView = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-4">
@@ -14,6 +15,7 @@ const LoginView = () => {
         <Formik
           initialValues={{ email: '', password: '' }}
           validate={validateFormLogin}
+          // Maneja el envío del formulario, mostrando un mensaje de éxito y reseteando el formulario
           onSubmit={(values, { resetForm }) => {
             Swal.fire({
               icon: 'success',
@@ -27,6 +29,7 @@ const LoginView = () => {
         >
           {({ errors }) => (
             <Form className="flex flex-col gap-4">
+              {/* Campo de email con validación y mensaje de error */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500">Email</label>
 
@@ -35,6 +38,7 @@ const LoginView = () => {
                 <ErrorMessage name="email" component="div" className="text-xs text-red-500" />
               </div>
 
+              {/* Campo de contraseña con validación y mensaje de error */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-500">Contraseña</label>
 

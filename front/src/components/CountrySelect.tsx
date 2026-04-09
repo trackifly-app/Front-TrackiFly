@@ -3,20 +3,9 @@
 import Select from 'react-select';
 import countryList from 'react-select-country-list';
 import { useMemo } from 'react';
+import { CountryOption, ICountryProps } from '@/types/types';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-}
-
-type CountryOption = {
-  value: string;
-  label: string;
-  flag: string;
-};
-
-const CountrySelect = ({ value, onChange, onBlur }: Props) => {
+const CountrySelect = ({ value, onChange, onBlur }: ICountryProps) => {
   const options: CountryOption[] = useMemo(() => {
     return countryList()
       .getData()
