@@ -2,7 +2,7 @@ import Link from "next/link";
 // es responsive
 const Footer = () => {
   return (
-    <footer className="bg-[#1e2530] text-gray-300">
+    <footer className="bg-dark text-gray-300">
       <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-10">
         <div className="flex flex-col gap-4">
           <span className="text-white text-xl font-bold">
