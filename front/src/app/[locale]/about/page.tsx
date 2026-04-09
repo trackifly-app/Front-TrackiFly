@@ -18,13 +18,13 @@ const AboutUs = () => {
           <p className="text-lg text-gray-500 max-w-xl">{t("subtitle")}</p>
           <div className="flex flex-wrap gap-4 items-center">
             <Link href="/register">
-              <button className="bg-[#D96B4A] hover:bg-[#c45f40] text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              <button className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium transition-colors">
                 {t("btnShip")}
               </button>
             </Link>
             <Link
               href="/register"
-              className="text-gray-700 hover:text-[#c45f40] font-medium transition-colors"
+              className="text-gray-700 hover:text-primary-hover font-medium transition-colors"
             >
               {t("btnRegister")}
             </Link>
@@ -103,11 +103,11 @@ const AboutUs = () => {
           <p className="text-gray-500 max-w-md">{t("ctaSubtitle")}</p>
           <div className="flex flex-wrap gap-4 mt-2">
             <Link href="/register">
-              <button className="bg-[#D96B4A] hover:bg-[#c45f40] text-white px-6 py-3 rounded-lg font-medium transition-colors">
+              <button className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium transition-colors">
                 {t("btnRegisterCta")}
               </button>
             </Link>
-            <button className="border border-gray-300 hover:border-[#D96B4A] hover:text-[#c45f40] text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors">
+            <button className="border border-gray-300 hover:border-primary hover:text-primary-hover text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors">
               {t("btnServices")}
             </button>
           </div>
