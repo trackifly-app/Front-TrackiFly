@@ -29,3 +29,15 @@ export interface IRegisterErrors {
   birthdate?: string;
   country?: string;
 }
+
+export type CountryOption = {
+  value: string;
+  label: string;
+  flag: string;
+};
+
+export interface ICountryProps {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+}

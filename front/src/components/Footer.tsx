@@ -1,8 +1,8 @@
 import Link from "next/link";
-
+// es responsive
 const Footer = () => {
   return (
-    <footer className="bg-[#1e2530] text-gray-300">
+    <footer className="bg-dark text-gray-300">
       <div className="max-w-7xl mx-auto px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-10">
         <div className="flex flex-col gap-4">
           <span className="text-white text-xl font-bold">
@@ -37,7 +37,7 @@ const Footer = () => {
           </ul>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 col-span-2 md:col-span-1">
           <h3 className="text-white font-semibold">Contacto</h3>
           <p className="text-sm">
             Av. del libertador 1234, Buenos Aires, Argentina
@@ -63,9 +63,9 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center px-8 py-4 border-t border-gray-700 text-sm text-gray-500">
-        <p>© 2024 VelozShip. Todos los derechos reservados.</p>
-        <div className="flex gap-6 items-center">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-3 px-8 py-4 border-t border-gray-700 text-sm text-gray-500">
+        <p>© 2024 Trackifly. Todos los derechos reservados.</p>
+        <div className="flex gap-3 md:gap-6 items-center">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>{" "}
             Sistema operativo
