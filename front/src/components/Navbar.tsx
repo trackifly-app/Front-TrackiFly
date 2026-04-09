@@ -17,16 +17,19 @@ const Navbar = () => {
       {/* ZONA CENTRAL */}
       <div className="flex items-center justify-center gap-25">
         <Link href="/">Home</Link>
-        <Link href="/dashboard">Dashboard</Link>
+        <Link href="/dashboard">Dashboard/Admin</Link>
+        <Link href="/dashboard/user">Dashboard/User</Link>
         <Link href="/login">Iniciar sesión</Link>
         <Link href="/register">Registrarse</Link>
-        <Link href="/orders">Pedidos</Link>
-        <Link href="/products">Productos</Link>
+        <Link href="/orders">Pedidos/Admin</Link>
+        <Link href="/products">Productos/Admin</Link>
       </div>
 
       {/* BOTON STATUS CERRAR SESION */}
       <div className="flex items-center justify-end mr-4">
-        <button>Cerrar sesión</button>
+        <button className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-400 transition">
+          Cerrar sesión
+        </button>
       </div>
     </nav>
   );
