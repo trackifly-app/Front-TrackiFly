@@ -1,9 +1,9 @@
+import HomePageView from "@/ui/HomePageView";
 
-export default function HomePage () {
+export default function HomePage() {
   return (
-    <div>Home</div>
+    <>
+      <HomePageView />
+    </>
   );
-};
-
-
-
+}
