@@ -1,5 +1,5 @@
 import Link from "next/link";
-// responsive
+// es responsive
 const Footer = () => {
   return (
     <footer className="bg-[#1e2530] text-gray-300">
