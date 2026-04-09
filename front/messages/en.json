@@ -1,0 +1,45 @@
+{
+  "AboutUs": {
+    "title": "About Us",
+    "subtitle": "Meet Trackifly, the platform that connects people with their shipments.",
+    "btnShip": "Ship now →",
+    "btnRegister": "Create free account →",
+    "badge1": "✅ Real-time tracking",
+    "badge2": "✅ Insurance included",
+    "badge3": "✅ 24/7 Support",
+    "historyTitle": "Our story",
+    "historyP1": "Trackifly was born from the need to simplify parcel logistics for people. From the very beginning, we focused on making every shipment a simple, reliable and transparent experience.",
+    "historyP2": "Today we are a platform that manages multiple shipments simultaneously, connecting users with their packages in real time, regardless of the quantity or destination.",
+    "missionTitle": "Mission",
+    "missionDesc": "To facilitate the sending of multiple packages to any destination, providing our users with a simple, fast and fully trackable logistics experience.",
+    "visionTitle": "Vision",
+    "visionDesc": "To become the most reliable multi-parcel platform in Latin America, transforming the way people manage their shipments.",
+    "valuesTitle": "Our values",
+    "values": [
+      {
+        "title": "Transparency",
+        "desc": "Every package has real-time tracking. No surprises, no uncertainty."
+      },
+      {
+        "title": "Reliability",
+        "desc": "We are committed to every shipment as if it were our own."
+      },
+      {
+        "title": "Simplicity",
+        "desc": "Managing multiple packages has to be easy. That's Trackifly."
+      },
+      {
+        "title": "Closeness",
+        "desc": "We are available to help you at every step of the process."
+      },
+      {
+        "title": "Innovation",
+        "desc": "We constantly improve our platform to give you the best experience."
+      }
+    ],
+    "ctaTitle": "Ready to ship with Trackifly?",
+    "ctaSubtitle": "Sign up for free and manage all your shipments from one place.",
+    "btnRegisterCta": "Sign up",
+    "btnServices": "View services"
+  }
+}
