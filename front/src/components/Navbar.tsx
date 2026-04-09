@@ -17,7 +17,7 @@ const Navbar = () => {
       {/* ZONA CENTRAL */}
       <div className="flex items-center justify-center gap-25">
         <Link href="/">Home</Link>
-        <Link href="/dashboard">Dashboard/Admin</Link>
+        <Link href="/dashboard/admin">Dashboard/Admin</Link>
         <Link href="/dashboard/user">Dashboard/User</Link>
         <Link href="/login">Iniciar sesión</Link>
         <Link href="/register">Registrarse</Link>
