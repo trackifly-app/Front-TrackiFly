@@ -1,10 +1,11 @@
 'use client';
-import { validateFormRegister } from '@/lib/validate';
+import { validateFormRegister } from '@/lib/validates';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import CountrySelect from '@/components/CountrySelect';
 import Swal from 'sweetalert2';
 
+// Componente que renderiza el formulario de registro con validación usando Formik
 const RegisterView = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-4">
@@ -24,6 +25,7 @@ const RegisterView = () => {
             country: '',
           }}
           validate={validateFormRegister}
+          // Maneja el envío del formulario de registro, mostrando un mensaje de éxito y reseteando el formulario
           onSubmit={(values, { resetForm, setFieldValue }) => {
             Swal.fire({
               icon: 'success',
@@ -38,6 +40,7 @@ const RegisterView = () => {
         >
           {({ errors, setFieldValue, setFieldTouched, values }) => (
             <Form className="flex flex-col gap-4">
+              {/* Lista de campos básicos del formulario: email, contraseña, nombre, dirección, teléfono y fecha de nacimiento */}
               {[
                 { label: 'Email', name: 'email', type: 'email' },
                 { label: 'Contraseña', name: 'password', type: 'password' },
@@ -75,6 +78,7 @@ const RegisterView = () => {
                   key={values.country}
                   value={values.country}
                   onChange={(value) => {
+                    // Actualiza el campo de país con el valor seleccionado del componente personalizado
                     setFieldValue('country', value, true);
                   }}
                   onBlur={() => setFieldTouched('country', true)}
