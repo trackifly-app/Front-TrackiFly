@@ -18,7 +18,9 @@ export default function UserProfileCard({ user }: UserProfileCardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
           <p className="text-sm text-slate-500">Email</p>
-          <p className="text-slate-800 font-medium break-words">{user.email}</p>
+          <p className="text-slate-800 font-medium wrap-break-word">
+            {user.email}
+          </p>
         </div>
 
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">

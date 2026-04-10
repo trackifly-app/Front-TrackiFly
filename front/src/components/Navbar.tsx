@@ -4,7 +4,7 @@ import { LogOut, ShieldCheck, UserCircle } from "lucide-react";
 
 const Navbar = () => {
   return (
-    <nav className="w-full grid grid-cols-[auto_1fr_auto] items-center px-6 py-3 border-b border-gray-200 sticky top-0 bg-white">
+    <nav className="w-full grid grid-cols-[auto_1fr_auto] items-center px-6 border-b border-gray-200 sticky top-0 bg-white">
       {/* LOGO */}
       <Link href="/">
         <Image
