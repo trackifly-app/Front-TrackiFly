@@ -9,7 +9,7 @@ import { Map as LeafletMap } from "leaflet";
 import { useRouter } from "next/navigation";
 import { validateShipment } from "@/lib/validates";
 
-// Componentes de mapa cargados dinámicamente
+// Importaciones dinámicas con SSR desactivado
 const MapContainer = dynamic(() => import("react-leaflet").then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import("react-leaflet").then((m) => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), { ssr: false });
@@ -64,7 +64,7 @@ const OrderView = () => {
         setFieldTouched(fieldName, true);
       }
     } catch (error) {
-      console.error("Error en geocodificación:", error);
+      console.error("Error buscando dirección:", error);
     }
   };
 
@@ -97,22 +97,18 @@ const OrderView = () => {
         urgent: false,
       }}
       validate={(values) => {
-        // Ejecutamos validaciones externas
         const errors = validateShipment(values);
-        
-        // Reforzamos obligatoriedad de campos críticos
+        // Reforzamos la obligatoriedad de los campos clave
         if (!values.image) errors.image = "La imagen es obligatoria";
         if (!values.category_id) errors.category_id = "Seleccioná una categoría";
         if (!values.weight) errors.weight = "El peso es obligatorio";
         if (!values.height) errors.height = "Requerido";
         if (!values.width) errors.width = "Requerido";
         if (!values.depth) errors.depth = "Requerido";
-        
-        console.log("Validación en vivo:", errors);
         return errors;
       }}
       onSubmit={async (values) => {
-        console.log("Todo listo para enviar:", values);
+        console.log("Orden válida, enviando:", values);
         router.push("/dashboard/user");
       }}
     >
@@ -122,7 +118,7 @@ const OrderView = () => {
         const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
         const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
 
-        // Lógica de incremento por kilaje (5% cada 2kg extra)
+        // Recargo por peso: +5% cada 2kg extra (base 2kg)
         let recargoPeso = 0;
         const pesoNum = Number(values.weight) || 0;
         if (pesoNum > 2) {
@@ -170,7 +166,6 @@ const OrderView = () => {
                         </div>
                       </div>
 
-                      {/* Dimensiones con nombres completos y validación */}
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <Field name="height" placeholder="Altura" type="number" className={inputStyle} />
@@ -275,7 +270,7 @@ const OrderView = () => {
                   
                   {Object.keys(errors).length > 0 && (
                     <p className="text-red-400 text-[10px] mt-4 text-center uppercase tracking-widest font-bold">
-                      Completá todos los campos
+                      Datos incompletos
                     </p>
                   )}
                 </aside>
