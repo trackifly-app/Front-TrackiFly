@@ -11,6 +11,7 @@ export default function DashboardUserPage() {
     birthDate: "15/08/1995",
     gender: "Masculino",
     country: "Perú",
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQY-j7Bj4Fyx9V7-3Lmx81KjHEuT8YuhDAtSw&s",
   };
 
   const activeOrders = [
@@ -21,6 +22,7 @@ export default function DashboardUserPage() {
       origin: "Arequipa",
       destination: "Cusco",
       estimatedDelivery: "10/04/2026",
+      image: "https://pe.tiendasishop.com/cdn/shop/files/IMG-14858589.jpg?v=1742333905",
     },
     {
       id: "2",
@@ -29,6 +31,7 @@ export default function DashboardUserPage() {
       origin: "Lima",
       destination: "Arequipa",
       estimatedDelivery: "12/04/2026",
+      image: "https://miportal.entel.pe/static/012120261443384/images/Apple_Iphone_13_128GB_Starlight_Frontal2_276x549.jpg",
     },
   ];
 
