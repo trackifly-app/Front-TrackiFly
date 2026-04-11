@@ -34,9 +34,7 @@ export default function CalcularEnvioPage() {
   const traducirDireccionACoordenadas = async (direccion: string) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          direccion
-        )}&limit=1`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`,
       );
       const data = await response.json();
 
@@ -50,14 +48,17 @@ export default function CalcularEnvioPage() {
     return null;
   };
 
+  // 2. Calcular ruta por carretera (Routing)
   const calcularRutaInterna = async (
-    origen: string,
-    destino: string,
-    setFieldValue: (field: keyof CalculatorValues, value: unknown) => void
+    origin: string,
+    destiny: string,
+    setFieldValue: any,
   ) => {
-    if (origen.trim().length < 5 || destino.trim().length < 5) return;
+    if (origin.length < 5 || destiny.length < 5) return;
 
     setIsCalculating(true);
+    const coordsOrg = await traducirDireccionACoordenadas(origin);
+    const coordsDest = await traducirDireccionACoordenadas(destiny);
 
     try {
       const coordsOrg = await traducirDireccionACoordenadas(origen);
@@ -65,7 +66,7 @@ export default function CalcularEnvioPage() {
 
       if (coordsOrg && coordsDest) {
         const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`
+          `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`,
         );
         const data = await response.json();
 

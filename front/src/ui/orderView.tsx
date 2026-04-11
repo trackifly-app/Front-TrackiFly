@@ -1,14 +1,31 @@
 "use client";
-
-import { useState } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useState, useEffect, useRef } from "react";
+import { Formik, Form, Field, FormikHelpers } from "formik";
+import dynamic from "next/dynamic";
+import { OpenStreetMapProvider } from "leaflet-geosearch";
 import { CATEGORIES } from "@/lib/categories";
-import { validateShipment } from "@/lib/validates";
+import "leaflet/dist/leaflet.css";
+import { Map as LeafletMap } from "leaflet";
+
+// Importaciones dinámicas con SSR desactivado para evitar el error "window is not defined"
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((m) => m.MapContainer),
+  { ssr: false },
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((m) => m.TileLayer),
+  { ssr: false },
+);
+const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), {
+  ssr: false,
+});
+const Polyline = dynamic(
+  () => import("react-leaflet").then((m) => m.Polyline),
+  { ssr: false },
+);
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
-const KM_A_MILLAS = 0.621371;
-
 const RECARGOS = {
   FRAGIL: 0.15,
   PELIGROSO: 0.3,
@@ -17,305 +34,276 @@ const RECARGOS = {
 };
 
 const OrderView = () => {
-  const [isCalculating, setIsCalculating] = useState(false);
+  const [coords, setCoords] = useState<{
+    origen: [number, number] | null;
+    destino: [number, number] | null;
+  }>({ origen: null, destino: null });
+  const [L, setL] = useState<typeof import("leaflet") | null>(null); // Estado para cargar Leaflet solo en el cliente
+  const [distance, setDistance] = useState(0); //nueva
+  const mapRef = useRef<LeafletMap | null>(null);
+  const provider = new OpenStreetMapProvider();
 
-  const initialValues = {
-    nombre: "",
-    descripcion: "",
-    id_categoria: "",
-    direccion_retiro: "",
-    direccion_entrega: "",
-    distancia: 0,
-    alto: "",
-    ancho: "",
-    profundidad: "",
-    unidad: "cm",
-    imagen: "",
-    fragil: false,
-    peligroso: false,
-    refrigerado: false,
-    urgente: false,
-  };
+  const inputStyle =
+    "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#D96B4A] focus:ring-1 focus:ring-[#D96B4A]";
 
-  const calcularDistanciaOSM = async (
-    origen: string,
-    destino: string,
-    setFieldValue: (field: string, value: any) => void
+  // Carga Leaflet solo del lado del cliente para evitar el error de Runtime
+  useEffect(() => {
+    import("leaflet").then((leaflet) => {
+      setL(leaflet);
+    });
+  }, []);
+
+  //useEffect afuera del render de Formik
+  useEffect(() => {
+    if (coords.origen && coords.destino && L) {
+      const d =
+        L.latLng(coords.origen).distanceTo(L.latLng(coords.destino)) / 1000;
+      setDistance(d);
+    }
+  }, [coords, L]);
+
+  // Ajuste automático del mapa para que no se vea "corrido"
+  useEffect(() => {
+    if (mapRef.current && coords.origen && coords.destino && L) {
+      const bounds = L.latLngBounds([coords.origen, coords.destino]);
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [coords, L]);
+
+  const handleSearch = async (
+    query: string,
+    type: "origen" | "destino",
+    setFieldValue: FormikHelpers<unknown>["setFieldValue"],
   ) => {
-    if (origen.trim().length < 5 || destino.trim().length < 5) return;
-
-    setIsCalculating(true);
-
-    try {
-      const resOrg = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          origen
-        )}&limit=1`
-      );
-      const dataOrg = await resOrg.json();
-
-      const resDest = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          destino
-        )}&limit=1`
-      );
-      const dataDest = await resDest.json();
-
-      if (dataOrg[0] && dataDest[0]) {
-        const resRoute = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${dataOrg[0].lon},${dataOrg[0].lat};${dataDest[0].lon},${dataDest[0].lat}?overview=false`
-        );
-        const dataRoute = await resRoute.json();
-
-        if (dataRoute.routes && dataRoute.routes[0]) {
-          const kms = dataRoute.routes[0].distance / 1000;
-          setFieldValue("distancia", kms);
-        }
-      }
-    } catch (error) {
-      console.error("Error en el mapa:", error);
-    } finally {
-      setIsCalculating(false);
+    if (query.length < 4) return;
+    const results = await provider.search({ query });
+    if (results && results.length > 0) {
+      const { y, x, label } = results[0];
+      setCoords((prev) => ({ ...prev, [type]: [y, x] }));
+      setFieldValue(type === "origen" ? "retry_id" : "delivery_id", label);
     }
   };
 
+  if (!L) return <div className="p-10 text-center">Iniciando Trackifly...</div>;
+
+  const customIcon = L.icon({
+    iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
+
   return (
-  <Formik
-    initialValues={initialValues}
-    validate={validateShipment}
-    onSubmit={(values) => {
-      console.log("Orden enviada:", values);
-    }}
-  >
-    {({ values, setFieldValue }) => {
-      const alto = Number(values.alto) || 0;
-      const ancho = Number(values.ancho) || 0;
-      const profundidad = Number(values.profundidad) || 0;
+    <Formik
+      initialValues={{
+        name: "",
+        description: "",
+        category_id: "",
+        image: "",
+        retry_id: "",
+        delivery_id: "",
+        height: "",
+        width: "",
+        depth: "",
+        unit: "cm", // unit agregada aquí
+        fragile: false,
+        dangerous: false,
+        cooled: false,
+        urgent: false,
+      }}
+      onSubmit={(v) => console.log("Orden lista:", v)}
+    >
+      {({ values, setFieldValue }) => {
+        // Lógica de conversión a m3
+        const factor = values.unit === "cm" ? 0.01 : 0.0254;
+        const volumenM3 =
+          Number(values.height) *
+            factor *
+            (Number(values.width) * factor) *
+            (Number(values.depth) * factor) || 0;
+        const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
+        let extra = 0;
+        if (values.fragile) extra += RECARGOS.FRAGIL;
+        if (values.dangerous) extra += RECARGOS.PELIGROSO;
+        if (values.cooled) extra += RECARGOS.REFRIGERADO;
+        if (values.urgent) extra += RECARGOS.URGENTE;
+        const precioFinal = precioBase * (1 + extra);
 
-      const volumenBase = alto * ancho * profundidad;
+        return (
+          <main className="min-h-screen bg-gray-50 px-4 py-10">
+            <div className="mx-auto max-w-6xl">
+              <Form className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
+                <div className="space-y-6">
+                  {/* Detalles del Producto completo */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-gray-900 border-b pb-2 text-left">
+                      Detalles del Producto
+                    </h3>
+                    <div className="grid gap-4">
+                      <Field
+                        name="name"
+                        placeholder="Nombre"
+                        className={inputStyle}
+                      />
+                      <Field
+                        as="textarea"
+                        name="description"
+                        placeholder="Descripción..."
+                        className={`${inputStyle} h-20`}
+                      />
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <Field
+                          as="select"
+                          name="category_id"
+                          className={inputStyle}
+                        >
+                          <option value="">Selecciona Categoría...</option>
+                          {CATEGORIES.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </Field>
+                        <Field
+                          name="image"
+                          placeholder="Imagen URL"
+                          className={inputStyle}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Field
+                          name="height"
+                          placeholder="Altura"
+                          type="number"
+                          className={inputStyle}
+                        />
+                        <Field
+                          name="width"
+                          placeholder="Ancho"
+                          type="number"
+                          className={inputStyle}
+                        />
+                        <Field
+                          name="depth"
+                          placeholder="Profundidad"
+                          type="number"
+                          className={inputStyle}
+                        />
+                        {/* Selector de unit integrado sin romper estilos */}
+                        <Field
+                          as="select"
+                          name="unit"
+                          className="rounded-xl border border-gray-300 bg-gray-50 px-3 font-bold text-gray-700 outline-none focus:border-primary"
+                        >
+                          <option value="cm">cm</option>
+                          <option value="in">in</option>
+                        </Field>
+                      </div>
+                    </div>
+                  </div>
 
-      const volumenM3 =
-        values.unidad === "cm"
-          ? volumenBase / 1000000
-          : volumenBase * 0.0000163871;
-
-      const costoBase = volumenM3 * COSTO_M3 + values.distancia * COSTO_KM;
-
-      const porcentajeExtra =
-        (values.fragil ? RECARGOS.FRAGIL : 0) +
-        (values.peligroso ? RECARGOS.PELIGROSO : 0) +
-        (values.refrigerado ? RECARGOS.REFRIGERADO : 0) +
-        (values.urgente ? RECARGOS.URGENTE : 0);
-
-      const montoRecargo = costoBase * porcentajeExtra;
-      const precioFinal = costoBase + montoRecargo;
-
-      return (
-        <Form className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-900 mb-2">
-            Calculadora de Envío
-          </h2>
-
-          {/* GRID PRINCIPAL */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            {/* COLUMNA IZQUIERDA */}
-            <div className="lg:col-span-2 space-y-2">
-              <div>
-                <Field
-                  name="nombre"
-                  placeholder="Nombre del producto"
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                />
-                <ErrorMessage
-                  name="nombre"
-                  component="div"
-                  className="mt-1 text-xs text-red-500"
-                />
-              </div>
-
-              <Field
-                name="descripcion"
-                as="textarea"
-                placeholder="Descripción breve"
-                className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary resize-none min-h-[56px]"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <Field
-                  name="id_categoria"
-                  as="select"
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm bg-white outline-none focus:border-primary"
-                >
-                  <option value="">Selecciona Categoría</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </Field>
-
-                <Field
-                  name="imagen"
-                  placeholder="URL de la imagen"
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                />
-              </div>
-
-              <hr className="border-gray-100" />
-
-              <div className="space-y-1">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
-                    Punto de Retiro:
-                  </label>
-                  <Field
-                    name="direccion_retiro"
-                    placeholder="Calle y altura, Ciudad"
-                    onBlur={() =>
-                      calcularDistanciaOSM(
-                        values.direccion_retiro,
-                        values.direccion_entrega,
-                        setFieldValue
-                      )
-                    }
-                    className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                  />
+                  {/* Trayecto y Mapa Lineal */}
+                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-semibold text-gray-900 border-b pb-2 text-left">
+                      Trayecto
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2 mb-4">
+                      <Field
+                        name="retry_id"
+                        placeholder="Origen"
+                        className={inputStyle}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                          handleSearch(e.target.value, "origen", setFieldValue)
+                        }
+                      />
+                      <Field
+                        name="delivery_id"
+                        placeholder="Destino"
+                        className={inputStyle}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                          handleSearch(e.target.value, "destino", setFieldValue)
+                        }
+                      />
+                    </div>
+                    <div className="h-87.5 rounded-xl overflow-hidden">
+                      <MapContainer
+                        center={[-34.1633, -58.9592]}
+                        zoom={12}
+                        style={{ height: "100%" }}
+                        ref={mapRef}
+                      >
+                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                        {coords.origen && (
+                          <Marker position={coords.origen} icon={customIcon} />
+                        )}
+                        {coords.destino && (
+                          <Marker position={coords.destino} icon={customIcon} />
+                        )}
+                        {coords.origen && coords.destino && (
+                          <Polyline
+                            positions={[coords.origen, coords.destino]}
+                            pathOptions={{
+                              color: "#D96B4A",
+                              weight: 4,
+                              dashArray: "8, 12",
+                            }}
+                          />
+                        )}
+                      </MapContainer>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-700">
-                    Dirección de Entrega:
-                  </label>
-                  <Field
-                    name="direccion_entrega"
-                    placeholder="Calle y altura, Ciudad"
-                    onBlur={() =>
-                      calcularDistanciaOSM(
-                        values.direccion_retiro,
-                        values.direccion_entrega,
-                        setFieldValue
-                      )
-                    }
-                    className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5">
-                  {isCalculating
-                    ? "Calculando..."
-                    : values.distancia > 0
-                    ? `Distancia: ${values.distancia.toFixed(2)} km / ${(
-                        values.distancia * KM_A_MILLAS
-                      ).toFixed(2)} mi`
-                    : "Completa ambas direcciones"}
-                </div>
-              </div>
+                {/* Presupuesto con los 4 checks */}
+                <aside className="h-fit rounded-2xl bg-[#1a232e] p-8 shadow-xl text-white sticky top-10 text-left">
+                  <h2 className="text-xl font-bold mb-6">Presupuesto</h2>
+                  <div className="space-y-4">
+                    <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
+                      <span>Trayecto</span>
+                      <span>{distance.toFixed(1)} km</span>
+                    </div>
+                    {/* Agregado volumen para que veas la conversión real */}
+                    <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
+                      <span>Volumen</span>
+                      <span>{volumenM3.toFixed(4)} m³</span>
+                    </div>
+                    <div className="pt-4 space-y-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Field type="checkbox" name="fragile" /> Frágil (+15%)
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Field type="checkbox" name="dangerous" /> Peligroso
+                        (+30%)
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Field type="checkbox" name="cooled" /> Refrigerado
+                        (+20%)
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Field type="checkbox" name="urgent" /> Urgente (+50%)
+                      </label>
+                    </div>
+                    <div className="flex justify-between text-2xl border-t border-gray-700 pt-6 mt-6">
+                      <span className="font-bold">Total:</span>
+                      <span className="font-bold text-primary">
+                        ${precioFinal.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="mt-8 w-full rounded-xl bg-primary py-4 font-bold text-white hover:bg-[#bf5a3a] transition-all"
+                  >
+                    Confirmar Envío
+                  </button>
+                </aside>
+              </Form>
             </div>
-
-            {/* COLUMNA DERECHA */}
-            <div className="space-y-2">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">
-                  Unidad:
-                </label>
-                <Field
-                  name="unidad"
-                  as="select"
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm bg-white outline-none focus:border-primary"
-                >
-                  <option value="cm">cm</option>
-                  <option value="in">in</option>
-                </Field>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1">
-                <Field
-                  name="alto"
-                  type="number"
-                  placeholder={`Alto (${values.unidad})`}
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                />
-                <Field
-                  name="ancho"
-                  type="number"
-                  placeholder={`Ancho (${values.unidad})`}
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                />
-                <Field
-                  name="profundidad"
-                  type="number"
-                  placeholder={`Profundidad (${values.unidad})`}
-                  className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
-                />
-              </div>
-
-              <hr className="border-gray-100" />
-
-              <fieldset className="space-y-1">
-                <legend className="text-sm font-semibold text-gray-900">
-                  Extras:
-                </legend>
-
-                <div className="space-y-1 text-xs text-gray-700">
-                  <label className="flex items-center gap-2">
-                    <Field type="checkbox" name="fragil" />
-                    Frágil
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Field type="checkbox" name="peligroso" />
-                    Peligroso
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Field type="checkbox" name="refrigerado" />
-                    Refrigerado
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Field type="checkbox" name="urgente" />
-                    Urgente
-                  </label>
-                </div>
-              </fieldset>
-            </div>
-          </div>
-
-          {/* FILA FINAL */}
-          <div className="mt-3 border-t border-gray-100 pt-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
-            <section className="md:col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-3 space-y-1 min-h-[90px]">
-              <h3 className="text-base font-semibold text-gray-900">Presupuesto</h3>
-
-              <p className="text-xs text-gray-600">
-                Volumen: {volumenM3.toFixed(4)} m³
-              </p>
-
-              <p className="text-xs text-gray-600">
-                Trayecto: {values.distancia.toFixed(1)} km
-              </p>
-
-              {porcentajeExtra > 0 && (
-                <p className="text-xs text-orange-600">
-                  Recargos: +${montoRecargo.toLocaleString("es-AR")}
-                </p>
-              )}
-
-              <h2 className="text-xl font-bold text-gray-900">
-                Total: ${precioFinal.toLocaleString("es-AR")}
-              </h2>
-            </section>
-
-            <div className="flex md:justify-center md:items-center h-full">
-              <button
-                type="submit"
-                className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto"
-              >
-                Generar orden
-              </button>
-            </div>
-          </div>
-        </Form>
-      );
-    }}
-  </Formik>
-);
+          </main>
+        );
+      }}
+    </Formik>
+  );
 };
 
 export default OrderView;
