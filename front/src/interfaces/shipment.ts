@@ -12,13 +12,16 @@ export interface ShipmentValues {
 export interface ShipmentErrors {
     name?: string;
     category_id?: string;
+    pickup_direction?: string;  
     delivery_direction?: string;
-    haight?: string;
+    height?: string;
     width?: string;
     depth?: string;
+    image?: string;
+    weight?: string;
 }
 export interface CalculatorValues {
-    haight: number;
+    height: number;
     width: number;
     depth: number;
     distance: number;
