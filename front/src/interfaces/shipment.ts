@@ -1,25 +1,25 @@
 export interface ShipmentValues {
-    nombre: string;
-    descripcion: string;
-    id_categoria: string | number;
-    direccion_entrega: string;
-    alto: number;
-    ancho: number;
-    profundidad: number;
-    imagen: string;
+    name: string;
+    description: string;
+    category_id: string | number;
+    delivery_direction: string;
+    haight: number;
+    width: number;
+    depth: number;
+    image: string;
 }
 
 export interface ShipmentErrors {
-    nombre?: string;
-    id_categoria?: string;
-    direccion_entrega?: string;
-    alto?: string;
-    ancho?: string;
-    profundidad?: string;
+    name?: string;
+    category_id?: string;
+    delivery_direction?: string;
+    haight?: string;
+    width?: string;
+    depth?: string;
 }
 export interface CalculatorValues {
-    alto: number;
-    ancho: number;
-    profundidad: number;
-    distancia: number;
+    haight: number;
+    width: number;
+    depth: number;
+    distance: number;
 }

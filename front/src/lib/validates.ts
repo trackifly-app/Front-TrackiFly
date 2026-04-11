@@ -5,31 +5,31 @@ import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/ty
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
 
-  if (!values.nombre) {
-    errors.nombre = 'El nombre es requerido';
+  if (!values.name) {
+    errors.name = 'El nombre es requerido';
   }
 
-  if (!values.id_categoria) {
-    errors.id_categoria = 'Selecciona una categoría';
+  if (!values.category_id) {
+    errors.category_id = 'Selecciona una categoría';
   }
 
-  if (!values.direccion_entrega) {
-    errors.direccion_entrega = 'La dirección es obligatoria';
+  if (!values.delivery_direction) {
+    errors.delivery_direction = 'La dirección es obligatoria';
   }
 
-  if (values.alto <= 0) errors.alto = 'Debe ser mayor a 0';
-  if (values.ancho <= 0) errors.ancho = 'Debe ser mayor a 0';
-  if (values.profundidad <= 0) errors.profundidad = 'Debe ser mayor a 0';
+  if (values.haight <= 0) errors.haight = 'Debe ser mayor a 0';
+  if (values.width <= 0) errors.width = 'Debe ser mayor a 0';
+  if (values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
 
   return errors;
 };
 
 export const validateCalculator = (values: CalculatorValues) => {
   const errors: any = {};
-  if (values.alto <= 0) errors.alto = 'Requerido';
-  if (values.ancho <= 0) errors.ancho = 'Requerido';
-  if (values.profundidad <= 0) errors.profundidad = 'Requerido';
-  if (values.distancia <= 0) errors.distancia = 'Ingresa la distancia';
+  if (values.haight <= 0) errors.haight = 'Requerido';
+  if (values.width <= 0) errors.width = 'Requerido';
+  if (values.depth <= 0) errors.depth = 'Requerido';
+  if (values.distance <= 0) errors.distance = 'Ingresa la distancia';
   return errors;
 };
 
