@@ -2,25 +2,6 @@ import { ShipmentValues, ShipmentErrors } from '@/interfaces/shipment';
 import { CalculatorValues } from '@/interfaces/shipment';
 import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/types/types';
 
-export interface ShipmentValues {
-  name: string;
-  category_id: string;
-  pickup_direction: string;
-  delivery_direction: string;
-  height: number; 
-  width: number;
-  depth: number;
-}
-export interface ShipmentErrors {
-  name?: string;
-  category_id?: string;
-  pickup_direction?: string;
-  delivery_direction?: string;
-  height?: string;
-  width?: string;
-  depth?: string;
-}
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 const PHONE_REGEX = /^[0-9]{7,15}$/;
@@ -54,8 +35,8 @@ export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
 };
 
 export const validateCalculator = (values: CalculatorValues) => {
-  const errors: any = {};
-  if (values.haight <= 0) errors.haight = 'Requerido';
+  const errors: Partial<Record<keyof CalculatorValues, string>> = {};
+  if (values.height <= 0) errors.height = 'Requerido';
   if (values.width <= 0) errors.width = 'Requerido';
   if (values.depth <= 0) errors.depth = 'Requerido';
   if (values.distance <= 0) errors.distance = 'Ingresa la distancia';

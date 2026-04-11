@@ -41,3 +41,21 @@ export interface ICountryProps {
   onChange: (value: string) => void;
   onBlur: () => void;
 }
+
+export type OrderFormValues = {
+  name: string;
+  description: string;
+  category_id: string;
+  image: string;
+  pickup_direction: string;
+  delivery_direction: string;
+  weight: string;
+  height: string;
+  width: string;
+  depth: string;
+  unit: string;
+  fragile: boolean;
+  dangerous: boolean;
+  cooled: boolean;
+  urgent: boolean;
+}
