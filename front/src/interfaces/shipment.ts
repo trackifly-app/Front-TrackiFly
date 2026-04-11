@@ -1,12 +1,12 @@
 export interface ShipmentValues {
     name: string;
-    description: string;
-    category_id: string | number;
-    delivery_direction: string;
-    haight: number;
+    category_id: string;
+    pickup_direction: string;    
+    delivery_direction: string; 
+    height: number;
     width: number;
     depth: number;
-    image: string;
+    weight: number;
 }
 
 export interface ShipmentErrors {

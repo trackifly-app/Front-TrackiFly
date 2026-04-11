@@ -2,6 +2,26 @@ import { ShipmentValues, ShipmentErrors } from '@/interfaces/shipment';
 import { CalculatorValues } from '@/interfaces/shipment';
 import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/types/types';
 
+export interface ShipmentValues {
+  name: string;
+  category_id: string;
+  pickup_direction: string;
+  delivery_direction: string;
+  height: number; 
+  width: number;
+  depth: number;
+}
+export interface ShipmentErrors {
+  name?: string;
+  category_id?: string;
+  pickup_direction?: string;
+  delivery_direction?: string;
+  height?: string;
+  width?: string;
+  depth?: string;
+}
+
+
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
 
@@ -14,10 +34,15 @@ export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   }
 
   if (!values.delivery_direction) {
-    errors.delivery_direction = 'La dirección es obligatoria';
+    errors.delivery_direction = 'La dirección de entrega es obligatoria';
   }
 
-  if (values.haight <= 0) errors.haight = 'Debe ser mayor a 0';
+  if (!values.pickup_direction) {
+    errors.pickup_direction = 'La dirección de retiro es obligatoria';
+  }
+
+ 
+  if (values.height <= 0) errors.height = 'Debe ser mayor a 0';
   if (values.width <= 0) errors.width = 'Debe ser mayor a 0';
   if (values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
 
