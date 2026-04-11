@@ -50,37 +50,35 @@ export default function CalcularEnvioPage() {
 
   // 2. Calcular ruta por carretera (Routing)
   const calcularRutaInterna = async (
-    origin: string,
-    destiny: string,
-    setFieldValue: any,
-  ) => {
-    if (origin.length < 5 || destiny.length < 5) return;
+  origin: string,
+  destiny: string,
+  setFieldValue: (field: string, value: any) => void
+) => {
+  if (origin.length < 5 || destiny.length < 5) return;
 
-    setIsCalculating(true);
-    const coordsOrg = await traducirDireccionACoordenadas(origin);
-    const coordsDest = await traducirDireccionACoordenadas(destiny);
+  setIsCalculating(true);
 
-    try {
-      const coordsOrg = await traducirDireccionACoordenadas(origen);
-      const coordsDest = await traducirDireccionACoordenadas(destino);
+      try {
+        const coordsOrg = await traducirDireccionACoordenadas(origin);
+        const coordsDest = await traducirDireccionACoordenadas(destiny);
 
-      if (coordsOrg && coordsDest) {
-        const response = await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`,
-        );
-        const data = await response.json();
+        if (coordsOrg && coordsDest) {
+          const response = await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`
+          );
+          const data = await response.json();
 
-        if (data.routes && data.routes[0]) {
-          const kms = data.routes[0].distance / 1000;
-          setFieldValue("distancia", kms);
+          if (data.routes && data.routes[0]) {
+            const kms = data.routes[0].distance / 1000;
+            setFieldValue("distancia", kms);
+          }
         }
+      } catch (error) {
+        console.error("Error calculando ruta:", error);
+      } finally {
+        setIsCalculating(false);
       }
-    } catch (error) {
-      console.error("Error calculando ruta:", error);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
+    };
 
   const initialValues: CalculatorValues = {
     alto: "",
