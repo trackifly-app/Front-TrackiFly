@@ -1,11 +1,11 @@
 "use client";
-
 import { useState, useEffect, useRef } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, FormikHelpers } from "formik";
 import dynamic from "next/dynamic";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
 import { CATEGORIES } from "@/lib/categories";
 import "leaflet/dist/leaflet.css";
+import { Map as LeafletMap } from "leaflet";
 
 // Importaciones dinámicas con SSR desactivado para evitar el error "window is not defined"
 const MapContainer = dynamic(
@@ -38,8 +38,9 @@ const OrderView = () => {
     origen: [number, number] | null;
     destino: [number, number] | null;
   }>({ origen: null, destino: null });
-  const [L, setL] = useState<any>(null); // Estado para cargar Leaflet solo en el cliente
-  const mapRef = useRef<any>(null);
+  const [L, setL] = useState<typeof import("leaflet") | null>(null); // Estado para cargar Leaflet solo en el cliente
+  const [distance, setDistance] = useState(0); //nueva
+  const mapRef = useRef<LeafletMap | null>(null);
   const provider = new OpenStreetMapProvider();
 
   const inputStyle =
@@ -52,10 +53,27 @@ const OrderView = () => {
     });
   }, []);
 
+  //useEffect afuera del render de Formik
+  useEffect(() => {
+    if (coords.origen && coords.destino && L) {
+      const d =
+        L.latLng(coords.origen).distanceTo(L.latLng(coords.destino)) / 1000;
+      setDistance(d);
+    }
+  }, [coords, L]);
+
+  // Ajuste automático del mapa para que no se vea "corrido"
+  useEffect(() => {
+    if (mapRef.current && coords.origen && coords.destino && L) {
+      const bounds = L.latLngBounds([coords.origen, coords.destino]);
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [coords, L]);
+
   const handleSearch = async (
     query: string,
     type: "origen" | "destino",
-    setFieldValue: any,
+    setFieldValue: FormikHelpers<unknown>["setFieldValue"],
   ) => {
     if (query.length < 4) return;
     const results = await provider.search({ query });
@@ -65,14 +83,6 @@ const OrderView = () => {
       setFieldValue(type === "origen" ? "retry_id" : "delivery_id", label);
     }
   };
-
-  // Ajuste automático del mapa para que no se vea "corrido"
-  useEffect(() => {
-    if (mapRef.current && coords.origen && coords.destino && L) {
-      const bounds = L.latLngBounds([coords.origen, coords.destino]);
-      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [coords, L]);
 
   if (!L) return <div className="p-10 text-center">Iniciando Trackifly...</div>;
 
@@ -92,29 +102,18 @@ const OrderView = () => {
         image: "",
         retry_id: "",
         delivery_id: "",
-        distance: 0,
         height: "",
         width: "",
         depth: "",
         unit: "cm", // unit agregada aquí
         fragile: false,
-        dagerous: false,
+        dangerous: false,
         cooled: false,
         urgent: false,
       }}
       onSubmit={(v) => console.log("Orden lista:", v)}
     >
       {({ values, setFieldValue }) => {
-        // Cálculo de distance para el presupuesto
-        useEffect(() => {
-          if (coords.origen && coords.destino) {
-            const d =
-              L.latLng(coords.origen).distanceTo(L.latLng(coords.destino)) /
-              1000;
-            setFieldValue("distance", d);
-          }
-        }, [coords, setFieldValue]);
-
         // Lógica de conversión a m3
         const factor = values.unit === "cm" ? 0.01 : 0.0254;
         const volumenM3 =
@@ -122,10 +121,10 @@ const OrderView = () => {
             factor *
             (Number(values.width) * factor) *
             (Number(values.depth) * factor) || 0;
-        const precioBase = volumenM3 * COSTO_M3 + values.distance * COSTO_KM;
+        const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
         let extra = 0;
         if (values.fragile) extra += RECARGOS.FRAGIL;
-        if (values.dagerous) extra += RECARGOS.PELIGROSO;
+        if (values.dangerous) extra += RECARGOS.PELIGROSO;
         if (values.cooled) extra += RECARGOS.REFRIGERADO;
         if (values.urgent) extra += RECARGOS.URGENTE;
         const precioFinal = precioBase * (1 + extra);
@@ -213,7 +212,7 @@ const OrderView = () => {
                         name="retry_id"
                         placeholder="Origen"
                         className={inputStyle}
-                        onBlur={(e: any) =>
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
                           handleSearch(e.target.value, "origen", setFieldValue)
                         }
                       />
@@ -221,12 +220,12 @@ const OrderView = () => {
                         name="delivery_id"
                         placeholder="Destino"
                         className={inputStyle}
-                        onBlur={(e: any) =>
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
                           handleSearch(e.target.value, "destino", setFieldValue)
                         }
                       />
                     </div>
-                    <div className="h-[350px] rounded-xl overflow-hidden">
+                    <div className="h-87.5 rounded-xl overflow-hidden">
                       <MapContainer
                         center={[-34.1633, -58.9592]}
                         zoom={12}
@@ -261,7 +260,7 @@ const OrderView = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
                       <span>Trayecto</span>
-                      <span>{values.distance.toFixed(1)} km</span>
+                      <span>{distance.toFixed(1)} km</span>
                     </div>
                     {/* Agregado volumen para que veas la conversión real */}
                     <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
@@ -273,7 +272,7 @@ const OrderView = () => {
                         <Field type="checkbox" name="fragile" /> Frágil (+15%)
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <Field type="checkbox" name="dagerous" /> Peligroso
+                        <Field type="checkbox" name="dangerous" /> Peligroso
                         (+30%)
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -281,7 +280,7 @@ const OrderView = () => {
                         (+20%)
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <Field type="checkbox" name="urgente" /> Urgente (+50%)
+                        <Field type="checkbox" name="urgent" /> Urgente (+50%)
                       </label>
                     </div>
                     <div className="flex justify-between text-2xl border-t border-gray-700 pt-6 mt-6">

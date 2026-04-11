@@ -158,9 +158,9 @@ export default function CalcularEnvioPage() {
 
               <div style={{ minHeight: "25px", color: "white" }}>
                 {isCalculating
-                  ? "Calculando distance..."
+                  ? "Calculando distancia..."
                   : values.distance > 0
-                    ? `distance detectada: ${values.distance.toFixed(2)} km`
+                    ? `distancia detectada: ${values.distance.toFixed(2)} km`
                     : null}
               </div>
 
@@ -168,11 +168,11 @@ export default function CalcularEnvioPage() {
 
               {/* Checkboxes completos */}
               <label>
-                <Field type="checkbox" name="fragil" /> Frágil
+                <Field type="checkbox" name="fragile" /> Frágil
               </label>
               <br />
               <label>
-                <Field type="checkbox" name="peligroso" /> dangerous
+                <Field type="checkbox" name="dangerous" /> Peligroso
               </label>
               <br />
               <label>
