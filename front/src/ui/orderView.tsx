@@ -74,6 +74,7 @@ const OrderView = () => {
     type: "origen" | "destino",
     setFieldValue: FormikHelpers<OrderFormValues>["setFieldValue"],
     setFieldTouched: FormikHelpers<OrderFormValues>["setFieldTouched"],
+    setFieldError: FormikHelpers<OrderFormValues>["setFieldError"],
   ) => {
     if (query.length < 4) return;
     try {
@@ -85,6 +86,10 @@ const OrderView = () => {
           type === "origen" ? "pickup_direction" : "delivery_direction";
         setFieldValue(fieldName, label);
         setFieldTouched(fieldName, true);
+      } else {
+        const fieldName =
+          type === "origen" ? "pickup_direction" : "delivery_direction";
+        setFieldError(fieldName, "Dirección no encontrada, intentá con otra");
       }
     } catch (error) {
       console.error("Error buscando dirección:", error);
@@ -128,9 +133,9 @@ const OrderView = () => {
         const shipmentValues = {
           ...values,
           height: Number(values.height) || 0,
-          width: Number(values.height) || 0,
-          depth: Number(values.height) || 0,
-          weight: Number(values.height) || 0,
+          width: Number(values.width) || 0,
+          depth: Number(values.depth) || 0,
+          weight: Number(values.weight) || 0,
         };
         const errors = validateShipment(shipmentValues);
         // Reforzamos la obligatoriedad de los campos clave
@@ -152,6 +157,7 @@ const OrderView = () => {
         values,
         setFieldValue,
         setFieldTouched,
+        setFieldError,
         errors,
         touched,
         isSubmitting,
@@ -328,6 +334,7 @@ const OrderView = () => {
                               "origen",
                               setFieldValue,
                               setFieldTouched,
+                              setFieldError,
                             )
                           }
                         />
@@ -349,6 +356,7 @@ const OrderView = () => {
                               "destino",
                               setFieldValue,
                               setFieldTouched,
+                              setFieldError,
                             )
                           }
                         />
