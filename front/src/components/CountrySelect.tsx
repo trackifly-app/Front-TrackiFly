@@ -3,23 +3,35 @@
 import Select from 'react-select';
 import countryList from 'react-select-country-list';
 import { useMemo } from 'react';
+import { CountryOption, ICountryProps } from '@/types/types';
 
-interface Props {
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-}
+const LATAM_COUNTRIES = [
+  'AR', // Argentina
+  'BO', // Bolivia
+  'BR', // Brasil
+  'CL', // Chile
+  'CO', // Colombia
+  'CR', // Costa Rica
+  'CU', // Cuba
+  'DO', // República Dominicana
+  'EC', // Ecuador
+  'SV', // El Salvador
+  'GT', // Guatemala
+  'HN', // Honduras
+  'MX', // México
+  'NI', // Nicaragua
+  'PA', // Panamá
+  'PY', // Paraguay
+  'PE', // Perú
+  'UY', // Uruguay
+  'VE', // Venezuela
+];
 
-type CountryOption = {
-  value: string;
-  label: string;
-  flag: string;
-};
-
-const CountrySelect = ({ value, onChange, onBlur }: Props) => {
+const CountrySelect = ({ value, onChange, onBlur }: ICountryProps) => {
   const options: CountryOption[] = useMemo(() => {
     return countryList()
       .getData()
+      .filter((c: { value: string }) => LATAM_COUNTRIES.includes(c.value))
       .map((c: { value: string; label: string }) => ({
         value: c.value,
         label: c.label,
