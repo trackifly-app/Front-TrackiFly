@@ -9,7 +9,7 @@ const AboutUs = () => {
   const values = t.raw("values") as { title: string; desc: string }[];
 
   return (
-    <div>
+    <div className="background bg-white">
       <main>
         <section className="flex flex-col items-start px-8 md:px-20 py-20 gap-6 max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight max-w-2xl">
