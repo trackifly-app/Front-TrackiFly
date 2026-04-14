@@ -1,31 +1,15 @@
-"use client";
-import { useState, useEffect, useRef } from "react";
-import { Formik, Form, Field, FormikHelpers } from "formik";
-import dynamic from "next/dynamic";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
-import { CATEGORIES } from "@/lib/categories";
-import "leaflet/dist/leaflet.css";
-import { Map as LeafletMap } from "leaflet";
-import { useRouter } from "next/navigation";
-import { validateShipment } from "@/lib/validates";
-import { OrderFormValues } from "@/types/types";
+'use client';
+import { useState, useRef, useCallback } from 'react';
+import { Formik, Form, Field } from 'formik';
+import { useRouter } from 'next/navigation';
+import { GoogleMap, useJsApiLoader, Marker, Polyline, Autocomplete } from '@react-google-maps/api';
 
-// Importaciones dinámicas con SSR desactivado
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((m) => m.MapContainer),
-  { ssr: false },
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((m) => m.TileLayer),
-  { ssr: false },
-);
-const Marker = dynamic(() => import("react-leaflet").then((m) => m.Marker), {
-  ssr: false,
-});
-const Polyline = dynamic(
-  () => import("react-leaflet").then((m) => m.Polyline),
-  { ssr: false },
-);
+import { CATEGORIES } from '@/lib/categories';
+import { validateShipment } from '@/lib/validates';
+
+const libraries: 'places'[] = ['places'];
+const mapContainerStyle = { width: '100%', height: '100%' };
+const centerDefault = { lat: -34.5997, lng: -58.3819 };
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -36,99 +20,121 @@ const RECARGOS = {
   URGENTE: 0.5,
 };
 
+// ========================================
+// COMPONENTE PRINCIPAL: OrderView
+// Gestiona el formulario de creación de órdenes con mapa interactivo
+// ========================================
 const OrderView = () => {
+  // Estado para almacenar coordenadas de origen y destino
   const router = useRouter();
   const [coords, setCoords] = useState<{
-    origen: [number, number] | null;
-    destino: [number, number] | null;
+    origen: google.maps.LatLngLiteral | null;
+    destino: google.maps.LatLngLiteral | null;
   }>({ origen: null, destino: null });
-  const [L, setL] = useState<typeof import("leaflet") | null>(null);
+
+  const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
-  const mapRef = useRef<LeafletMap | null>(null);
-  const provider = new OpenStreetMapProvider();
 
-  const inputStyle =
-    "w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary";
+  // Referencias para los inputs de autocompletado de Google Maps
+  const originRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  useEffect(() => {
-    import("leaflet").then((leaflet) => setL(leaflet));
+  // Cargador de la API de Google Maps
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
+
+  // ========================================
+  // FUNCIÓN: calcularRutaReal
+  // Calcula la ruta real entre origen y destino usando Google Directions Service
+  // ========================================
+  const calcularRutaReal = useCallback((origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
+    const directionsService = new google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: origen,
+        destination: destino,
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === 'OK' && result) {
+          const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
+          setDistance(distKm);
+          const path = result.routes[0].overview_path.map((p) => ({
+            lat: p.lat(),
+            lng: p.lng(),
+          }));
+          setRoutePath(path);
+        }
+      },
+    );
   }, []);
 
-  useEffect(() => {
-    if (coords.origen && coords.destino && L) {
-      const d =
-        L.latLng(coords.origen).distanceTo(L.latLng(coords.destino)) / 1000;
-      setDistance(d);
-    }
-  }, [coords, L]);
+  // ========================================
+  // FUNCIÓN: onPlaceChanged
+  // Maneja el cambio de ubicación en los inputs de autocompletado
+  // Actualiza coordenadas y calcula la ruta cuando ambas se seleccionan
+  // ========================================
+  const onPlaceChanged = (type: 'origen' | 'destino', setFieldValue: any) => {
+    const autocomplete = type === 'origen' ? originRef.current : destinationRef.current;
+    if (autocomplete) {
+      const place = autocomplete.getPlace();
+      if (!place.geometry || !place.geometry.location) return;
 
-  useEffect(() => {
-    if (mapRef.current && coords.origen && coords.destino && L) {
-      const bounds = L.latLngBounds([coords.origen, coords.destino]);
-      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [coords, L]);
+      const newCoord = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
+      };
 
-  const handleSearch = async (
-    query: string,
-    type: "origen" | "destino",
-    setFieldValue: FormikHelpers<OrderFormValues>["setFieldValue"],
-    setFieldTouched: FormikHelpers<OrderFormValues>["setFieldTouched"],
-    setFieldError: FormikHelpers<OrderFormValues>["setFieldError"],
-  ) => {
-    if (query.length < 4) return;
-    try {
-      const results = await provider.search({ query });
-      if (results && results.length > 0) {
-        const { y, x, label } = results[0];
-        setCoords((prev) => ({ ...prev, [type]: [y, x] }));
-        const fieldName =
-          type === "origen" ? "pickup_direction" : "delivery_direction";
-        setFieldValue(fieldName, label);
-        setFieldTouched(fieldName, true);
-      } else {
-        const fieldName =
-          type === "origen" ? "pickup_direction" : "delivery_direction";
-        setFieldError(fieldName, "Dirección no encontrada, intentá con otra");
-      }
-    } catch (error) {
-      console.error("Error buscando dirección:", error);
+      const fieldName = type === 'origen' ? 'pickup_direction' : 'delivery_direction';
+      setFieldValue(fieldName, place.formatted_address);
+
+      setCoords((prev) => {
+        const newCoords = { ...prev, [type]: newCoord };
+        if (newCoords.origen && newCoords.destino) {
+          calcularRutaReal(newCoords.origen, newCoords.destino);
+        }
+        return newCoords;
+      });
     }
   };
 
-  if (!L)
-    return (
-      <div className="p-10 text-center font-bold text-primary">
-        Iniciando Trackifly...
-      </div>
-    );
+  // ========================================
+  // ESTILOS REUTILIZABLES
+  // ========================================
+  const inputStyle = 'w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all';
+  const errorLabel = 'text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left';
 
-  const customIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
+  if (!isLoaded) return <div className="p-10 text-center font-bold text-primary animate-pulse text-lg">Iniciando TrackiFly...</div>;
 
+  // ========================================
+  // FORMULARIO PRINCIPAL: Formik
+  // Maneja validación, estado y envío del formulario de orden de envío
+  // ========================================
   return (
     <Formik
       initialValues={{
-        name: "",
-        description: "",
-        category_id: "",
-        image: "",
-        pickup_direction: "",
-        delivery_direction: "",
-        weight: "",
-        height: "",
-        width: "",
-        depth: "",
-        unit: "cm",
+        name: '',
+        description: '',
+        category_id: '',
+        image: '',
+        pickup_direction: '',
+        delivery_direction: '',
+        weight: '',
+        height: '',
+        width: '',
+        depth: '',
+        unit: 'cm',
         fragile: false,
         dangerous: false,
         cooled: false,
         urgent: false,
       }}
+      // ========================================
+      // VALIDACIÓN DE FORMULARIO
+      // ========================================
       validate={(values) => {
         const shipmentValues = {
           ...values,
@@ -138,44 +144,55 @@ const OrderView = () => {
           weight: Number(values.weight) || 0,
         };
         const errors = validateShipment(shipmentValues);
-        // Reforzamos la obligatoriedad de los campos clave
-        if (!values.image) errors.image = "La imagen es obligatoria";
-        if (!values.category_id)
-          errors.category_id = "Seleccioná una categoría";
-        if (!values.weight) errors.weight = "El peso es obligatorio";
-        if (!values.height) errors.height = "Requerido";
-        if (!values.width) errors.width = "Requerido";
-        if (!values.depth) errors.depth = "Requerido";
+
+        if (!values.description) {
+          errors.description = 'Requerido';
+        } else if (values.description.length < 10) {
+          errors.description = 'Muy corta (mín. 10 caracteres)';
+        }
+
+        const pesoNum = Number(values.weight);
+        if (!values.weight) {
+          errors.weight = 'Requerido';
+        } else if (pesoNum <= 0) {
+          errors.weight = 'Debe ser mayor a 0';
+        } else if (pesoNum > 500) {
+          errors.weight = 'Máximo 500kg por envío';
+        }
+
+        if (!values.name) errors.name = 'Requerido';
+        if (!values.category_id) errors.category_id = 'Seleccioná categoría';
+        if (!values.image) errors.image = 'URL obligatoria';
+        if (!values.pickup_direction) errors.pickup_direction = 'Origen requerido';
+        if (!values.delivery_direction) errors.delivery_direction = 'Destino requerido';
+
         return errors;
       }}
+      // ========================================
+      // MANEJADOR DE ENVÍO DEL FORMULARIO
+      // ========================================
       onSubmit={async (values) => {
-        console.log("Orden válida, enviando:", values);
-        router.push("/dashboard/user");
+        if (distance === 0) {
+          alert('Selecciona origen y destino válidos en el mapa.');
+          return;
+        }
+        console.log('Enviando a TrackiFly:', values);
+        router.push('/dashboard/user');
       }}
     >
-      {({
-        values,
-        setFieldValue,
-        setFieldTouched,
-        setFieldError,
-        errors,
-        touched,
-        isSubmitting,
-      }) => {
-        const factor = values.unit === "cm" ? 0.01 : 0.0254;
-        const volumenM3 =
-          Number(values.height) *
-            factor *
-            (Number(values.width) * factor) *
-            (Number(values.depth) * factor) || 0;
+      {({ values, setFieldValue, errors, touched, isSubmitting, submitCount }) => {
+        // ========================================
+        // CÁLCULOS DE PRESUPUESTO
+        // Calcula volumen, precio base, recargos por peso y servicios adicionales
+        // ========================================
+        const factor = values.unit === 'cm' ? 0.01 : 0.0254;
+        const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
         const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
 
-        // Recargo por peso: +5% cada 2kg extra (base 2kg)
         let recargoPeso = 0;
         const pesoNum = Number(values.weight) || 0;
         if (pesoNum > 2) {
-          const bloquesExtras = Math.floor((pesoNum - 2) / 2);
-          recargoPeso = bloquesExtras * 0.05;
+          recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
         }
 
         let extraServicios = 0;
@@ -184,300 +201,131 @@ const OrderView = () => {
         if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
         if (values.urgent) extraServicios += RECARGOS.URGENTE;
 
-        const precioFinal = precioBase * (1 + extraServicios + recargoPeso);
+        const precioFinal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
 
+        // ========================================
+        // RENDERIZADO DEL COMPONENTE
+        // ========================================
         return (
           <main className="min-h-screen bg-gray-50 px-4 py-10">
             <div className="mx-auto max-w-6xl">
               <Form className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
-                <div className="space-y-6">
-                  {/* DETALLES DEL PRODUCTO */}
+                <div className="space-y-6 text-left">
                   <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900 border-b pb-2 text-left">
-                      Detalles del Producto
-                    </h3>
+                    <h3 className="mb-4 text-lg font-bold border-b pb-2 uppercase text-gray-800">Detalles del Producto</h3>
                     <div className="grid gap-4">
                       <div>
-                        <Field
-                          name="name"
-                          placeholder="Nombre"
-                          className={inputStyle}
-                        />
-                        {errors.name && touched.name && (
-                          <p className="text-red-500 text-[10px] mt-1 text-left">
-                            {errors.name}
-                          </p>
-                        )}
+                        <Field name="name" placeholder="Nombre del producto" className={`${inputStyle} ${errors.name && (touched.name || submitCount > 0) ? 'border-red-500' : ''}`} />
+                        {errors.name && (touched.name || submitCount > 0) && <p className={errorLabel}>{errors.name}</p>}
                       </div>
 
-                      <Field
-                        as="textarea"
-                        name="description"
-                        placeholder="Descripción..."
-                        className={`${inputStyle} h-20`}
-                      />
+                      <div>
+                        <Field as="textarea" name="description" placeholder="Descripción detallada del contenido..." className={`${inputStyle} h-24 resize-none ${errors.description && (touched.description || submitCount > 0) ? 'border-red-500' : ''}`} />
+                        {errors.description && (touched.description || submitCount > 0) && <p className={errorLabel}>{errors.description}</p>}
+                      </div>
 
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                          <Field
-                            as="select"
-                            name="category_id"
-                            className={inputStyle}
-                          >
-                            <option value="">Selecciona Categoría...</option>
+                          <Field as="select" name="category_id" className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? 'border-red-500' : ''}`}>
+                            <option value="">Categoría...</option>
                             {CATEGORIES.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.name}
                               </option>
                             ))}
                           </Field>
-                          {errors.category_id && touched.category_id && (
-                            <p className="text-red-500 text-[10px] mt-1 text-left">
-                              {errors.category_id}
-                            </p>
-                          )}
+                          {errors.category_id && (touched.category_id || submitCount > 0) && <p className={errorLabel}>{errors.category_id}</p>}
                         </div>
                         <div>
-                          <Field
-                            name="image"
-                            placeholder="Imagen URL"
-                            className={inputStyle}
-                          />
-                          {errors.image && touched.image && (
-                            <p className="text-red-500 text-[10px] mt-1 text-left">
-                              {errors.image}
-                            </p>
-                          )}
+                          <Field name="image" placeholder="URL Imagen" className={`${inputStyle} ${errors.image && (touched.image || submitCount > 0) ? 'border-red-500' : ''}`} />
+                          {errors.image && (touched.image || submitCount > 0) && <p className={errorLabel}>{errors.image}</p>}
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-start">
                         <div className="flex-1">
-                          <Field
-                            name="height"
-                            placeholder="Altura"
-                            type="number"
-                            className={inputStyle}
-                          />
-                          {errors.height && touched.height && (
-                            <p className="text-red-500 text-[10px] mt-1">
-                              {errors.height}
-                            </p>
-                          )}
+                          <Field name="height" placeholder="Altura" type="number" className={`${inputStyle} ${errors.height && (touched.height || submitCount > 0) ? 'border-red-500' : ''}`} />
+                          {errors.height && (touched.height || submitCount > 0) && <p className={errorLabel}>{errors.height}</p>}
                         </div>
                         <div className="flex-1">
-                          <Field
-                            name="width"
-                            placeholder="Ancho"
-                            type="number"
-                            className={inputStyle}
-                          />
-                          {errors.width && touched.width && (
-                            <p className="text-red-500 text-[10px] mt-1">
-                              {errors.width}
-                            </p>
-                          )}
+                          <Field name="width" placeholder="Ancho" type="number" className={`${inputStyle} ${errors.width && (touched.width || submitCount > 0) ? 'border-red-500' : ''}`} />
+                          {errors.width && (touched.width || submitCount > 0) && <p className={errorLabel}>{errors.width}</p>}
                         </div>
                         <div className="flex-1">
-                          <Field
-                            name="depth"
-                            placeholder="Profundidad"
-                            type="number"
-                            className={inputStyle}
-                          />
-                          {errors.depth && touched.depth && (
-                            <p className="text-red-500 text-[10px] mt-1">
-                              {errors.depth}
-                            </p>
-                          )}
+                          <Field name="depth" placeholder="Profundidad" type="number" className={`${inputStyle} ${errors.depth && (touched.depth || submitCount > 0) ? 'border-red-500' : ''}`} />
+                          {errors.depth && (touched.depth || submitCount > 0) && <p className={errorLabel}>{errors.depth}</p>}
                         </div>
-                        <Field
-                          as="select"
-                          name="unit"
-                          className="rounded-xl border border-gray-300 bg-gray-50 px-3 font-bold text-gray-700 outline-none h-12.5"
-                        >
+                        <Field as="select" name="unit" className="h-12.5 rounded-xl border bg-gray-50 px-2 font-bold">
                           <option value="cm">cm</option>
                           <option value="in">in</option>
                         </Field>
                       </div>
 
                       <div>
-                        <Field
-                          name="weight"
-                          placeholder="Peso (kg)"
-                          type="number"
-                          className={inputStyle}
-                        />
-                        {errors.weight && touched.weight && (
-                          <p className="text-red-500 text-[10px] mt-1 text-left">
-                            {errors.weight}
-                          </p>
-                        )}
+                        <Field name="weight" placeholder="Peso (kg)" type="number" className={`${inputStyle} ${errors.weight && (touched.weight || submitCount > 0) ? 'border-red-500' : ''}`} />
+                        {errors.weight && (touched.weight || submitCount > 0) && <p className={errorLabel}>{errors.weight}</p>}
                       </div>
                     </div>
                   </div>
 
-                  {/* TRAYECTO */}
                   <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-900 border-b pb-2 text-left">
-                      Trayecto
-                    </h3>
+                    <h3 className="mb-4 text-lg font-bold border-b pb-2 uppercase text-gray-800">Trayecto</h3>
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
-                        <Field
-                          name="pickup_direction"
-                          placeholder="Origen"
-                          className={inputStyle}
-                          onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-                            handleSearch(
-                              e.target.value,
-                              "origen",
-                              setFieldValue,
-                              setFieldTouched,
-                              setFieldError,
-                            )
-                          }
-                        />
-                        {errors.pickup_direction &&
-                          touched.pickup_direction && (
-                            <p className="text-red-500 text-[10px] mt-1 text-left">
-                              {errors.pickup_direction}
-                            </p>
-                          )}
+                        <Autocomplete onLoad={(ref) => (originRef.current = ref)} onPlaceChanged={() => onPlaceChanged('origen', setFieldValue)}>
+                          <input type="text" placeholder="Origen" className={inputStyle} />
+                        </Autocomplete>
+                        {errors.pickup_direction && submitCount > 0 && <p className={errorLabel}>{errors.pickup_direction}</p>}
                       </div>
                       <div>
-                        <Field
-                          name="delivery_direction"
-                          placeholder="Destino"
-                          className={inputStyle}
-                          onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-                            handleSearch(
-                              e.target.value,
-                              "destino",
-                              setFieldValue,
-                              setFieldTouched,
-                              setFieldError,
-                            )
-                          }
-                        />
-                        {errors.delivery_direction &&
-                          touched.delivery_direction && (
-                            <p className="text-red-500 text-[10px] mt-1 text-left">
-                              {errors.delivery_direction}
-                            </p>
-                          )}
+                        <Autocomplete onLoad={(ref) => (destinationRef.current = ref)} onPlaceChanged={() => onPlaceChanged('destino', setFieldValue)}>
+                          <input type="text" placeholder="Destino" className={inputStyle} />
+                        </Autocomplete>
+                        {errors.delivery_direction && submitCount > 0 && <p className={errorLabel}>{errors.delivery_direction}</p>}
                       </div>
                     </div>
-                    <div className="h-87.5 rounded-xl overflow-hidden border">
-                      <MapContainer
-                        center={[-34.1633, -58.9592]}
-                        zoom={12}
-                        style={{ height: "100%" }}
-                        ref={mapRef}
-                      >
-                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                        {coords.origen && (
-                          <Marker position={coords.origen} icon={customIcon} />
-                        )}
-                        {coords.destino && (
-                          <Marker position={coords.destino} icon={customIcon} />
-                        )}
-                        {coords.origen && coords.destino && (
-                          <Polyline
-                            positions={[coords.origen, coords.destino]}
-                            pathOptions={{
-                              color: "#D96B4A",
-                              weight: 4,
-                              dashArray: "8, 12",
-                            }}
-                          />
-                        )}
-                      </MapContainer>
+                    <div className="h-80 rounded-xl overflow-hidden border">
+                      <GoogleMap mapContainerStyle={mapContainerStyle} center={coords.origen || centerDefault} zoom={12}>
+                        {coords.origen && <Marker position={coords.origen} label="A" />}
+                        {coords.destino && <Marker position={coords.destino} label="B" />}
+                        {routePath.length > 0 && <Polyline path={routePath} options={{ strokeColor: '#D96B4A', strokeWeight: 5 }} />}
+                      </GoogleMap>
                     </div>
                   </div>
                 </div>
 
-                {/* PRESUPUESTO */}
-                <aside className="h-fit rounded-2xl bg-[#1a232e] p-8 shadow-xl text-white sticky top-10 text-left">
-                  <h2 className="text-xl font-bold mb-6">Presupuesto</h2>
+                <aside className="h-fit rounded-2xl bg-[#1a232e] p-8 shadow-xl text-white sticky top-10 self-start text-left">
+                  <h2 className="text-xl font-black mb-6 border-b border-gray-700 pb-2 uppercase">Presupuesto</h2>
                   <div className="space-y-4">
-                    <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
-                      <span>Trayecto</span>
-                      <span>{distance.toFixed(1)} km</span>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Trayecto:</span>
+                      <span className="text-white font-mono">{distance.toFixed(1)} km</span>
                     </div>
-                    <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
-                      <span>Volumen</span>
-                      <span>{volumenM3.toFixed(4)} m³</span>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Volumen:</span>
+                      <span className="text-white font-mono">{volumenM3.toFixed(4)} m³</span>
                     </div>
-                    <div className="flex justify-between border-b border-gray-700 pb-2 text-sm text-gray-400">
-                      <span>Peso</span>
-                      <span>
-                        {pesoNum} kg{" "}
-                        {recargoPeso > 0 && (
-                          <span className="text-primary ml-1">
-                            {" "}
-                            (+{(recargoPeso * 100).toFixed(0)}%)
-                          </span>
-                        )}
-                      </span>
+                    <div className="flex justify-between text-sm text-gray-400">
+                      <span>Peso:</span>
+                      <span className="text-white font-mono">{pesoNum} kg</span>
                     </div>
-
                     <div className="pt-4 space-y-3">
-                      <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                        <Field
-                          type="checkbox"
-                          name="fragile"
-                          className="accent-primary"
-                        />{" "}
-                        Frágil (+15%)
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                        <Field
-                          type="checkbox"
-                          name="dangerous"
-                          className="accent-primary"
-                        />{" "}
-                        Peligroso (+30%)
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                        <Field
-                          type="checkbox"
-                          name="cooled"
-                          className="accent-primary"
-                        />{" "}
-                        Refrigerado (+20%)
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
-                        <Field
-                          type="checkbox"
-                          name="urgent"
-                          className="accent-primary"
-                        />{" "}
-                        Urgente (+50%)
-                      </label>
+                      {['fragile', 'dangerous', 'cooled', 'urgent'].map((serv) => (
+                        <label key={serv} className="flex items-center gap-3 cursor-pointer hover:text-primary text-xs font-bold uppercase">
+                          <Field type="checkbox" name={serv} className="accent-primary h-4 w-4" />
+                          {serv === 'fragile' ? 'Frágil (+15%)' : serv === 'dangerous' ? 'Peligroso (+30%)' : serv === 'cooled' ? 'Refrigerado (+20%)' : 'Urgente (+50%)'}
+                        </label>
+                      ))}
                     </div>
-
-                    <div className="flex justify-between text-2xl border-t border-gray-700 pt-6 mt-6">
-                      <span className="font-bold">Total:</span>
-                      <span className="font-bold text-primary">
-                        ${precioFinal.toLocaleString("es-AR")}
-                      </span>
+                    <div className="flex justify-between items-baseline text-3xl border-t border-gray-700 pt-6 mt-6">
+                      <span className="font-black italic text-lg uppercase">Neto:</span>
+                      <span className="font-black text-primary">${precioFinal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="mt-8 w-full rounded-xl bg-primary py-4 font-bold text-white hover:bg-[#bf5a3a] transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    {isSubmitting ? "Enviando..." : "Confirmar Envío"}
+                  <button type="submit" disabled={isSubmitting} className="mt-8 w-full rounded-xl bg-primary py-4 font-black text-white hover:bg-orange-700 transition-all active:scale-95 shadow-lg uppercase">
+                    {isSubmitting ? 'REGISTRANDO...' : 'CONFIRMAR ENVÍO'}
                   </button>
-
-                  {Object.keys(errors).length > 0 && (
-                    <p className="text-red-400 text-[10px] mt-4 text-center uppercase tracking-widest font-bold">
-                      Datos incompletos
-                    </p>
-                  )}
+                  {Object.keys(errors).length > 0 && submitCount > 0 && <p className="text-red-400 text-[10px] mt-4 text-center font-bold animate-pulse uppercase">Corrija los errores resaltados</p>}
                 </aside>
               </Form>
             </div>
