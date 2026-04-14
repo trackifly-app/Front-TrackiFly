@@ -18,6 +18,7 @@ type CalculatorValues = {
   alto: string;
   ancho: string;
   profundidad: string;
+  peso: string;
   unidad: "cm" | "in";
   origen: string;
   destino: string;
@@ -84,6 +85,7 @@ export default function CalcularEnvioPage() {
     alto: "",
     ancho: "",
     profundidad: "",
+    peso:"",
     unidad: "cm",
     origen: "",
     destino: "",
@@ -109,8 +111,15 @@ export default function CalcularEnvioPage() {
 
         const volumen = altoM * anchoM * profM;
         const precioBase = volumen * COSTO_M3 + values.distancia * COSTO_KM;
+        const pesoNum = Number(values.peso) || 0;
 
-        let porcentajeExtra = 0;
+        let recargoPeso = 0;
+        if (pesoNum > 2) {
+          const bloquesExtras = Math.floor((pesoNum - 2) / 2);
+          recargoPeso = bloquesExtras * 0.05;
+        }
+
+        let porcentajeExtra = recargoPeso;
         if (values.fragil) porcentajeExtra += RECARGOS.FRAGIL;
         if (values.peligroso) porcentajeExtra += RECARGOS.PELIGROSO;
         if (values.refrigerado) porcentajeExtra += RECARGOS.REFRIGERADO;
@@ -118,6 +127,7 @@ export default function CalcularEnvioPage() {
 
         const montoRecargo = precioBase * porcentajeExtra;
         const precioFinal = precioBase + montoRecargo;
+        
 
         return (
           <Form className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm w-full">
@@ -210,6 +220,12 @@ export default function CalcularEnvioPage() {
                     placeholder={`Profundidad (${values.unidad})`}
                     className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
                   />
+                  <Field
+                    name="peso"
+                    type="number"
+                    placeholder="Peso (kg)"
+                    className="w-full rounded-lg border border-gray-200 px-2 py-1.5 text-sm outline-none focus:border-primary"
+                  />
                 </div>
 
                 <hr className="border-gray-100" />
@@ -253,6 +269,11 @@ export default function CalcularEnvioPage() {
 
                 <p className="text-xs text-gray-600">
                   Trayecto: {values.distancia.toFixed(1)} km
+                </p>
+                
+                <p className="text-xs text-gray-600">
+                  Peso: {pesoNum} kg
+                  {recargoPeso > 0 && ` (+${(recargoPeso * 100).toFixed(0)}%)`}
                 </p>
 
                 {porcentajeExtra > 0 && (
