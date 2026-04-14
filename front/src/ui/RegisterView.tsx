@@ -70,6 +70,11 @@ const RegisterView = () => {
                       type={field.type}
                       name={field.name}
                       maxLength={field.max}
+                      max={field.name === 'birthdate' ? new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0] : undefined}
+                      onChange={(e: any) => {
+                        setFieldValue(field.name, e.target.value, true);
+                        setFieldTouched(field.name, true, false);
+                      }}
                       onInput={(e: any) => {
                         if (field.name === 'name') {
                           e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
@@ -81,6 +86,8 @@ const RegisterView = () => {
                       }}
                       className="mt-1 w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm focus:border-[#e76f51] focus:outline-none focus:ring-2 focus:ring-[#f4a261]/40"
                     />
+
+                    <ErrorMessage name={field.name} component="div" className="text-xs text-red-500 mt-1" />
                   </div>
                 ))}
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, ShieldCheck, UserCircle } from "lucide-react";
+import { LogOut, ShieldCheck, UserCircle, Building2 } from "lucide-react";
 
 const Navbar = () => {
   return (
@@ -41,7 +41,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="group flex items-center text-primary px-4 py-2 rounded-xl transition-all duration-300 ease-in-out">
+        <div className="group flex items-center text-primary px-2 py-2 rounded-xl transition-all duration-300 ease-in-out">
           <span className="text-xl">
             {" "}
             <ShieldCheck size={30} />
@@ -49,6 +49,16 @@ const Navbar = () => {
 
           <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
             <Link href="/dashboard/admin">Administrador</Link>
+          </span>
+        </div>
+        <div className="group flex items-center text-primary px-2 py-2 rounded-xl transition-all duration-300 ease-in-out">
+          <span className="text-xl">
+            {" "}
+            <Building2 size={30} />
+          </span>
+
+          <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+            <Link href="/dashboard/company">Empresas</Link>
           </span>
         </div>
         <Link
