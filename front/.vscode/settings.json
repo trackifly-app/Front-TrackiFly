@@ -2,5 +2,9 @@
   "i18n-ally.locales": ["es", "en"],
   "i18n-ally.sourceLanguage": "es",
   "i18n-ally.enabledFrameworks": ["next-intl"],
-  "i18n-ally.localePath": "messages/{locale}.json"
+  "i18n-ally.localePath": "messages/{locale}.json",
+  "i18n-ally.localesPaths": [
+    "messages",
+    "src/i18n"
+  ]
 }
