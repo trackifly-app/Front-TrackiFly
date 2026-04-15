@@ -35,6 +35,9 @@ const OrderView = () => {
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
 
+  // Referencia al mapa para controlar el zoom y encuadre manualmente
+  const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
+
   // Referencias para los inputs de autocompletado de Google Maps
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
   const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -50,27 +53,35 @@ const OrderView = () => {
   // FUNCIÓN: calcularRutaReal
   // Calcula la ruta real entre origen y destino usando Google Directions Service
   // ========================================
-  const calcularRutaReal = useCallback((origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
-    const directionsService = new google.maps.DirectionsService();
-    directionsService.route(
-      {
-        origin: origen,
-        destination: destino,
-        travelMode: google.maps.TravelMode.DRIVING,
-      },
-      (result, status) => {
-        if (status === 'OK' && result) {
-          const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
-          setDistance(distKm);
-          const path = result.routes[0].overview_path.map((p) => ({
-            lat: p.lat(),
-            lng: p.lng(),
-          }));
-          setRoutePath(path);
-        }
-      },
-    );
-  }, []);
+  const calcularRutaReal = useCallback(
+    (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: origen,
+          destination: destino,
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === 'OK' && result) {
+            const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
+            setDistance(distKm);
+            const path = result.routes[0].overview_path.map((p) => ({
+              lat: p.lat(),
+              lng: p.lng(),
+            }));
+            setRoutePath(path);
+
+            // Ajuste automático del mapa para mostrar toda la ruta
+            if (mapRef && result.routes[0].bounds) {
+              mapRef.fitBounds(result.routes[0].bounds);
+            }
+          }
+        },
+      );
+    },
+    [mapRef],
+  );
 
   // ========================================
   // FUNCIÓN: onPlaceChanged
@@ -284,11 +295,30 @@ const OrderView = () => {
                         {errors.delivery_direction && submitCount > 0 && <p className={errorLabel}>{errors.delivery_direction}</p>}
                       </div>
                     </div>
-                    <div className="h-80 rounded-xl overflow-hidden border">
-                      <GoogleMap mapContainerStyle={mapContainerStyle} center={coords.origen || centerDefault} zoom={12}>
-                        {coords.origen && <Marker position={coords.origen} label="A" />}
-                        {coords.destino && <Marker position={coords.destino} label="B" />}
-                        {routePath.length > 0 && <Polyline path={routePath} options={{ strokeColor: '#D96B4A', strokeWeight: 5 }} />}
+
+                    <div className="relative h-100 rounded-xl overflow-hidden border shadow-[inset_0_2px_8px_rgba(0,0,0,0.15)]">
+                      <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
+                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) + 1)} className="flex h-9 w-9 items-center justify-center rounded-t-lg border-b bg-white text-xl font-bold text-gray-600 shadow-sm hover:bg-gray-50 active:bg-gray-200">
+                          +
+                        </button>
+                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)} className="flex h-9 w-9 items-center justify-center rounded-b-lg bg-white text-xl font-bold text-gray-600 shadow-sm hover:bg-gray-50 active:bg-gray-200">
+                          −
+                        </button>
+                      </div>
+
+                      <GoogleMap
+                        onLoad={(map) => setMapRef(map)}
+                        mapContainerStyle={mapContainerStyle}
+                        center={coords.origen || centerDefault}
+                        zoom={12}
+                        options={{
+                          disableDefaultUI: true,
+                          zoomControl: false,
+                        }}
+                      >
+                        {coords.origen && <Marker position={coords.origen} label={{ text: 'A', color: 'white', fontWeight: 'bold' }} />}
+                        {coords.destino && <Marker position={coords.destino} label={{ text: 'B', color: 'white', fontWeight: 'bold' }} />}
+                        {routePath.length > 0 && <Polyline path={routePath} options={{ strokeColor: '#D96B4A', strokeWeight: 5, strokeOpacity: 0.9 }} />}
                       </GoogleMap>
                     </div>
                   </div>

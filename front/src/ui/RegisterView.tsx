@@ -1,24 +1,22 @@
 'use client';
 
-import { validateFormRegister } from '@/lib/validates';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import Link from 'next/link';
-import CountrySelect from '@/components/CountrySelect';
-import Swal from 'sweetalert2';
-import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { Formik, Form } from 'formik';
+import Link from 'next/link';
+import Swal from 'sweetalert2';
+import { validateFormRegister } from '@/lib/validates';
+import { RegisterFields } from '@/ui/RegisterFields';
 
-// Componente principal para la vista de registro de usuario
 const RegisterView = () => {
-  // Estado para controlar la visibilidad de la contraseña
+  const [activeRole, setActiveRole] = useState('usuario');
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="flex min-h-[calc(100vh-140px)]">
-      {/* Sección izquierda: Formulario de registro */}
+      {/* SECCIÓN IZQUIERDA: Formulario */}
       <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#f7f7f7] px-4 sm:px-6 py-8">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6 sm:p-8 max-h-[85vh] overflow-y-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">Crear cuenta</h2>
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6 sm:p-8 my-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">{activeRole === 'usuario' ? 'Registro de Usuario' : 'Registro de Empleado'}</h2>
 
           <p className="mt-2 text-center text-sm text-gray-500">
             ¿Ya tenés cuenta?{' '}
@@ -27,7 +25,19 @@ const RegisterView = () => {
             </Link>
           </p>
 
-          {/* Formulario usando Formik para manejo de estado y validación */}
+          {/* Selector de Rol */}
+          <div className="mt-6 space-y-2">
+            <label className="text-xs text-gray-400 font-bold uppercase tracking-wider">Registrarse como:</label>
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+              <button type="button" onClick={() => setActiveRole('usuario')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'usuario' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
+                Usuario
+              </button>
+              <button type="button" onClick={() => setActiveRole('empleado')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'empleado' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
+                Empleado
+              </button>
+            </div>
+          </div>
+
           <Formik
             initialValues={{
               email: '',
@@ -41,11 +51,12 @@ const RegisterView = () => {
             }}
             validate={validateFormRegister}
             onSubmit={(values, { resetForm, setFieldValue }) => {
-              // Manejo del envío del formulario: muestra alerta de éxito y resetea el formulario
+              const roleName = activeRole === 'usuario' ? 'Usuario' : 'Empleado';
+
               Swal.fire({
                 icon: 'success',
-                title: 'Registro exitoso',
-                text: 'Usuario registrado correctamente',
+                title: '¡Registro Exitoso!',
+                text: `${roleName} creado correctamente en la plataforma.`,
                 confirmButtonColor: '#e76f51',
               });
 
@@ -53,88 +64,12 @@ const RegisterView = () => {
               setFieldValue('country', '');
             }}
           >
-            {({ isValid, setFieldValue, setFieldTouched, values }) => (
+            {(formikProps) => (
               <Form className="mt-6 space-y-5">
-                {/* Campos de texto mapeados dinámicamente */}
-                {[
-                  { label: 'Nombre', name: 'name', type: 'text', max: 15 },
-                  { label: 'Email', name: 'email', type: 'email', max: 50 },
-                  { label: 'Dirección', name: 'address', type: 'text', max: 100 },
-                  { label: 'Teléfono', name: 'phone', type: 'text', max: 15 },
-                  { label: 'Fecha de nacimiento', name: 'birthdate', type: 'date' },
-                ].map((field) => (
-                  <div key={field.name}>
-                    <label className="text-sm text-gray-600">{field.label}</label>
+                <RegisterFields {...formikProps} showPassword={showPassword} setShowPassword={setShowPassword} />
 
-                    <Field
-                      type={field.type}
-                      name={field.name}
-                      maxLength={field.max}
-                      max={field.name === 'birthdate' ? new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0] : undefined}
-                      onChange={(e: any) => {
-                        setFieldValue(field.name, e.target.value, true);
-                        setFieldTouched(field.name, true, false);
-                      }}
-                      onInput={(e: any) => {
-                        if (field.name === 'name') {
-                          e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
-                        }
-
-                        if (field.name === 'phone') {
-                          e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                        }
-                      }}
-                      className="mt-1 w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm focus:border-[#e76f51] focus:outline-none focus:ring-2 focus:ring-[#f4a261]/40"
-                    />
-
-                    <ErrorMessage name={field.name} component="div" className="text-xs text-red-500 mt-1" />
-                  </div>
-                ))}
-
-                {/* Campo de contraseña */}
-                <div>
-                  <label className="text-sm text-gray-600">Contraseña</label>
-
-                  <div className="relative mt-1">
-                    <Field type={showPassword ? 'text' : 'password'} name="password" maxLength={20} className="w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 pr-10 text-sm focus:border-[#e76f51] focus:outline-none focus:ring-2 focus:ring-[#f4a261]/40" />
-
-                    {/* Botón para alternar visibilidad de la contraseña */}
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-
-                  <ErrorMessage name="password" component="div" className="text-xs text-red-500 mt-1" />
-                </div>
-
-                {/* Campo de selección de género */}
-                <div>
-                  <label className="text-sm text-gray-600">Género</label>
-
-                  <Field as="select" name="gender" className="mt-1 w-full rounded-xl border border-gray-200 bg-white py-2.5 px-4 text-sm focus:border-[#e76f51] focus:outline-none focus:ring-2 focus:ring-[#f4a261]/40">
-                    <option value="">Selecciona una opción</option>
-                    <option value="masculino">Masculino</option>
-                    <option value="femenino">Femenino</option>
-                    <option value="otros">Otros</option>
-                  </Field>
-
-                  <ErrorMessage name="gender" component="div" className="text-xs text-red-500 mt-1" />
-                </div>
-
-                {/* Campo de selección de país usando componente personalizado */}
-                <div>
-                  <label className="text-sm text-gray-600">País</label>
-
-                  <div className="mt-1">
-                    <CountrySelect key={values.country} value={values.country} onChange={(value) => setFieldValue('country', value, true)} onBlur={() => setFieldTouched('country', true)} />
-                  </div>
-
-                  <ErrorMessage name="country" component="div" className="text-xs text-red-500 mt-1" />
-                </div>
-
-                {/* Botón de envío del formulario */}
-                <button type="submit" disabled={!isValid} className="w-full rounded-xl bg-[#e76f51] py-3 text-sm font-semibold text-white transition hover:bg-[#d65f45] disabled:bg-gray-300">
-                  Crear cuenta
+                <button type="submit" disabled={!formikProps.isValid} className="w-full rounded-xl bg-[#e76f51] py-3 text-sm font-semibold text-white transition hover:bg-[#d65f45] disabled:bg-gray-300 shadow-lg shadow-[#e76f51]/20">
+                  {activeRole === 'usuario' ? 'Registrarse como Usuario' : 'Registrarse como Empleado'}
                 </button>
               </Form>
             )}
@@ -142,26 +77,44 @@ const RegisterView = () => {
         </div>
       </div>
 
-      {/* Sección derecha: Mensaje de bienvenida y características */}
+      {/* SECCIÓN DERECHA: Informativa */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] p-12 text-white">
         <div className="flex flex-1 items-center">
           <div>
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight">
-              Creá tu cuenta y <br />
-              <span className="text-[#e76f51]">empezá en minutos.</span>
+              {activeRole === 'usuario' ? (
+                <>
+                  Creá tu cuenta y <br />
+                  <span className="text-[#e76f51]">empezá en minutos.</span>
+                </>
+              ) : (
+                <>
+                  Sumate al equipo y <br />
+                  <span className="text-[#e76f51]">gestioná tus envíos.</span>
+                </>
+              )}
             </h1>
 
-            <p className="mt-4 text-gray-300 max-w-md">Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.</p>
+            <p className="mt-4 text-gray-300 max-w-md text-lg">{activeRole === 'usuario' ? 'Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.' : 'Formá parte de nuestra red logística. Registrate para comenzar a trabajar con empresas de todo el país.'}</p>
 
-            <ul className="mt-8 space-y-3 text-sm text-gray-300">
-              <li>✔ Registro rápido y sin complicaciones</li>
-              <li>✔ Acceso inmediato a tu panel</li>
-              <li>✔ Control total de tus envíos desde el primer momento</li>
+            <ul className="mt-8 space-y-4 text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="text-[#e76f51]">✔</span>
+                {activeRole === 'usuario' ? 'Registro rápido y sin complicaciones' : 'Acceso a rutas de entrega optimizadas'}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-[#e76f51]">✔</span>
+                {activeRole === 'usuario' ? 'Acceso inmediato a tu panel' : 'Gestión de entregas en tiempo real'}
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-[#e76f51]">✔</span>
+                {activeRole === 'usuario' ? 'Control total de tus pedidos' : 'Soporte y seguimiento profesional'}
+              </li>
             </ul>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">© 2026 TrackiFly</p>
+        <p className="text-xs text-gray-400">© 2026 TrackiFly - Gestión Logística Inteligente</p>
       </div>
     </div>
   );
