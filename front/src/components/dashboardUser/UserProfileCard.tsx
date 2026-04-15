@@ -16,7 +16,7 @@ export default function UserProfileCard({ user }: UserProfileCardProps) {
     <div>
       <section className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gray-100 flex-shrink-0">
+          <div className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={user.image || "https://via.placeholder.com/150"}
@@ -34,7 +34,7 @@ export default function UserProfileCard({ user }: UserProfileCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
             <p className="text-sm text-slate-500">Email</p>
-            <p className="text-slate-800 font-medium break-words">{user.email}</p>
+            <p className="text-slate-800 font-medium wrap-break-words">{user.email}</p>
           </div>
 
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">

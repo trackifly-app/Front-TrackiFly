@@ -35,7 +35,7 @@ export default function ActiveOrders({ orders }: ActiveOrdersProps) {
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-white flex-shrink-0">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-gray-200 bg-white shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={order.image || "https://via.placeholder.com/120"}
