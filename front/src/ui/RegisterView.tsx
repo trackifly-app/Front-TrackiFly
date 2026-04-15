@@ -26,6 +26,12 @@ const RegisterView = () => {
               Iniciá sesión
             </Link>
           </p>
+          <p className="mt-2 text-center text-sm text-gray-500">
+            ¿Queres crear una cuenta empresa?{' '}
+            <Link href="/registercompany" className="text-[#e76f51] font-medium hover:underline">
+              Registra tu Empresa
+            </Link>
+          </p>
 
           {/* Formulario usando Formik para manejo de estado y validación */}
           <Formik

@@ -26,3 +26,26 @@ export interface CalculatorValues {
     depth: number;
     distance: number;
 }
+export interface IRegisterCompanyProps {
+    email: string;
+    password: string;
+    company_name: string;
+    industry: string;       // ej: "retail", "farmacia", "tecnología"
+    contact_name: string;
+    phone: string;
+    address: string;
+    country: string;        // ISO 3166-1 alpha-2
+    plan: string;
+    }
+    
+    export interface IRegisterCompanyErrors {
+    email?: string;
+    password?: string;
+    company_name?: string;
+    industry?: string;
+    contact_name?: string;
+    phone?: string;
+    address?: string;
+    country?: string;
+    plan?: string;
+}
