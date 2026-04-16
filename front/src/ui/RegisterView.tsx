@@ -14,11 +14,11 @@ const RegisterView = () => {
   return (
     <div className="flex min-h-[calc(100vh-140px)]">
       {/* SECCIÓN IZQUIERDA: Formulario */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#f7f7f7] px-4 sm:px-6 py-8">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6 sm:p-8 my-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">{activeRole === 'usuario' ? 'Registro de Usuario' : 'Registro de Empleado'}</h2>
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#f7f7f7] dark:bg-slate-950 px-4 sm:px-6 py-8">
+        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-md dark:shadow-slate-950/20 p-6 sm:p-8 my-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white text-center">{activeRole === 'usuario' ? 'Registro de Usuario' : 'Registro de Empleado'}</h2>
 
-          <p className="mt-2 text-center text-sm text-gray-500">
+          <p className="mt-2 text-center text-sm text-gray-500 dark:text-slate-400">
             ¿Ya tenés cuenta?{' '}
             <Link href="/login" className="text-[#e76f51] font-medium hover:underline">
               Iniciá sesión
@@ -27,12 +27,12 @@ const RegisterView = () => {
 
           {/* Selector de Rol */}
           <div className="mt-6 space-y-2">
-            <label className="text-xs text-gray-400 font-bold uppercase tracking-wider">Registrarse como:</label>
-            <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
-              <button type="button" onClick={() => setActiveRole('usuario')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'usuario' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
+            <label className="text-xs text-gray-400 dark:text-slate-400 font-bold uppercase tracking-wider">Registrarse como:</label>
+            <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-800 rounded-xl">
+              <button type="button" onClick={() => setActiveRole('usuario')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'usuario' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
                 Usuario
               </button>
-              <button type="button" onClick={() => setActiveRole('empleado')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'empleado' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 hover:bg-gray-200'}`}>
+              <button type="button" onClick={() => setActiveRole('empleado')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'empleado' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
                 Empleado
               </button>
             </div>
@@ -78,7 +78,7 @@ const RegisterView = () => {
       </div>
 
       {/* SECCIÓN DERECHA: Informativa */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] p-12 text-white">
+      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] dark:bg-slate-900 p-12 text-white">
         <div className="flex flex-1 items-center">
           <div>
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight">
@@ -95,7 +95,7 @@ const RegisterView = () => {
               )}
             </h1>
 
-            <p className="mt-4 text-gray-300 max-w-md text-lg">{activeRole === 'usuario' ? 'Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.' : 'Formá parte de nuestra red logística. Registrate para comenzar a trabajar con empresas de todo el país.'}</p>
+            <p className="mt-4 text-gray-300 dark:text-slate-300 max-w-md text-lg">{activeRole === 'usuario' ? 'Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.' : 'Formá parte de nuestra red logística. Registrate para comenzar a trabajar con empresas de todo el país.'}</p>
 
             <ul className="mt-8 space-y-4 text-gray-300">
               <li className="flex items-center gap-2">

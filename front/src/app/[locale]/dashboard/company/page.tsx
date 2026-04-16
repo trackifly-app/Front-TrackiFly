@@ -22,7 +22,7 @@ export default function DashboardCompanyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f5f5f5] px-4 py-10 md:px-8">
+    <main className="min-h-screen bg-[#f5f5f5] dark:bg-zinc-950 px-4 py-10 md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <CompanyWelcomeCard
           company={company}

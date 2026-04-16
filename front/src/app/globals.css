@@ -1,36 +1,201 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #f8fafc;
+  --surface-muted: #f1f5f9;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --brand-primary: #d96b4a;
+  --brand-primary-hover: #c45f40;
+  --brand-dark: #1e2530;
+  --brand-text: #171717;
+  --brand-gray-muted: #6b7280;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-primary: var(--brand-primary);
+  --color-primary-hover: var(--brand-primary-hover);
+  --color-dark: var(--brand-dark);
+  --color-text: var(--brand-text);
+  --color-gray-muted: var(--brand-gray-muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  --color-primary: #D96B4A;
-  --color-primary-hover: #c45f40;
-  --color-dark: #1e2530;
-  --color-text: #171717;
-  --color-gray-muted: #6b7280;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 /* cuerpo con fuente inter */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
 }
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark input[type='date'] {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+  color-scheme: dark;
+  accent-color: #f97316;
+  -webkit-text-fill-color: #e2e8f0;
+  box-shadow: inset 0 0 0 1px #334155;
+}
+
+html.dark input[type='date']::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+}
+
+html.dark input[type='date']::-webkit-datetime-edit,
+html.dark input[type='date']::-webkit-datetime-edit-year-field,
+html.dark input[type='date']::-webkit-datetime-edit-month-field,
+html.dark input[type='date']::-webkit-datetime-edit-day-field,
+html.dark input[type='date']::-webkit-datetime-edit-text {
+  color: #e2e8f0;
+}
+
 /* títulos con fuente poppins */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-poppins), sans-serif;
+}
+
+@media (prefers-color-scheme: dark), dark {
+  :root {
+    --background: #0f172a;
+    --foreground: #e2e8f0;
+    --surface: #111827;
+    --surface-muted: #1e293b;
+    --border: #334155;
+    --muted: #94a3b8;
+    --brand-primary: #f97316;
+    --brand-primary-hover: #fb923c;
+    --brand-dark: #dbeafe;
+    --brand-text: #f8fafc;
+    --brand-gray-muted: #cbd5e1;
+  }
+
+  .bg-white {
+    background-color: var(--surface);
+  }
+
+  .bg-gray-50 {
+    background-color: var(--surface);
+  }
+
+  .bg-gray-100 {
+    background-color: var(--surface-muted);
+  }
+
+  .bg-gray-200 {
+    background-color: #1e293b;
+  }
+
+  .bg-\[\#1f2a37\] {
+    background-color: #111827;
+  }
+
+  .bg-\[\#2a3241\] {
+    background-color: #0f172a;
+  }
+
+  .text-gray-900,
+  .text-gray-800,
+  .text-black {
+    color: var(--foreground);
+  }
+
+  .text-gray-700,
+  .text-gray-600,
+  .text-gray-500,
+  .text-gray-400,
+  .text-gray-300 {
+    color: var(--muted);
+  }
+
+  .border-gray-200,
+  .border-gray-100 {
+    border-color: var(--border);
+  }
+
+  .placeholder-gray-500 {
+    color: var(--muted);
+  }
+}
+
+/* React Select Dark Mode Styles */
+.dark .react-select__control {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.dark .react-select__control:hover {
+  border-color: #e76f51;
+}
+
+.dark .react-select__control--is-focused {
+  border-color: #e76f51;
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.4);
+}
+
+.dark .react-select__input {
+  color: #e2e8f0;
+}
+
+.dark .react-select__placeholder {
+  color: #94a3b8;
+}
+
+.dark .react-select__single-value {
+  color: #e2e8f0;
+}
+
+.dark .react-select__option {
+  background-color: #111827;
+  color: #e2e8f0;
+}
+
+.dark .react-select__option:hover,
+.dark .react-select__option--is-focused {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .react-select__option--is-selected {
+  background-color: #e76f51;
+  color: white;
+}
+
+.dark .react-select__menu {
+  background-color: #111827;
+  color: #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.dark .react-select__menu-list {
+  background-color: #111827;
+}
+
+.dark .react-select__no-options-message {
+  background-color: #111827;
+  color: #94a3b8;
+}
+
+.dark .react-select__loading-message {
+  background-color: #111827;
+  color: #e2e8f0;
 }
