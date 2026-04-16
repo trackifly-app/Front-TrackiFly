@@ -1,85 +1,127 @@
-import Link from "next/link";
-import Image from "next/image";
-import { LogOut, ShieldCheck, UserCircle } from "lucide-react";
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { LogOut, ShieldCheck, UserCircle, Building2, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
-    <nav className="w-full grid grid-cols-[auto_1fr_auto] items-center px-6 py-3 border-b border-gray-200 sticky top-0 bg-white">
-      {/* LOGO */}
-      <Link href="/">
-        <Image
-          src="/logo-trackifly.png"
-          alt="Trackifly"
-          width={180}
-          height={52}
-          className="object-contain"
-          quality={100}
-          priority
-        />
-      </Link>
-
-      {/* ZONA CENTRAL */}
-      <div className="flex items-center gap-6 ml-16 list-none justify-start">
-        <Link
-          href="/"
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          Home
+    <nav className="w-full border-b border-border sticky top-0 bg-surface z-50">
+      <div className="w-full grid grid-cols-[auto_1fr_auto] items-center px-6 py-3">
+        {/* Logo */}
+        <Link href="/" onClick={closeMobileMenu}>
+          <Image src="/logo-trackifly.png" alt="Trackifly Logo" width={180} height={52} className="object-contain" priority />
         </Link>
-        <Link
-          href="/orders"
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          Pedidos
-        </Link>
-        <Link
-          href="/about"
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          Conocenos
-        </Link>
-      </div>
 
-      <div className="flex items-center gap-3">
-        <div className="group flex items-center text-primary px-4 py-2 rounded-xl transition-all duration-300 ease-in-out">
-          <span className="text-xl">
-            {" "}
-            <ShieldCheck size={30} />
-          </span>
-
-          <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
-            <Link href="/dashboard/admin">Administrador</Link>
-          </span>
+        {/* Nav desktop */}
+        <div className="hidden md:flex items-center gap-6 justify-center list-none">
+          <Link href="/" className="text-sm text-muted hover:text-foreground transition-colors">
+            Home
+          </Link>
+          <Link href="/orders" className="text-sm text-muted hover:text-foreground transition-colors">
+            Pedidos
+          </Link>
+          <Link href="/about" className="text-sm text-muted hover:text-foreground transition-colors">
+            Conócenos
+          </Link>
         </div>
-        <Link
-          href="/dashboard/user"
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <UserCircle size={30} className="text-primary" />
-        </Link>
-        <Link
-          href="/login"
-          className="text-sm px-5 py-2 rounded-full border border-primary text-primary hover:bg-orange-50 transition-colors"
-        >
-          Ingresar
-        </Link>
-        <Link
-          href="/register"
-          className="text-sm px-5 py-2 rounded-full bg-primary text-white hover:bg-primary-hover transition-colors"
-        >
-          Registrarse
-        </Link>
-        <button className="group flex items-center text-red-700 px-4 py-2 rounded-xl transition-all duration-300 ease-in-out">
-          <span className="text-xl">
-            {" "}
-            <LogOut size={18} />
-          </span>
 
-          <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 ease-in-out group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
-            Cerrar Sesión
-          </span>
-        </button>
+        {/* Mobile trigger */}
+        <div className="md:hidden flex justify-end">
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-primary p-2 rounded-lg hover:bg-surface-muted transition-all active:scale-90" aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}>
+            {isMobileMenuOpen ? <X size={30} /> : <Menu size={30} />}
+          </button>
+        </div>
+
+        {/* Desktop actions */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Icon actions */}
+          <div className="group flex items-center text-primary px-2 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
+            <ShieldCheck size={30} />
+            <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+              <Link href="/dashboard/admin">Administrador</Link>
+            </span>
+          </div>
+
+          <div className="group flex items-center text-primary px-2 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
+            <Building2 size={30} />
+            <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+              <Link href="/dashboard/company">Empresas</Link>
+            </span>
+          </div>
+
+          <div className="group flex items-center text-primary px-2 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
+            <UserCircle size={30} />
+            <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+              <Link href="/dashboard/user">Perfil</Link>
+            </span>
+          </div>
+
+          {/* Buttons */}
+          <Link href="/login" className="text-sm px-5 py-2 rounded-full border border-primary text-primary hover:bg-surface-muted transition-colors">
+            Ingresar
+          </Link>
+
+          <Link href="/register" className="text-sm px-5 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover transition-colors shadow-sm">
+            Registrarse
+          </Link>
+
+          <button className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
+            <LogOut size={18} />
+            <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">Cerrar Sesión</span>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden flex flex-col bg-surface px-6 py-4 gap-4 border-t border-border animate-in slide-in-from-top duration-300">
+          <div className="flex flex-col gap-3">
+            <Link href="/" className="py-1 font-medium text-foreground" onClick={closeMobileMenu}>
+              Home
+            </Link>
+            <Link href="/orders" className="py-1 font-medium text-foreground" onClick={closeMobileMenu}>
+              Pedidos
+            </Link>
+            <Link href="/about" className="py-1 font-medium text-foreground" onClick={closeMobileMenu}>
+              Conócenos
+            </Link>
+          </div>
+
+          <hr className="border-border" />
+
+          <div className="flex flex-col gap-4">
+            <Link href="/dashboard/admin" className="text-primary flex items-center gap-3 py-1" onClick={closeMobileMenu}>
+              <ShieldCheck size={24} /> <span>Administrador</span>
+            </Link>
+            <Link href="/dashboard/company" className="text-primary flex items-center gap-3 py-1" onClick={closeMobileMenu}>
+              <Building2 size={24} /> <span>Empresas</span>
+            </Link>
+            <Link href="/dashboard/user" className="text-primary flex items-center gap-3 py-1" onClick={closeMobileMenu}>
+              <UserCircle size={24} /> <span>Perfil</span>
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-3 mt-2">
+            <Link href="/login" className="text-center py-2.5 border border-primary text-primary rounded-full font-medium" onClick={closeMobileMenu}>
+              Ingresar
+            </Link>
+
+            <Link href="/register" className="text-center py-2.5 bg-primary text-primary-foreground rounded-full font-medium shadow-md" onClick={closeMobileMenu}>
+              Registrarse
+            </Link>
+          </div>
+
+          <button className="flex items-center gap-3 text-muted pt-4 border-t border-border font-medium">
+            <LogOut size={20} /> <span>Cerrar Sesión</span>
+          </button>
+        </div>
+      )}
     </nav>
   );
 };
