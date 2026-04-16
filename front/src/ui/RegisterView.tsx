@@ -1,43 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { Formik, Form } from 'formik';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
+import CountrySelect from '@/components/CountrySelect';
 import Swal from 'sweetalert2';
+import { Eye, EyeOff } from 'lucide-react';
 import { validateFormRegister } from '@/lib/validates';
-import { RegisterFields } from '@/ui/RegisterFields';
 
+/**
+ * Vista completa de registro de usuario (RegisterView).
+ * Contiene el formulario de creación de cuenta y un panel lateral informativo (solo en desktop).
+ */
 const RegisterView = () => {
-  const [activeRole, setActiveRole] = useState('usuario');
+  // Estado local para controlar la visibilidad de la contraseña
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="flex min-h-[calc(100vh-140px)]">
-      {/* SECCIÓN IZQUIERDA: Formulario */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-[#f7f7f7] dark:bg-slate-950 px-4 sm:px-6 py-8">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-md dark:shadow-slate-950/20 p-6 sm:p-8 my-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white text-center">{activeRole === 'usuario' ? 'Registro de Usuario' : 'Registro de Empleado'}</h2>
+      {/* Sección izquierda: Formulario de registro */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-background px-4 sm:px-6 py-8">
+        <div className="w-full max-w-md bg-surface rounded-3xl shadow-sm border border-border p-8 max-h-[85vh] overflow-y-auto">
+          {/* Título y enlace a login */}
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center">Crear cuenta</h2>
 
-          <p className="mt-2 text-center text-sm text-gray-500 dark:text-slate-400">
+          <p className="mt-3 text-center text-sm text-muted">
             ¿Ya tenés cuenta?{' '}
-            <Link href="/login" className="text-[#e76f51] font-medium hover:underline">
+            <Link href="/login" className="text-primary font-medium hover:underline">
               Iniciá sesión
             </Link>
           </p>
 
-          {/* Selector de Rol */}
-          <div className="mt-6 space-y-2">
-            <label className="text-xs text-gray-400 dark:text-slate-400 font-bold uppercase tracking-wider">Registrarse como:</label>
-            <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-800 rounded-xl">
-              <button type="button" onClick={() => setActiveRole('usuario')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'usuario' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
-                Usuario
-              </button>
-              <button type="button" onClick={() => setActiveRole('empleado')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${activeRole === 'empleado' ? 'bg-[#e76f51] text-white shadow-sm' : 'text-gray-500 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'}`}>
-                Empleado
-              </button>
-            </div>
-          </div>
-
+          {/* Formulario gestionado con Formik */}
           <Formik
             initialValues={{
               email: '',
@@ -49,14 +43,12 @@ const RegisterView = () => {
               birthdate: '',
               country: '',
             }}
-            validate={validateFormRegister}
+            validate={validateFormRegister} // Validación externa compartida
             onSubmit={(values, { resetForm, setFieldValue }) => {
-              const roleName = activeRole === 'usuario' ? 'Usuario' : 'Empleado';
-
               Swal.fire({
                 icon: 'success',
-                title: '¡Registro Exitoso!',
-                text: `${roleName} creado correctamente en la plataforma.`,
+                title: 'Registro exitoso',
+                text: 'Usuario registrado correctamente',
                 confirmButtonColor: '#e76f51',
               });
 
@@ -64,12 +56,72 @@ const RegisterView = () => {
               setFieldValue('country', '');
             }}
           >
-            {(formikProps) => (
-              <Form className="mt-6 space-y-5">
-                <RegisterFields {...formikProps} showPassword={showPassword} setShowPassword={setShowPassword} />
+            {({ isValid, setFieldValue, setFieldTouched, values }) => (
+              <Form className="mt-8 space-y-6">
+                {/* Campos dinámicos: Nombre, Email, Dirección, Teléfono y Fecha de nacimiento */}
+                {[
+                  { label: 'Nombre', name: 'name', type: 'text', max: 15 },
+                  { label: 'Email', name: 'email', type: 'email', max: 50 },
+                  { label: 'Dirección', name: 'address', type: 'text', max: 100 },
+                  { label: 'Teléfono', name: 'phone', type: 'text', max: 15 },
+                  { label: 'Fecha de nacimiento', name: 'birthdate', type: 'date' },
+                ].map((field) => (
+                  <div key={field.name}>
+                    <label className="text-sm text-muted font-medium mb-1.5 block">{field.label}</label>
+                    <Field
+                      type={field.type}
+                      name={field.name}
+                      maxLength={field.max}
+                      onInput={(e: any) => {
+                        if (field.name === 'name') {
+                          e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+                        }
+                        if (field.name === 'phone') {
+                          e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                        }
+                      }}
+                      className="w-full rounded-2xl border border-border bg-surface py-3 px-5 text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                    />
+                    <ErrorMessage name={field.name} component="div" className="text-xs text-red-500 mt-1" />
+                  </div>
+                ))}
 
-                <button type="submit" disabled={!formikProps.isValid} className="w-full rounded-xl bg-[#e76f51] py-3 text-sm font-semibold text-white transition hover:bg-[#d65f45] disabled:bg-gray-300 shadow-lg shadow-[#e76f51]/20">
-                  {activeRole === 'usuario' ? 'Registrarse como Usuario' : 'Registrarse como Empleado'}
+                {/* Campo de Contraseña con toggle de visibilidad */}
+                <div>
+                  <label className="text-sm text-muted font-medium mb-1.5 block">Contraseña</label>
+                  <div className="relative">
+                    <Field type={showPassword ? 'text' : 'password'} name="password" maxLength={20} className="w-full rounded-2xl border border-border bg-surface py-3 px-5 pr-12 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                  <ErrorMessage name="password" component="div" className="text-xs text-red-500 mt-1" />
+                </div>
+
+                {/* Selector de Género */}
+                <div>
+                  <label className="text-sm text-muted font-medium mb-1.5 block">Género</label>
+                  <Field as="select" name="gender" className="w-full rounded-2xl border border-border bg-surface py-3 px-5 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer transition-all">
+                    <option value="">Selecciona una opción</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otros">Otros</option>
+                  </Field>
+                  <ErrorMessage name="gender" component="div" className="text-xs text-red-500 mt-1" />
+                </div>
+
+                {/* Selector de País (componente personalizado) */}
+                <div className="relative z-50">
+                  <label className="text-sm text-muted font-medium mb-1.5 block">País</label>
+                  <div className="mt-1">
+                    <CountrySelect key={values.country} value={values.country} onChange={(value) => setFieldValue('country', value, true)} onBlur={() => setFieldTouched('country', true)} />
+                  </div>
+                  <ErrorMessage name="country" component="div" className="text-xs text-red-500 mt-1" />
+                </div>
+
+                {/* Botón de registro */}
+                <button type="submit" disabled={!isValid} className="mt-6 w-full rounded-2xl bg-primary py-3.5 text-base font-semibold text-white hover:bg-primary-hover transition-all disabled:bg-surface-muted disabled:text-muted shadow-lg">
+                  Crear cuenta
                 </button>
               </Form>
             )}
@@ -77,44 +129,26 @@ const RegisterView = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DERECHA: Informativa */}
-      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] dark:bg-slate-900 p-12 text-white">
+      {/* Sección derecha: Panel informativo (solo visible en pantallas lg y superiores) */}
+      <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] p-12 text-white">
         <div className="flex flex-1 items-center">
           <div>
             <h1 className="text-4xl xl:text-5xl font-bold leading-tight">
-              {activeRole === 'usuario' ? (
-                <>
-                  Creá tu cuenta y <br />
-                  <span className="text-[#e76f51]">empezá en minutos.</span>
-                </>
-              ) : (
-                <>
-                  Sumate al equipo y <br />
-                  <span className="text-[#e76f51]">gestioná tus envíos.</span>
-                </>
-              )}
+              Creá tu cuenta y <br />
+              <span className="text-[#e76f51]">empezá en minutos.</span>
             </h1>
 
-            <p className="mt-4 text-gray-300 dark:text-slate-300 max-w-md text-lg">{activeRole === 'usuario' ? 'Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.' : 'Formá parte de nuestra red logística. Registrate para comenzar a trabajar con empresas de todo el país.'}</p>
+            <p className="mt-4 text-gray-300 max-w-md">Unite a TrackiFly y comenzá a gestionar tus envíos de forma simple, rápida y segura.</p>
 
-            <ul className="mt-8 space-y-4 text-gray-300">
-              <li className="flex items-center gap-2">
-                <span className="text-[#e76f51]">✔</span>
-                {activeRole === 'usuario' ? 'Registro rápido y sin complicaciones' : 'Acceso a rutas de entrega optimizadas'}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-[#e76f51]">✔</span>
-                {activeRole === 'usuario' ? 'Acceso inmediato a tu panel' : 'Gestión de entregas en tiempo real'}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-[#e76f51]">✔</span>
-                {activeRole === 'usuario' ? 'Control total de tus pedidos' : 'Soporte y seguimiento profesional'}
-              </li>
+            <ul className="mt-8 space-y-3 text-sm text-gray-300">
+              <li>✔ Registro rápido y sin complicaciones</li>
+              <li>✔ Acceso inmediato a tu panel</li>
+              <li>✔ Control total de tus envíos desde el primer momento</li>
             </ul>
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">© 2026 TrackiFly - Gestión Logística Inteligente</p>
+        <p className="text-xs text-gray-400">© 2026 TrackiFly</p>
       </div>
     </div>
   );

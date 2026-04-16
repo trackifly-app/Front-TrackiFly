@@ -5,56 +5,18 @@ import countryList from 'react-select-country-list';
 import { useMemo, useEffect, useState } from 'react';
 import { CountryOption, ICountryProps } from '@/types/types';
 
-const LATAM_COUNTRIES = [
-  'AR', // Argentina
-  'BO', // Bolivia
-  'BR', // Brasil
-  'CL', // Chile
-  'CO', // Colombia
-  'CR', // Costa Rica
-  'CU', // Cuba
-  'DO', // República Dominicana
-  'EC', // Ecuador
-  'SV', // El Salvador
-  'GT', // Guatemala
-  'HN', // Honduras
-  'MX', // México
-  'NI', // Nicaragua
-  'PA', // Panamá
-  'PY', // Paraguay
-  'PE', // Perú
-  'UY', // Uruguay
-  'VE', // Venezuela
-];
+const LATAM_COUNTRIES = ['AR', 'BO', 'BR', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'SV', 'GT', 'HN', 'MX', 'NI', 'PA', 'PY', 'PE', 'UY', 'VE'];
 
 const CountrySelectContent = ({ value, onChange, onBlur }: ICountryProps) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     const mountTimer = window.setTimeout(() => {
       setIsMounted(true);
     }, 0);
 
-    const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(isDark);
-    };
-
-    checkDarkMode();
-
-    const observer = new MutationObserver(() => {
-      checkDarkMode();
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
     return () => {
       window.clearTimeout(mountTimer);
-      observer.disconnect();
     };
   }, []);
 
@@ -72,7 +34,7 @@ const CountrySelectContent = ({ value, onChange, onBlur }: ICountryProps) => {
   const selectedOption = options.find((o) => o.value === value);
 
   if (!isMounted) {
-    return <div className="h-10 bg-gray-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>;
+    return <div className="h-10 bg-surface-muted rounded-xl animate-pulse"></div>;
   }
 
   return (
@@ -96,85 +58,82 @@ const CountrySelectContent = ({ value, onChange, onBlur }: ICountryProps) => {
         borderRadius: 12,
         colors: {
           ...theme.colors,
-          primary25: isDarkMode ? '#1e293b' : '#fef2f2',
-          primary: '#e76f51',
-          neutral0: isDarkMode ? '#0f172a' : '#ffffff',
-          neutral5: isDarkMode ? '#0f172a' : '#f9fafb',
-          neutral10: isDarkMode ? '#334155' : '#e5e7eb',
-          neutral20: isDarkMode ? '#334155' : '#d1d5db',
-          neutral30: isDarkMode ? '#475569' : '#9ca3af',
-          neutral60: isDarkMode ? '#94a3b8' : '#6b7280',
-          neutral80: isDarkMode ? '#e2e8f0' : '#111827',
-          neutral90: isDarkMode ? '#e2e8f0' : '#111827',
+          primary: 'var(--color-primary)',
+          primary25: 'var(--color-surface-muted)',
+          neutral0: 'var(--color-background)',
+          neutral5: 'var(--color-surface-muted)',
+          neutral10: 'var(--color-border)',
+          neutral20: 'var(--color-border)',
+          neutral30: 'var(--color-muted)',
+          neutral60: 'var(--color-muted)',
+          neutral80: 'var(--color-foreground)',
+          neutral90: 'var(--color-foreground)',
         },
       })}
       styles={{
         control: (base, state) => ({
           ...base,
           borderRadius: '12px',
-          borderColor: state.isFocused ? '#e76f51' : isDarkMode ? '#334155' : '#e5e7eb',
-          boxShadow: state.isFocused ? '0 0 0 2px rgba(244,162,97,0.4)' : 'none',
+          borderColor: state.isFocused ? 'var(--color-primary)' : 'var(--color-border)',
+          boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
           padding: '2px',
-          backgroundColor: isDarkMode ? '#0f172a' : '#f9fafb',
-          color: isDarkMode ? '#e2e8f0' : '#111827',
+          backgroundColor: 'var(--color-surface-muted)',
+          color: 'var(--color-foreground)',
           minHeight: '42px',
           '&:hover': {
-            borderColor: '#e76f51',
+            borderColor: 'var(--color-primary)',
           },
         }),
         valueContainer: (base) => ({
           ...base,
-          backgroundColor: isDarkMode ? '#0f172a' : '#f9fafb',
-          color: isDarkMode ? '#e2e8f0' : '#111827',
+          backgroundColor: 'var(--color-surface-muted)',
+          color: 'var(--color-foreground)',
           padding: '4px 8px',
         }),
         input: (base) => ({
           ...base,
-          color: isDarkMode ? '#e2e8f0' : '#111827',
+          color: 'var(--color-foreground)',
         }),
         placeholder: (base) => ({
           ...base,
-          color: isDarkMode ? '#94a3b8' : '#9ca3af',
+          color: 'var(--color-muted)',
         }),
         dropdownIndicator: (base) => ({
           ...base,
-          color: isDarkMode ? '#cbd5e1' : '#6b7280',
+          color: 'var(--color-muted)',
           '&:hover': {
-            color: isDarkMode ? '#f8fafc' : '#111827',
+            color: 'var(--color-foreground)',
           },
         }),
         indicatorSeparator: (base) => ({
           ...base,
-          backgroundColor: isDarkMode ? '#334155' : '#d1d5db',
+          backgroundColor: 'var(--color-border)',
         }),
         option: (base, state) => ({
           ...base,
-          backgroundColor: state.isFocused ? (isDarkMode ? '#1e293b' : '#fef3f2') : isDarkMode ? '#0f172a' : 'white',
-          color: isDarkMode ? '#e2e8f0' : '#111827',
+          backgroundColor: state.isFocused ? 'var(--color-surface-muted)' : 'var(--color-background)',
+          color: 'var(--color-foreground)',
           cursor: 'pointer',
-          ':active': {
-            backgroundColor: isDarkMode ? '#14213d' : '#f1f5f9',
-          },
         }),
         menu: (base) => ({
           ...base,
-          backgroundColor: isDarkMode ? '#0f172a' : 'white',
-          borderColor: isDarkMode ? '#334155' : '#e5e7eb',
-          color: isDarkMode ? '#e2e8f0' : '#111827',
-          boxShadow: isDarkMode ? '0 10px 20px -10px rgba(0, 0, 0, 0.8)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'var(--color-background)',
+          borderColor: 'var(--color-border)',
+          color: 'var(--color-foreground)',
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
         }),
         menuList: (base) => ({
           ...base,
-          backgroundColor: isDarkMode ? '#0f172a' : 'white',
+          backgroundColor: 'var(--color-background)',
         }),
         singleValue: (base) => ({
           ...base,
-          color: isDarkMode ? '#e2e8f0' : '#111827',
+          color: 'var(--color-foreground)',
         }),
         noOptionsMessage: (base) => ({
           ...base,
-          color: isDarkMode ? '#94a3b8' : '#6b7280',
-          backgroundColor: isDarkMode ? '#0f172a' : 'white',
+          color: 'var(--color-muted)',
+          backgroundColor: 'var(--color-background)',
         }),
       }}
     />

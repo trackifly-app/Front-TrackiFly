@@ -113,9 +113,9 @@ const OrderView = () => {
   };
 
   // ========================================
-  // ESTILOS REUTILIZABLES
+  // ESTILOS REUTILIZABLES (actualizados al sistema de variables)
   // ========================================
-  const inputStyle = 'w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all';
+  const inputStyle = 'w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all';
   const errorLabel = 'text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left';
 
   if (!isLoaded) return <div className="p-10 text-center font-bold text-primary animate-pulse text-lg">Iniciando TrackiFly...</div>;
@@ -218,12 +218,12 @@ const OrderView = () => {
         // RENDERIZADO DEL COMPONENTE
         // ========================================
         return (
-          <main className="min-h-screen bg-gray-50 px-4 py-10">
+          <main className="min-h-screen bg-background px-4 py-10">
             <div className="mx-auto max-w-6xl">
               <Form className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
                 <div className="space-y-6 text-left">
-                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-bold border-b pb-2 uppercase text-gray-800">Detalles del Producto</h3>
+                  <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">Detalles del Producto</h3>
                     <div className="grid gap-4">
                       <div>
                         <Field name="name" placeholder="Nombre del producto" className={`${inputStyle} ${errors.name && (touched.name || submitCount > 0) ? 'border-red-500' : ''}`} />
@@ -266,7 +266,7 @@ const OrderView = () => {
                           <Field name="depth" placeholder="Profundidad" type="number" className={`${inputStyle} ${errors.depth && (touched.depth || submitCount > 0) ? 'border-red-500' : ''}`} />
                           {errors.depth && (touched.depth || submitCount > 0) && <p className={errorLabel}>{errors.depth}</p>}
                         </div>
-                        <Field as="select" name="unit" className="h-12.5 rounded-xl border bg-gray-50 px-2 font-bold">
+                        <Field as="select" name="unit" className="h-12.5 rounded-xl border border-border bg-surface-muted px-2 font-bold">
                           <option value="cm">cm</option>
                           <option value="in">in</option>
                         </Field>
@@ -279,8 +279,8 @@ const OrderView = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-bold border-b pb-2 uppercase text-gray-800">Trayecto</h3>
+                  <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+                    <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">Trayecto</h3>
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
                         <Autocomplete onLoad={(ref) => (originRef.current = ref)} onPlaceChanged={() => onPlaceChanged('origen', setFieldValue)}>
@@ -296,12 +296,12 @@ const OrderView = () => {
                       </div>
                     </div>
 
-                    <div className="relative h-100 rounded-xl overflow-hidden border shadow-[inset_0_2px_8px_rgba(0,0,0,0.15)]">
+                    <div className="relative h-100 rounded-xl overflow-hidden border border-border shadow-[inset_0_2px_8px_rgba(0,0,0,0.15)]">
                       <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
-                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) + 1)} className="flex h-9 w-9 items-center justify-center rounded-t-lg border-b bg-white text-xl font-bold text-gray-600 shadow-sm hover:bg-gray-50 active:bg-gray-200">
+                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) + 1)} className="flex h-9 w-9 items-center justify-center rounded-t-lg border-b border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface">
                           +
                         </button>
-                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)} className="flex h-9 w-9 items-center justify-center rounded-b-lg bg-white text-xl font-bold text-gray-600 shadow-sm hover:bg-gray-50 active:bg-gray-200">
+                        <button type="button" onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)} className="flex h-9 w-9 items-center justify-center rounded-b-lg border border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface">
                           −
                         </button>
                       </div>
@@ -324,20 +324,20 @@ const OrderView = () => {
                   </div>
                 </div>
 
-                <aside className="h-fit rounded-2xl bg-[#1a232e] p-8 shadow-xl text-white sticky top-10 self-start text-left">
-                  <h2 className="text-xl font-black mb-6 border-b border-gray-700 pb-2 uppercase">Presupuesto</h2>
+                <aside className="h-fit rounded-2xl bg-surface p-8 shadow-xl text-foreground border border-border sticky top-10 self-start text-left">
+                  <h2 className="text-xl font-black mb-6 border-b border-border pb-2 uppercase">Presupuesto</h2>
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm text-gray-400">
+                    <div className="flex justify-between text-sm text-muted">
                       <span>Trayecto:</span>
-                      <span className="text-white font-mono">{distance.toFixed(1)} km</span>
+                      <span className="text-foreground font-mono">{distance.toFixed(1)} km</span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-400">
+                    <div className="flex justify-between text-sm text-muted">
                       <span>Volumen:</span>
-                      <span className="text-white font-mono">{volumenM3.toFixed(4)} m³</span>
+                      <span className="text-foreground font-mono">{volumenM3.toFixed(4)} m³</span>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-400">
+                    <div className="flex justify-between text-sm text-muted">
                       <span>Peso:</span>
-                      <span className="text-white font-mono">{pesoNum} kg</span>
+                      <span className="text-foreground font-mono">{pesoNum} kg</span>
                     </div>
                     <div className="pt-4 space-y-3">
                       {['fragile', 'dangerous', 'cooled', 'urgent'].map((serv) => (
@@ -347,15 +347,15 @@ const OrderView = () => {
                         </label>
                       ))}
                     </div>
-                    <div className="flex justify-between items-baseline text-3xl border-t border-gray-700 pt-6 mt-6">
+                    <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
                       <span className="font-black italic text-lg uppercase">Neto:</span>
                       <span className="font-black text-primary">${precioFinal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
-                  <button type="submit" disabled={isSubmitting} className="mt-8 w-full rounded-xl bg-primary py-4 font-black text-white hover:bg-orange-700 transition-all active:scale-95 shadow-lg uppercase">
+                  <button type="submit" disabled={isSubmitting} className="mt-8 w-full rounded-xl bg-primary py-4 font-black text-white hover:bg-primary-hover transition-all active:scale-95 shadow-lg uppercase">
                     {isSubmitting ? 'REGISTRANDO...' : 'CONFIRMAR ENVÍO'}
                   </button>
-                  {Object.keys(errors).length > 0 && submitCount > 0 && <p className="text-red-400 text-[10px] mt-4 text-center font-bold animate-pulse uppercase">Corrija los errores resaltados</p>}
+                  {Object.keys(errors).length > 0 && submitCount > 0 && <p className="text-red-500 text-[10px] mt-4 text-center font-bold animate-pulse uppercase">Corrija los errores resaltados</p>}
                 </aside>
               </Form>
             </div>
