@@ -19,6 +19,7 @@ export interface ShipmentErrors {
     depth?: string;
     image?: string;
     weight?: string;
+    description?: string;
 }
 export interface CalculatorValues {
     height: number;
