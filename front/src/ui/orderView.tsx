@@ -49,66 +49,37 @@ const OrderView = () => {
     libraries,
   });
 
-  // ========================================
-  // FUNCIÓN: calcularRutaReal
-  // Calcula la ruta real entre origen y destino usando Google Directions Service
-  // ========================================
-  const calcularRutaReal = useCallback(
-    (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
-      const directionsService = new google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin: origen,
-          destination: destino,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === 'OK' && result) {
-            const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
-            setDistance(distKm);
-            const path = result.routes[0].overview_path.map((p) => ({
-              lat: p.lat(),
-              lng: p.lng(),
-            }));
-            setRoutePath(path);
+  useEffect(() => {
+    if (mapRef.current && coords.origen && coords.destino && L) {
+      const bounds = L.latLngBounds([coords.origen, coords.destino]);
+      mapRef.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [coords, L]);
 
-            // Ajuste automático del mapa para mostrar toda la ruta
-            if (mapRef && result.routes[0].bounds) {
-              mapRef.fitBounds(result.routes[0].bounds);
-            }
-          }
-        },
-      );
-    },
-    [mapRef],
-  );
-
-  // ========================================
-  // FUNCIÓN: onPlaceChanged
-  // Maneja el cambio de ubicación en los inputs de autocompletado
-  // Actualiza coordenadas y calcula la ruta cuando ambas se seleccionan
-  // ========================================
-  const onPlaceChanged = (type: 'origen' | 'destino', setFieldValue: any) => {
-    const autocomplete = type === 'origen' ? originRef.current : destinationRef.current;
-    if (autocomplete) {
-      const place = autocomplete.getPlace();
-      if (!place.geometry || !place.geometry.location) return;
-
-      const newCoord = {
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng(),
-      };
-
-      const fieldName = type === 'origen' ? 'pickup_direction' : 'delivery_direction';
-      setFieldValue(fieldName, place.formatted_address);
-
-      setCoords((prev) => {
-        const newCoords = { ...prev, [type]: newCoord };
-        if (newCoords.origen && newCoords.destino) {
-          calcularRutaReal(newCoords.origen, newCoords.destino);
-        }
-        return newCoords;
-      });
+  const handleSearch = async (
+    query: string,
+    type: "origen" | "destino",
+    setFieldValue: FormikHelpers<OrderFormValues>["setFieldValue"],
+    setFieldTouched: FormikHelpers<OrderFormValues>["setFieldTouched"],
+    setFieldError: FormikHelpers<OrderFormValues>["setFieldError"],
+  ) => {
+    if (query.length < 4) return;
+    try {
+      const results = await provider.search({ query });
+      if (results && results.length > 0) {
+        const { y, x, label } = results[0];
+        setCoords((prev) => ({ ...prev, [type]: [y, x] }));
+        const fieldName =
+          type === "origen" ? "pickup_direction" : "delivery_direction";
+        setFieldValue(fieldName, label);
+        setFieldTouched(fieldName, true);
+      } else {
+        const fieldName =
+          type === "origen" ? "pickup_direction" : "delivery_direction";
+        setFieldError(fieldName, "Dirección no encontrada, intentá con otra");
+      }
+    } catch (error) {
+      console.error("Error buscando dirección:", error);
     }
   };
 
@@ -191,13 +162,21 @@ const OrderView = () => {
         router.push('/dashboard/user');
       }}
     >
-      {({ values, setFieldValue, errors, touched, isSubmitting, submitCount }) => {
-        // ========================================
-        // CÁLCULOS DE PRESUPUESTO
-        // Calcula volumen, precio base, recargos por peso y servicios adicionales
-        // ========================================
-        const factor = values.unit === 'cm' ? 0.01 : 0.0254;
-        const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
+      {({
+        values,
+        setFieldValue,
+        setFieldTouched,
+        setFieldError,
+        errors,
+        touched,
+        isSubmitting,
+      }) => {
+        const factor = values.unit === "cm" ? 0.01 : 0.0254;
+        const volumenM3 =
+          Number(values.height) *
+            factor *
+            (Number(values.width) * factor) *
+            (Number(values.depth) * factor) || 0;
         const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
 
         let recargoPeso = 0;
@@ -283,16 +262,48 @@ const OrderView = () => {
                     <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">Trayecto</h3>
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
-                        <Autocomplete onLoad={(ref) => (originRef.current = ref)} onPlaceChanged={() => onPlaceChanged('origen', setFieldValue)}>
-                          <input type="text" placeholder="Origen" className={inputStyle} />
-                        </Autocomplete>
-                        {errors.pickup_direction && submitCount > 0 && <p className={errorLabel}>{errors.pickup_direction}</p>}
+                        <Field
+                          name="pickup_direction"
+                          placeholder="Origen"
+                          className={inputStyle}
+                          onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                            handleSearch(
+                              e.target.value,
+                              "origen",
+                              setFieldValue,
+                              setFieldTouched,
+                              setFieldError,
+                            )
+                          }
+                        />
+                        {errors.pickup_direction &&
+                          touched.pickup_direction && (
+                            <p className="text-red-500 text-[10px] mt-1 text-left">
+                              {errors.pickup_direction}
+                            </p>
+                          )}
                       </div>
                       <div>
-                        <Autocomplete onLoad={(ref) => (destinationRef.current = ref)} onPlaceChanged={() => onPlaceChanged('destino', setFieldValue)}>
-                          <input type="text" placeholder="Destino" className={inputStyle} />
-                        </Autocomplete>
-                        {errors.delivery_direction && submitCount > 0 && <p className={errorLabel}>{errors.delivery_direction}</p>}
+                        <Field
+                          name="delivery_direction"
+                          placeholder="Destino"
+                          className={inputStyle}
+                          onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                            handleSearch(
+                              e.target.value,
+                              "destino",
+                              setFieldValue,
+                              setFieldTouched,
+                              setFieldError,
+                            )
+                          }
+                        />
+                        {errors.delivery_direction &&
+                          touched.delivery_direction && (
+                            <p className="text-red-500 text-[10px] mt-1 text-left">
+                              {errors.delivery_direction}
+                            </p>
+                          )}
                       </div>
                     </div>
 
