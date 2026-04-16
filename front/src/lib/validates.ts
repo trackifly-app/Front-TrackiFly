@@ -1,4 +1,4 @@
-import { ShipmentValues, ShipmentErrors } from '@/interfaces/shipment';
+import { ShipmentValues, ShipmentErrors, IRegisterCompanyProps, IRegisterCompanyErrors } from '@/interfaces/shipment';
 import { CalculatorValues } from '@/interfaces/shipment';
 import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/types/types';
 
@@ -6,6 +6,13 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 const PHONE_REGEX = /^[0-9]{7,15}$/;
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+
+export const CompanyPlan = [
+  { id: '1', name: 'Plan Free' },
+  { id: '2', name: 'Plan Basic' },
+  {id: '3', name: 'Plan Pro'}
+];
 
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
@@ -122,6 +129,65 @@ export const validateFormRegister = (values: IRegisterProps) => {
 
   if (!values.country) {
     errors.country = 'Selecciona un país';
+  }
+
+  return errors;
+};
+export type CompanyRegisterErrors = Partial<IRegisterCompanyProps>;
+
+
+export const validateFormRegisterCompany = (values: IRegisterCompanyProps): IRegisterCompanyErrors => {
+  const errors: IRegisterCompanyErrors = {};
+
+  // Email
+  if (!values.email) {
+    errors.email = 'El email es obligatorio';
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+    errors.email = 'Formato de email inválido';
+  }
+
+  // Password
+  if (!values.password) {
+    errors.password = 'La contraseña es obligatoria';
+  } else if (values.password.length < 6) {
+    errors.password = 'Debe tener al menos 6 caracteres';
+  }
+
+  // Company Name
+  if (!values.company_name) {
+    errors.company_name = 'El nombre de la empresa es obligatorio';
+  }
+
+  // Industry
+  if (!values.industry) {
+    errors.industry = 'Campo obligatorio';
+  }
+
+  // Contact Name
+  if (!values.contact_name) {
+    errors.contact_name = 'El nombre de contacto es obligatorio';
+  }
+
+  // Phone
+  if (!values.phone) {
+    errors.phone = 'El teléfono es obligatorio';
+  } else if (!/^\d+$/.test(values.phone)) {
+    errors.phone = 'Solo se permiten números';
+  }
+
+  // Address
+  if (!values.address) {
+    errors.address = 'La dirección es obligatoria';
+  }
+
+  // Country
+  if (!values.country) {
+    errors.country = 'Debes seleccionar un país';
+  }
+
+  // Plan
+  if (!values.plan) {
+    errors.plan = 'Debes seleccionar un plan';
   }
 
   return errors;

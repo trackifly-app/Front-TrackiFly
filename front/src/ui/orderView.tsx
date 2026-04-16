@@ -367,5 +367,3 @@ const OrderView = () => {
 };
 
 export default OrderView;
-
-/* Test */
