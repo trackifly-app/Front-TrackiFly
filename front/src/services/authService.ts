@@ -67,6 +67,43 @@ export async function registerCompany(companyData: IRegisterCompanyProps) {
   }
 }
 
+/*
+  Registro de Empleado (Operator)
+  Endpoint: POST /auth/register-operator
+  Requiere token (empresa autenticada)
+*/
+export async function registerEmployee(employeeData: any) {
+  try {
+    const token = localStorage.getItem('userToken');
+
+    const response = await fetch(`${APIURL}/auth/register-operator`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(employeeData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      await Swal.fire({
+        title: 'Registro de Empleado',
+        text: 'El empleado ha sido registrado correctamente.',
+        icon: 'success',
+        confirmButtonColor: '#e76f51',
+      });
+      return true;
+    } else {
+      throw new Error(data.message || 'Error al registrar el empleado');
+    }
+  } catch (error: any) {
+    handleError(error.message);
+    return false;
+  }
+}
+
 /*  
  Inicio de Sesión y Endpoint: POST /auth/signin 
  */
