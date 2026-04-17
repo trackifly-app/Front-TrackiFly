@@ -2,13 +2,13 @@
 
 import { validateFormRegister } from '@/lib/validates';
 import { registerUser } from '@/services/authService';
-import { IRegisterProps } from '@/types/types';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountrySelect from '@/components/CountrySelect';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import {  IRegisterProps } from '@/interfaces/shipment';
 
 const RegisterView = () => {
   const router = useRouter();
