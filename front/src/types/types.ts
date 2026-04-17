@@ -6,7 +6,8 @@ export interface ILoginProps {
 export interface IRegisterProps {
   email: string;
   password: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   address: string;
   phone: string;
   gender: string;
@@ -22,7 +23,8 @@ export interface ILoginErrors {
 export interface IRegisterErrors {
   email?: string;
   password?: string;
-  name?: string;
+  first_name?: string;
+  last_name?: string;
   address?: string;
   phone?: string;
   gender?: string;
@@ -58,4 +60,4 @@ export type OrderFormValues = {
   dangerous: boolean;
   cooled: boolean;
   urgent: boolean;
-}
+};
