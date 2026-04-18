@@ -1,16 +1,7 @@
+import { CompanyProfileCardProps } from '@/interfaces/shipment';
 import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
 
-interface CompanyProfileCardProps {
-  company: {
-    email: string;
-    company_name: string;
-    industry: string;
-    contact_name: string;
-    phone: string;
-    address: string;
-    country: string;
-  };
-}
+
 
 export default function CompanyProfileCard({ company }: CompanyProfileCardProps) {
   return (

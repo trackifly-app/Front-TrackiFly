@@ -1,14 +1,5 @@
-type HistoryOrder = {
-  id: string;
-  trackingCode: string;
-  deliveredDate: string;
-  destination: string;
-  status: string;
-};
+import { OrderHistoryProps } from "@/types/types";
 
-type OrderHistoryProps = {
-  orders: HistoryOrder[];
-};
 
 export default function OrderHistory({ orders }: OrderHistoryProps) {
   return (
