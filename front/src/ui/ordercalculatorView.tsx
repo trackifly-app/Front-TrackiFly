@@ -15,8 +15,6 @@ const RECARGOS = {
   URGENTE: 0.5,
 };
 
-
-
 export default function CalcularEnvioPage() {
   const [isCalculating, setIsCalculating] = useState(false);
 
@@ -61,11 +59,16 @@ export default function CalcularEnvioPage() {
   };
 
   const initialValues: ShipmentValues = {
+    name: '',
+    category_id: '',
+    description: '',
+    image: '',
+
     height: 0,
     width: 0,
     depth: 0,
     weight: 0,
-    unit: 'cm',
+    unit: '',
     pickup_direction: '',
     delivery_direction: '',
     distance: 0,
