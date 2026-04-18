@@ -8,6 +8,7 @@ import '../globals.css';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import FloatingActions from '@/components/FloatingActions';
+import FeedbackProvider from "@/context/feedback/FeedbackProvider";
 
 // fuente poppins e inter
 const poppins = Poppins({
@@ -40,10 +41,12 @@ export default async function RootLayout({
     <html lang={locale} className={`${poppins.variable} ${inter.variable}`}>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <FloatingActions />
-          <Footer />
+          <FeedbackProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <FloatingActions />
+            <Footer />
+          </FeedbackProvider>
         </NextIntlClientProvider>
       </body>
     </html>

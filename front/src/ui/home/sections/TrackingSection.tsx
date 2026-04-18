@@ -1,4 +1,34 @@
+"use client";
+
+import { useState } from "react";
+import axios from "axios";
+import { useFeedback } from "@/context/feedback/useFeedback";
+
+
 const TrackingSection = () => {
+    const [trackingId, setTrackingId] = useState("");
+    const { showToast, showHttpError } = useFeedback();
+
+    const handleSearch = async () => {
+    if (!trackingId.trim()) {
+        showToast("Ingresa un número de seguimiento", "warning");
+        return;
+    }
+
+    try {
+        const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders/${trackingId}`
+        );
+
+        console.log("Resultado tracking:", response.data);
+
+        showToast("Envío encontrado", "success");
+
+        // luego aquí puedes redirigir o mostrar info
+    } catch (error) {
+        showHttpError(error, "No se encontró el envío");
+    }
+    };
   return (
     <section className="h-full flex items-start">
         <div className="w-full max-w-xl flex flex-col justify-start">
@@ -14,9 +44,13 @@ const TrackingSection = () => {
                 <input
                     type="text"
                     placeholder="Ingresá el número de seguimiento"
+                    value={trackingId}
+                    onChange={(e) => setTrackingId(e.target.value)}
                     className="flex-1 px-4 py-3 text-sm outline-none bg-transparent text-gray-800"
                 />
-                <button className="bg-primary hover:bg-primary-hover text-white px-5 py-3 text-sm font-medium transition-colors">
+                <button 
+                    onClick={handleSearch}
+                    className="bg-primary hover:bg-primary-hover text-white px-5 py-3 text-sm font-medium transition-colors">
                     Buscar
                 </button>
             </div>
