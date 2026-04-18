@@ -1,15 +1,5 @@
-type UserProfileCardProps = {
-  user: {
-    email: string;
-    name: string;
-    address: string;
-    phone: string;
-    birthDate: string;
-    gender: string;
-    country: string;
-    image?: string;
-  };
-};
+import { UserProfileCardProps } from "@/types/types";
+
 
 export default function UserProfileCard({ user }: UserProfileCardProps) {
   return (

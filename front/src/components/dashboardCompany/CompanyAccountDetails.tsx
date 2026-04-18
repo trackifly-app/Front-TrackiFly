@@ -1,15 +1,7 @@
+import { CompanyAccountDetailsProps } from '@/interfaces/shipment';
 import { Settings, CreditCard } from 'lucide-react';
 
-interface AccountDetailItem {
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  action: string;
-}
 
-interface CompanyAccountDetailsProps {
-  accountDetails: AccountDetailItem[];
-}
 
 export default function CompanyAccountDetails({ accountDetails }: CompanyAccountDetailsProps) {
   return (

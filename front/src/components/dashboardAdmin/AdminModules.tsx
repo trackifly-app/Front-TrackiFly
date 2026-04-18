@@ -1,14 +1,9 @@
+import { AdminModulesProps } from '@/interfaces/shipment';
 import { Building2, CreditCard, TriangleAlert, BarChart3 } from 'lucide-react';
 
-type ModuleItem = {
-  title: string;
-  description: string;
-  icon: React.ElementType;
-};
 
-interface AdminModulesProps {
-  modules: ModuleItem[];
-}
+
+
 
 export default function AdminModules({ modules }: AdminModulesProps) {
   return (

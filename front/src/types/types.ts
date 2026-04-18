@@ -1,34 +1,4 @@
-export interface ILoginProps {
-  email: string;
-  password: string;
-}
 
-export interface IRegisterProps {
-  email: string;
-  password: string;
-  name: string;
-  address: string;
-  phone: string;
-  gender: string;
-  birthdate: string;
-  country: string;
-}
-
-export interface ILoginErrors {
-  email?: string;
-  password?: string;
-}
-
-export interface IRegisterErrors {
-  email?: string;
-  password?: string;
-  name?: string;
-  address?: string;
-  phone?: string;
-  gender?: string;
-  birthdate?: string;
-  country?: string;
-}
 
 export type CountryOption = {
   value: string;
@@ -36,16 +6,11 @@ export type CountryOption = {
   flag: string;
 };
 
-export interface ICountryProps {
-  value: string;
-  onChange: (value: string) => void;
-  onBlur: () => void;
-}
-
 export type OrderFormValues = {
   name: string;
   description: string;
   category_id: string;
+  distance:number;
   image: string;
   pickup_direction: string;
   delivery_direction: string;
@@ -58,4 +23,49 @@ export type OrderFormValues = {
   dangerous: boolean;
   cooled: boolean;
   urgent: boolean;
-}
+};
+
+export type ModuleItem = {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+};
+
+export type ActiveOrder = {
+  id: string;
+  trackingCode: string;
+  status: string;
+  origin: string;
+  destination: string;
+  estimatedDelivery: string;
+  image?: string;
+};
+
+export type ActiveOrdersProps = {
+  orders: ActiveOrder[];
+};
+
+export type HistoryOrder = {
+  id: string;
+  trackingCode: string;
+  deliveredDate: string;
+  destination: string;
+  status: string;
+};
+
+export type OrderHistoryProps = {
+  orders: HistoryOrder[];
+};
+
+export type UserProfileCardProps = {
+  user: {
+    email: string;
+    name: string;
+    address: string;
+    phone: string;
+    birthDate: string;
+    gender: string;
+    country: string;
+    image?: string;
+  };
+};

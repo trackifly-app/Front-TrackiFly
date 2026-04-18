@@ -1,12 +1,5 @@
-interface CompanyWelcomeCardProps {
-  company: {
-    company_name: string;
-    country: string;
-    plan: string;
-    image: string;
-  };
-  moduleCount: number;
-}
+import { CompanyWelcomeCardProps } from "@/interfaces/shipment";
+
 
 export default function CompanyWelcomeCard({ company, moduleCount }: CompanyWelcomeCardProps) {
   return (
