@@ -1,6 +1,6 @@
 import { ShipmentValues, ShipmentErrors, IRegisterCompanyProps, IRegisterCompanyErrors } from '@/interfaces/shipment';
 import { CalculatorValues } from '@/interfaces/shipment';
-import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/types/types';
+import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/interfaces/shipment';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;

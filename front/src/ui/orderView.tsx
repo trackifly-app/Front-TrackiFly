@@ -169,7 +169,9 @@ const OrderView = () => {
           width: Number(values.width) || 0,
           depth: Number(values.depth) || 0,
           weight: Number(values.weight) || 0,
+          distance: distance,
         };
+
         const errors = validateShipment(shipmentValues);
 
         if (!values.description) {

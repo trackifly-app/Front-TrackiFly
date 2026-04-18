@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
+import { ShipmentValues } from '@/interfaces/shipment';
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -12,21 +13,6 @@ const RECARGOS = {
   PELIGROSO: 0.3,
   REFRIGERADO: 0.2,
   URGENTE: 0.5,
-};
-
-type CalculatorValues = {
-  alto: string;
-  ancho: string;
-  profundidad: string;
-  peso: string;
-  unidad: 'cm' | 'in';
-  origen: string;
-  destino: string;
-  distancia: number;
-  fragil: boolean;
-  peligroso: boolean;
-  refrigerado: boolean;
-  urgente: boolean;
 };
 
 export default function CalcularEnvioPage() {
@@ -72,19 +58,24 @@ export default function CalcularEnvioPage() {
     }
   };
 
-  const initialValues: CalculatorValues = {
-    alto: '',
-    ancho: '',
-    profundidad: '',
-    peso: '',
-    unidad: 'cm',
-    origen: '',
-    destino: '',
-    distancia: 0,
-    fragil: false,
-    peligroso: false,
-    refrigerado: false,
-    urgente: false,
+  const initialValues: ShipmentValues = {
+    name: '',
+    category_id: '',
+    description: '',
+    image: '',
+
+    height: 0,
+    width: 0,
+    depth: 0,
+    weight: 0,
+    unit: '',
+    pickup_direction: '',
+    delivery_direction: '',
+    distance: 0,
+    fragile: false,
+    dangerous: false,
+    cooled: false,
+    urgent: false,
   };
 
   return (
@@ -95,14 +86,14 @@ export default function CalcularEnvioPage() {
       }}
     >
       {({ values, setFieldValue }) => {
-        const factor = values.unidad === 'cm' ? 0.01 : 0.0254;
-        const altoM = (Number(values.alto) || 0) * factor;
-        const anchoM = (Number(values.ancho) || 0) * factor;
-        const profM = (Number(values.profundidad) || 0) * factor;
+        const factor = values.unit === 'cm' ? 0.01 : 0.0254;
+        const altoM = (Number(values.height) || 0) * factor;
+        const anchoM = (Number(values.width) || 0) * factor;
+        const profM = (Number(values.depth) || 0) * factor;
 
         const volumen = altoM * anchoM * profM;
-        const precioBase = volumen * COSTO_M3 + values.distancia * COSTO_KM;
-        const pesoNum = Number(values.peso) || 0;
+        const precioBase = volumen * COSTO_M3 + values.distance * COSTO_KM;
+        const pesoNum = Number(values.weight) || 0;
 
         let recargoPeso = 0;
         if (pesoNum > 2) {
@@ -111,10 +102,10 @@ export default function CalcularEnvioPage() {
         }
 
         let porcentajeExtra = recargoPeso;
-        if (values.fragil) porcentajeExtra += RECARGOS.FRAGIL;
-        if (values.peligroso) porcentajeExtra += RECARGOS.PELIGROSO;
-        if (values.refrigerado) porcentajeExtra += RECARGOS.REFRIGERADO;
-        if (values.urgente) porcentajeExtra += RECARGOS.URGENTE;
+        if (values.fragile) porcentajeExtra += RECARGOS.FRAGIL;
+        if (values.dangerous) porcentajeExtra += RECARGOS.PELIGROSO;
+        if (values.cooled) porcentajeExtra += RECARGOS.REFRIGERADO;
+        if (values.urgent) porcentajeExtra += RECARGOS.URGENTE;
 
         const montoRecargo = precioBase * porcentajeExtra;
         const precioFinal = precioBase + montoRecargo;
@@ -128,15 +119,15 @@ export default function CalcularEnvioPage() {
                 <div className="space-y-1">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted">Punto de Retiro:</label>
-                    <Field name="origen" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <Field name="origen" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   </div>
 
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted">Punto de Entrega:</label>
-                    <Field name="destino" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.origen, values.destino, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <Field name="destino" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   </div>
 
-                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">{isCalculating ? 'Calculando distancia...' : values.distancia > 0 ? `Distancia: ${values.distancia.toFixed(2)} km / ${(values.distancia * KM_A_MILLAS).toFixed(2)} mi` : 'Completa ambas direcciones'}</div>
+                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">{isCalculating ? 'Calculando distancia...' : values.distance > 0 ? `Distancia: ${values.distance.toFixed(2)} km / ${(values.distance * KM_A_MILLAS).toFixed(2)} mi` : 'Completa ambas direcciones'}</div>
                 </div>
               </div>
 
@@ -150,9 +141,9 @@ export default function CalcularEnvioPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-1">
-                  <Field name="alto" type="number" placeholder={`Alto (${values.unidad})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="ancho" type="number" placeholder={`Ancho (${values.unidad})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unidad})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="alto" type="number" placeholder={`Alto (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="ancho" type="number" placeholder={`Ancho (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   <Field name="peso" type="number" placeholder="Peso (kg)" className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                 </div>
 
@@ -189,7 +180,7 @@ export default function CalcularEnvioPage() {
 
                 <p className="text-xs text-muted">Volumen: {volumen.toFixed(4)} m³</p>
 
-                <p className="text-xs text-muted">Trayecto: {values.distancia.toFixed(1)} km</p>
+                <p className="text-xs text-muted">Trayecto: {values.distance.toFixed(1)} km</p>
 
                 <p className="text-xs text-muted">
                   Peso: {pesoNum} kg

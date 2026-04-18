@@ -1,16 +1,5 @@
-type ActiveOrder = {
-  id: string;
-  trackingCode: string;
-  status: string;
-  origin: string;
-  destination: string;
-  estimatedDelivery: string;
-  image?: string;
-};
+import { ActiveOrdersProps } from "@/types/types";
 
-type ActiveOrdersProps = {
-  orders: ActiveOrder[];
-};
 
 export default function ActiveOrders({ orders }: ActiveOrdersProps) {
   return (
