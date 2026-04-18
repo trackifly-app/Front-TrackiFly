@@ -183,3 +183,10 @@ export interface ICountryProps {
   onChange: (value: string) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
+
+// Interfaz para el catálogo de roles
+export interface RoleCatalogEntry {
+  seedOnBootstrap: boolean;
+  allowSelfSignUp: boolean;
+  requiresApproval: boolean;
+}
