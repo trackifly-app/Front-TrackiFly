@@ -90,7 +90,7 @@ export interface IRegisterProps {
   phone: string;
   gender?: string;
   birthdate?: string;
-  country?: string;
+  country: string;
 }
 
 export interface IRegisterErrors {
