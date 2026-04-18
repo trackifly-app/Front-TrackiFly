@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import CountrySelect from '@/components/CountrySelect';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import {  IRegisterProps } from '@/interfaces/shipment';
+import { IRegisterProps } from '@/interfaces/shipment';
 
 const RegisterView = () => {
   const router = useRouter();
@@ -55,7 +55,7 @@ const RegisterView = () => {
             onSubmit={async (values, { resetForm, setFieldValue }) => {
               const dataToSubmit = {
                 ...values,
-                country: values.country.slice(0, 2).toUpperCase(),
+                country: values.country?.slice(0, 2).toUpperCase() || '',
               };
               const success = await registerUser(dataToSubmit);
               if (success) {
