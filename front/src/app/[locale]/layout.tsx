@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import FloatingActions from "@/components/FloatingActions";
 import { AuthProvider } from "@/context/AuthContext";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
+import GoogleSessionSync from "@/components/providers/GoogleSessionSync";
 
 // Configuración de fuentes globales (Poppins e Inter)
 const poppins = Poppins({
@@ -47,6 +48,7 @@ export default async function RootLayout({
             {/* Proveedor de Autenticación: Envuelve a toda la estructura para que 
               cualquier componente (como el Navbar) pueda acceder a la sesión */}
             <AuthProvider>
+              <GoogleSessionSync />
               <Navbar />
 
               <main className="flex-1">{children}</main>

@@ -27,8 +27,8 @@ const handler = NextAuth({
         if (!res.ok) return false
 
         const data = await res.json()
-        // Guardamos el JWT del back en el objeto user (temporal)
         user.backendToken = data.token
+        user.isNewGoogleUser = data.isNew
         return true
       } catch {
         return false
@@ -40,12 +40,16 @@ const handler = NextAuth({
       if (user?.backendToken) {
         token.backendToken = user.backendToken
       }
+       if (user?.isNewGoogleUser !== undefined) {
+      token.isNewGoogleUser = user.isNewGoogleUser
+  }
       return token
     },
 
     async session({ session, token }) {
       // Lo exponemos en la sesión para usarlo en fetch calls
       session.backendToken = token.backendToken as string
+      session.isNewGoogleUser = token.isNewGoogleUser as boolean
       return session
     },
   },

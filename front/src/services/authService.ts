@@ -132,6 +132,7 @@ export const logout = () => {
     if (typeof window !== 'undefined') {
         localStorage.removeItem('userSession');
         localStorage.removeItem('userToken');
+        localStorage.removeItem('googleToastShown')
         localStorage.clear(); 
     }
 };
