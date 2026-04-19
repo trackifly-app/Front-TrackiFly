@@ -6,7 +6,11 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { hostname: "i.pinimg.com"}
+      { hostname: "i.pinimg.com"},
+      {
+      protocol: "https",
+      hostname: "www.google.com",
+    },
     ],
     qualities: [75, 100]
   }

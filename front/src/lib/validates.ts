@@ -1,17 +1,16 @@
 import { ShipmentValues, ShipmentErrors, IRegisterCompanyProps, IRegisterCompanyErrors } from '@/interfaces/shipment';
 import { CalculatorValues } from '@/interfaces/shipment';
-import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/types/types';
+import { ILoginErrors, ILoginProps, IRegisterErrors, IRegisterProps } from '@/interfaces/shipment';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 const PHONE_REGEX = /^[0-9]{7,15}$/;
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
 
-
 export const CompanyPlan = [
-  { id: '1', name: 'Plan Free' },
-  { id: '2', name: 'Plan Basic' },
-  {id: '3', name: 'Plan Pro'}
+  { id: 'free', name: 'Plan Free' },
+  { id: 'basic', name: 'Plan Basic' },
+  { id: 'pro', name: 'Plan Pro' },
 ];
 
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
@@ -33,7 +32,6 @@ export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
     errors.pickup_direction = 'La dirección de retiro es obligatoria';
   }
 
- 
   if (values.height <= 0) errors.height = 'Debe ser mayor a 0';
   if (values.width <= 0) errors.width = 'Debe ser mayor a 0';
   if (values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
@@ -71,14 +69,20 @@ export const validateFormLogin = (values: ILoginProps) => {
 export const validateFormRegister = (values: IRegisterProps) => {
   const errors: IRegisterErrors = {};
 
-  if (!values.name.trim()) {
-    errors.name = 'El nombre es obligatorio';
-  } else if (!NAME_REGEX.test(values.name)) {
-    errors.name = 'Solo se permiten letras';
-  } else if (values.name.length > 15) {
-    errors.name = 'Máximo 15 caracteres';
-  } else if (values.name.length < 2) {
-    errors.name = 'Debe tener al menos 2 caracteres';
+  if (!values.first_name || !values.first_name.trim()) {
+    errors.first_name = 'El nombre es obligatorio';
+  } else if (!NAME_REGEX.test(values.first_name)) {
+    errors.first_name = 'Solo se permiten letras';
+  } else if (values.first_name.length < 3) {
+    errors.first_name = 'Mínimo 3 caracteres';
+  }
+
+  if (!values.last_name || !values.last_name.trim()) {
+    errors.last_name = 'El apellido es obligatorio';
+  } else if (!NAME_REGEX.test(values.last_name)) {
+    errors.last_name = 'Solo se permiten letras';
+  } else if (values.last_name.length < 3) {
+    errors.last_name = 'Mínimo 3 caracteres';
   }
 
   if (!values.email.trim()) {
@@ -89,14 +93,14 @@ export const validateFormRegister = (values: IRegisterProps) => {
 
   if (!values.password.trim()) {
     errors.password = 'La contraseña es obligatoria';
-  } else if (!PASSWORD_REGEX.test(values.password)) {
-    errors.password = 'Mínimo 8 caracteres, con al menos una letra y un número';
+  } else if (values.password.length < 6) {
+    errors.password = 'Mínimo 6 caracteres';
   }
 
   if (!values.address.trim()) {
     errors.address = 'La dirección es obligatoria';
-  } else if (values.address.length < 5) {
-    errors.address = 'Dirección demasiado corta';
+  } else if (values.address.length < 3) {
+    errors.address = 'Mínimo 3 caracteres';
   }
 
   if (!values.phone.trim()) {
@@ -113,15 +117,14 @@ export const validateFormRegister = (values: IRegisterProps) => {
     errors.birthdate = 'La fecha es obligatoria';
   } else {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const birth = new Date(values.birthdate);
-
+    birth.setHours(0, 0, 0, 0);
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
-
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
       age--;
     }
-
     if (age < 18) {
       errors.birthdate = 'Debes ser mayor de 18 años';
     }
@@ -134,7 +137,6 @@ export const validateFormRegister = (values: IRegisterProps) => {
   return errors;
 };
 export type CompanyRegisterErrors = Partial<IRegisterCompanyProps>;
-
 
 export const validateFormRegisterCompany = (values: IRegisterCompanyProps): IRegisterCompanyErrors => {
   const errors: IRegisterCompanyErrors = {};

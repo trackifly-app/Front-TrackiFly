@@ -1,8 +1,8 @@
 'use client';
 
-interface EmployeeWelcomeCardProps {
-  employeeCount?: number;
-}
+import { EmployeeWelcomeCardProps } from "@/interfaces/shipment";
+
+
 
 export default function EmployeeWelcomeCard({ employeeCount = 24 }: EmployeeWelcomeCardProps) {
   return (

@@ -1,12 +1,11 @@
-import LoginCompanyView from '@/ui/LoginCompanyView'
-import React from 'react'
+import LoginCompanyView from '@/ui/LoginCompanyView';
 
 const LoginCompanypage = () => {
   return (
     <div>
-      <LoginCompanyView/>
+      <LoginCompanyView />
     </div>
-  )
-}
+  );
+};
 
-export default LoginCompanypage
+export default LoginCompanypage;

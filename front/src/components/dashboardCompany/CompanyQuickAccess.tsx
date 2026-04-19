@@ -2,16 +2,9 @@
 
 import Link from 'next/link';
 import { Users, Truck, MapPin, PackageSearch, TriangleAlert } from 'lucide-react';
+import { CompanyQuickAccessProps } from '@/interfaces/shipment';
 
-interface ModuleItem {
-  title: string;
-  description: string;
-  icon: React.ElementType;
-}
 
-interface CompanyQuickAccessProps {
-  modules: ModuleItem[];
-}
 
 export default function CompanyQuickAccess({ modules }: CompanyQuickAccessProps) {
   return (
