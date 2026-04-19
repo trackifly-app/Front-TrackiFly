@@ -7,12 +7,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountrySelect from '@/components/CountrySelect';
 import { Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IRegisterProps } from '@/interfaces/shipment';
 
 const RegisterView = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+
+  const [maxDate, setMaxDate] = useState('');
+
+  useEffect(() => {
+    setMaxDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const inputStyle = 'mt-1 w-full rounded-xl border border-border bg-surface-muted py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors placeholder:text-muted';
 
@@ -69,30 +75,10 @@ const RegisterView = () => {
               <Form className="mt-8 space-y-5 text-left">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   {[
-                    {
-                      label: 'Nombre',
-                      name: 'first_name',
-                      type: 'text',
-                      max: 80,
-                    },
-                    {
-                      label: 'Apellido',
-                      name: 'last_name',
-                      type: 'text',
-                      max: 80,
-                    },
-                    {
-                      label: 'Email',
-                      name: 'email',
-                      type: 'email',
-                      max: 50,
-                    },
-                    {
-                      label: 'Teléfono',
-                      name: 'phone',
-                      type: 'text',
-                      max: 15,
-                    },
+                    { label: 'Nombre', name: 'first_name', type: 'text', max: 80 },
+                    { label: 'Apellido', name: 'last_name', type: 'text', max: 80 },
+                    { label: 'Email', name: 'email', type: 'email', max: 50 },
+                    { label: 'Teléfono', name: 'phone', type: 'text', max: 15 },
                   ].map((field) => (
                     <div key={field.name}>
                       <label className="text-sm font-medium text-muted">{field.label}</label>
@@ -121,7 +107,7 @@ const RegisterView = () => {
 
                   <div>
                     <label className="text-sm font-medium text-muted">Fecha de nacimiento</label>
-                    <Field type="date" name="birthdate" max={new Date().toISOString().split('T')[0]} className={inputStyle} />
+                    <Field type="date" name="birthdate" max={maxDate} className={inputStyle} />
                     <ErrorMessage name="birthdate" component="div" className="text-xs text-primary mt-1" />
                   </div>
 
