@@ -7,13 +7,25 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CountrySelect from "@/components/CountrySelect";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IRegisterProps } from "@/interfaces/shipment";
 import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
 const RegisterView = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+
+  const [maxDate, setMaxDate] = useState("");
+
+  useEffect(() => {
+    setMaxDate(new Date().toISOString().split("T")[0]);
+  }, []);
+
+  const [maxDate, setMaxDate] = useState("");
+
+  useEffect(() => {
+    setMaxDate(new Date().toISOString().split("T")[0]);
+  }, []);
 
   const inputStyle =
     "mt-1 w-full rounded-xl border border-border bg-surface-muted py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors placeholder:text-muted";
@@ -97,18 +109,8 @@ const RegisterView = () => {
                       type: "text",
                       max: 80,
                     },
-                    {
-                      label: "Email",
-                      name: "email",
-                      type: "email",
-                      max: 50,
-                    },
-                    {
-                      label: "Teléfono",
-                      name: "phone",
-                      type: "text",
-                      max: 15,
-                    },
+                    { label: "Email", name: "email", type: "email", max: 50 },
+                    { label: "Teléfono", name: "phone", type: "text", max: 15 },
                   ].map((field) => (
                     <div key={field.name}>
                       <label className="text-sm font-medium text-muted">
@@ -161,7 +163,7 @@ const RegisterView = () => {
                     <Field
                       type="date"
                       name="birthdate"
-                      max={new Date().toISOString().split("T")[0]}
+                      max={maxDate}
                       className={inputStyle}
                     />
                     <ErrorMessage
