@@ -140,9 +140,10 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
 
 // Borra toda la información de seguridad del almacenamiento local
 export const logout = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('userSession');
-    localStorage.removeItem('userToken');
-    localStorage.clear();
-  }
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('googleToastShown')
+        localStorage.clear(); 
+    }
 };

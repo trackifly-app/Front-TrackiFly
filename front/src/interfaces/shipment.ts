@@ -54,7 +54,7 @@ export interface CalculatorValues {
 export interface IUserSession {
   token: string;
   user: {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
     role: string;
