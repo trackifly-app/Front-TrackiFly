@@ -25,9 +25,18 @@ const Navbar = () => {
     if (!isAuthenticated || !userRole) return [];
 
     const links = [];
+
+    // Dashboard Admin (solo Admins)
     if (userRole === Role.Admin || userRole === Role.SuperAdmin) {
-      links.push({ href: '/dashboard/admin', label: 'Admin', icon: <ShieldCheck size={30} />, mobileIcon: <ShieldCheck size={24} /> });
+      links.push({
+        href: '/dashboard/admin',
+        label: 'Admin',
+        icon: <ShieldCheck size={30} />,
+        mobileIcon: <ShieldCheck size={24} />,
+      });
     }
+
+    // Dashboard Empresa / Operaciones
     if (userRole === Role.Company || userRole === Role.Operator) {
       const isOp = userRole === Role.Operator;
       links.push({
@@ -37,7 +46,17 @@ const Navbar = () => {
         mobileIcon: isOp ? <LayoutDashboard size={24} /> : <Building2 size={24} />,
       });
     }
-    links.push({ href: '/dashboard/user', label: 'Perfil', icon: <UserCircle size={30} />, mobileIcon: <UserCircle size={24} /> });
+
+    // === PERFIL - Visible para TODOS los roles EXCEPTO Company ===
+    if (userRole !== Role.Company) {
+      links.push({
+        href: '/dashboard/user',
+        label: 'Perfil',
+        icon: <UserCircle size={30} />,
+        mobileIcon: <UserCircle size={24} />,
+      });
+    }
+
     return links;
   };
 
@@ -63,29 +82,31 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Menú Móvil Hamburguesa */}
+        {/* Botón Hamburguesa (Móvil) */}
         <div className="md:hidden flex justify-end">
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-primary p-2">
             {isMobileMenuOpen ? <X size={30} /> : <Menu size={30} />}
           </button>
         </div>
 
+        {/* Menú Desktop */}
         <div className="hidden md:flex items-center gap-3">
           {!isMounted ? (
             <div className="w-32" />
           ) : isAuthenticated ? (
             <>
               {roleLinks.map((link) => (
-                <div key={link.href} className="group flex items-center text-primary px-2 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
+                <div key={link.href} className="group flex items-center text-primary px-3 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300">
                   {link.icon}
-                  <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">
+                  <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2 text-sm">
                     <Link href={link.href}>{link.label}</Link>
                   </span>
                 </div>
               ))}
+
               <button onClick={handleLogout} className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
                 <LogOut size={18} />
-                <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:opacity-100 group-hover:ml-2">Salir</span>
+                <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:max-w-xs group-hover:ml-2">Salir</span>
               </button>
             </>
           ) : (
@@ -101,7 +122,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Menú Móvil Desplegable */}
+      {/* Menú Móvil */}
       {isMobileMenuOpen && (
         <div className="md:hidden flex flex-col bg-surface px-6 py-4 gap-4 border-t border-border animate-in slide-in-from-top duration-300">
           <div className="flex flex-col gap-3">
@@ -119,10 +140,10 @@ const Navbar = () => {
           <hr className="border-border" />
 
           <div className="flex flex-col gap-4">
-            {!isMounted ? null : isAuthenticated ? (
+            {isAuthenticated ? (
               <>
                 {roleLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="text-primary flex items-center gap-3 py-1" onClick={closeMobileMenu}>
+                  <Link key={link.href} href={link.href} className="text-primary flex items-center gap-3 py-2" onClick={closeMobileMenu}>
                     {link.mobileIcon} <span>{link.label}</span>
                   </Link>
                 ))}
