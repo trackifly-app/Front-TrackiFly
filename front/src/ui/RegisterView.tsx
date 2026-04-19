@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CountrySelect from "@/components/CountrySelect";
 import { Eye, EyeOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { IRegisterProps } from "@/interfaces/shipment";
 import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 
@@ -15,17 +15,7 @@ const RegisterView = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
-  const [maxDate, setMaxDate] = useState("");
-
-  useEffect(() => {
-    setMaxDate(new Date().toISOString().split("T")[0]);
-  }, []);
-
-  const [maxDate, setMaxDate] = useState("");
-
-  useEffect(() => {
-    setMaxDate(new Date().toISOString().split("T")[0]);
-  }, []);
+  const maxDate = new Date().toISOString().split("T")[0];
 
   const inputStyle =
     "mt-1 w-full rounded-xl border border-border bg-surface-muted py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors placeholder:text-muted";
