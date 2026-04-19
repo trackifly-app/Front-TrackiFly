@@ -221,9 +221,10 @@ const OrderView = () => {
         // ========================================
         return (
           <main className="min-h-screen bg-background px-4 py-10">
-            <div className="mx-auto max-w-6xl">
-              <Form className="grid gap-6 lg:grid-cols-[1.6fr_0.9fr]">
-                <div className="space-y-6 text-left">
+            <div className="mx-auto max-w-7xl">
+              <Form className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+                {/* ====================== COLUMNA IZQUIERDA ====================== */}
+                <div className="flex-1 space-y-8">
                   <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
                     <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">Detalles del Producto</h3>
                     <div className="grid gap-4">
@@ -326,39 +327,42 @@ const OrderView = () => {
                   </div>
                 </div>
 
-                <aside className="h-fit rounded-2xl bg-surface p-8 shadow-xl text-foreground border border-border sticky top-10 self-start text-left">
-                  <h2 className="text-xl font-black mb-6 border-b border-border pb-2 uppercase">Presupuesto</h2>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm text-muted">
-                      <span>Trayecto:</span>
-                      <span className="text-foreground font-mono">{distance.toFixed(1)} km</span>
+                {/* ====================== COLUMNA DERECHA - PRESUPUESTO ====================== */}
+                <div className="lg:w-96 shrink-0">
+                  <div className="rounded-2xl bg-surface p-8 shadow-xl text-foreground border border-border h-fit">
+                    <h2 className="text-xl font-black mb-6 border-b border-border pb-2 uppercase">Presupuesto</h2>
+                    <div className="space-y-4">
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>Trayecto:</span>
+                        <span className="text-foreground font-mono">{distance.toFixed(1)} km</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>Volumen:</span>
+                        <span className="text-foreground font-mono">{volumenM3.toFixed(4)} m³</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted">
+                        <span>Peso:</span>
+                        <span className="text-foreground font-mono">{pesoNum} kg</span>
+                      </div>
+                      <div className="pt-4 space-y-3">
+                        {['fragile', 'dangerous', 'cooled', 'urgent'].map((serv) => (
+                          <label key={serv} className="flex items-center gap-3 cursor-pointer hover:text-primary text-xs font-bold uppercase">
+                            <Field type="checkbox" name={serv} className="accent-primary h-4 w-4" />
+                            {serv === 'fragile' ? 'Frágil (+15%)' : serv === 'dangerous' ? 'Peligroso (+30%)' : serv === 'cooled' ? 'Refrigerado (+20%)' : 'Urgente (+50%)'}
+                          </label>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
+                        <span className="font-black italic text-lg uppercase">Neto:</span>
+                        <span className="font-black text-primary">${precioFinal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm text-muted">
-                      <span>Volumen:</span>
-                      <span className="text-foreground font-mono">{volumenM3.toFixed(4)} m³</span>
-                    </div>
-                    <div className="flex justify-between text-sm text-muted">
-                      <span>Peso:</span>
-                      <span className="text-foreground font-mono">{pesoNum} kg</span>
-                    </div>
-                    <div className="pt-4 space-y-3">
-                      {['fragile', 'dangerous', 'cooled', 'urgent'].map((serv) => (
-                        <label key={serv} className="flex items-center gap-3 cursor-pointer hover:text-primary text-xs font-bold uppercase">
-                          <Field type="checkbox" name={serv} className="accent-primary h-4 w-4" />
-                          {serv === 'fragile' ? 'Frágil (+15%)' : serv === 'dangerous' ? 'Peligroso (+30%)' : serv === 'cooled' ? 'Refrigerado (+20%)' : 'Urgente (+50%)'}
-                        </label>
-                      ))}
-                    </div>
-                    <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
-                      <span className="font-black italic text-lg uppercase">Neto:</span>
-                      <span className="font-black text-primary">${precioFinal.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-                    </div>
+                    <button type="submit" disabled={isSubmitting} className="mt-8 w-full rounded-xl bg-primary py-4 font-black text-white hover:bg-primary-hover transition-all active:scale-95 shadow-lg uppercase">
+                      {isSubmitting ? 'REGISTRANDO...' : 'CONFIRMAR ENVÍO'}
+                    </button>
+                    {Object.keys(errors).length > 0 && submitCount > 0 && <p className="text-red-500 text-[10px] mt-4 text-center font-bold animate-pulse uppercase">Corrija los errores resaltados</p>}
                   </div>
-                  <button type="submit" disabled={isSubmitting} className="mt-8 w-full rounded-xl bg-primary py-4 font-black text-white hover:bg-primary-hover transition-all active:scale-95 shadow-lg uppercase">
-                    {isSubmitting ? 'REGISTRANDO...' : 'CONFIRMAR ENVÍO'}
-                  </button>
-                  {Object.keys(errors).length > 0 && submitCount > 0 && <p className="text-red-500 text-[10px] mt-4 text-center font-bold animate-pulse uppercase">Corrija los errores resaltados</p>}
-                </aside>
+                </div>
               </Form>
             </div>
           </main>
