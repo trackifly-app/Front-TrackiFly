@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Send } from 'lucide-react';
 
 type Message = {
@@ -18,6 +18,34 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
       text: '¡Hola! Soy el asistente de Trackifly 🚚\n\nPuedo ayudarte a rastrear un envío, crear un pedido o responder preguntas frecuentes.',
     },
   ]);
+
+  // 🔹 Ref para detectar click fuera
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  // 🔹 Efecto para click outside + ESC
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEsc);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, onClose]);
 
   const sendMessage = async (customMessage?: string) => {
     const messageToSend = customMessage || input.trim();
@@ -53,6 +81,7 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   return (
     <div
+      ref={chatRef}
       className={`fixed bottom-28 right-6 z-50 flex h-135 w-95 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-md transition-all duration-300 origin-bottom-right
       ${isOpen ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}`}
     >
