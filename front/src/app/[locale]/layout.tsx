@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import FloatingActions from '@/components/FloatingActions';
 import { AuthProvider } from '@/context/AuthContext';
+import FeedbackProvider from '@/context/feedback/FeedbackProvider';
 
 // Configuración de fuentes globales (Poppins e Inter)
 const poppins = Poppins({
@@ -43,21 +44,22 @@ export default async function RootLayout({
         
         {/* Proveedor de traducciones para toda la app */}
         <NextIntlClientProvider messages={messages}>
-          
-          {/* Proveedor de Autenticación: Envuelve a toda la estructura para que 
-              cualquier componente (como el Navbar) pueda acceder a la sesión */}
-          <AuthProvider>
-            
-            <Navbar />
-            
-            <main className="flex-1">
-              {children}
-            </main>
-            
-            <FloatingActions />
-            <Footer />
-            
-          </AuthProvider>
+          <FeedbackProvider> {/* se envuelve el auth con el feedback notificaciones globales para toda la app*/}
+            {/* Proveedor de Autenticación: Envuelve a toda la estructura para que 
+                cualquier componente (como el Navbar) pueda acceder a la sesión */}
+            <AuthProvider>
+              
+              <Navbar />
+              
+              <main className="flex-1">
+                {children}
+              </main>
+              
+              <FloatingActions />
+              <Footer />
+              
+            </AuthProvider>
+          </FeedbackProvider>
         </NextIntlClientProvider>
       </body>
     </html>

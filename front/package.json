@@ -12,11 +12,8 @@
     "@react-google-maps/api": "^2.20.8",
     "axios": "^1.15.0",
     "formik": "^2.4.9",
-<<<<<<< HEAD
-    "lottie-react": "^2.4.1",
-=======
     "leaflet": "^1.9.4",
->>>>>>> develop
+    "lottie-react": "^2.4.1",
     "lucide-react": "^1.8.0",
     "next": "16.2.2",
     "next-intl": "^4.9.0",
@@ -34,8 +31,10 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-select": "^5.0.0",
+    "autoprefixer": "^10.5.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
   }
