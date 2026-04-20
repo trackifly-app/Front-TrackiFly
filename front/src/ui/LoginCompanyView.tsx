@@ -6,33 +6,9 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CountrySelect from '@/components/CountrySelect';
-import { Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { IRegisterCompanyProps } from '@/interfaces/shipment';
-
-const PLAN_CARD_DATA = [
-  {
-    id: 'free',
-    name: 'FREE',
-    price: '$0',
-    headerBg: 'bg-gray-500',
-    features: ['5 envíos mensuales', 'Seguimiento básico', 'Soporte vía Email'],
-  },
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: '$15k',
-    headerBg: 'bg-[#f4a261]',
-    features: ['50 envíos mensuales', 'Seguimiento Real Time', 'Seguro básico', 'Soporte prioritario'],
-  },
-  {
-    id: 'pro',
-    name: 'PRO',
-    price: '$45k',
-    headerBg: 'bg-[#e76f51]',
-    features: ['Envíos ilimitados', 'API Integration', 'Gestor dedicado', 'Seguro Todo Riesgo'],
-  },
-];
 
 const RegisterCompanyView = () => {
   const router = useRouter();
@@ -185,34 +161,6 @@ const RegisterCompanyView = () => {
                     <span className="text-primary">logística hoy mismo.</span>
                   </h1>
                   <p className="mt-4 text-gray-300 max-w-md text-lg">Unite a TrackiFly y gestioná tus envíos de forma simple, rápida y segura.</p>
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                  {PLAN_CARD_DATA.map((plan) => {
-                    const isSelected = values.plan === plan.id;
-                    return (
-                      <div key={plan.id} className={`relative flex flex-col rounded-xl overflow-hidden transition-all duration-500 bg-surface border border-border shadow-2xl ${isSelected ? 'ring-4 ring-primary scale-105 z-10 opacity-100' : 'opacity-90 scale-95 hover:opacity-100'}`}>
-                        <div className={`${plan.headerBg} p-3 text-center relative`}>
-                          <h3 className="text-[10px] font-black text-white tracking-widest uppercase">{plan.name}</h3>
-                        </div>
-                        <div className="p-5 pt-6 text-center flex-1 flex flex-col">
-                          <p className="text-3xl font-black text-foreground">{plan.price}</p>
-                          <span className="text-[9px] text-muted font-bold uppercase tracking-tighter">mensual</span>
-                          <ul className="mt-5 space-y-2 text-left">
-                            {plan.features.map((feature, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <CheckCircle2 className="text-primary h-3.5 w-3.5 mt-0.5 shrink-0" />
-                                <span className="text-[10px] text-muted font-bold leading-tight">{feature}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="mt-auto pt-5">
-                            <div className={`text-[9px] font-black py-2 rounded-lg text-center ${isSelected ? 'bg-primary text-white' : 'bg-surface-muted text-muted'}`}>{isSelected ? 'SELECCIONADO' : 'PLAN SUGERIDO'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
 
                 <ul className="mt-10 space-y-3 text-sm text-gray-300 text-left">

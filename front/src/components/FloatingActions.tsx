@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, Moon, Sun, X } from 'lucide-react';
+import { MessageSquare, Moon, Sun } from 'lucide-react';
 import Chatbot from './Chatbot';
 
 const FloatingActions = () => {
