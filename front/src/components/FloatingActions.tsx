@@ -31,15 +31,14 @@ const FloatingActions = () => {
 
   return (
     <div className="fixed bottom-6 right-6 flex flex-col gap-4 z-50">
-      {/* Componente Chatbot importado con toda tu lógica */}
       <Chatbot isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
 
-      {/* Botón de Chatbot original tuyo */}
-      <button type="button" onClick={() => setIsChatOpen(!isChatOpen)} aria-label="Abrir chat" className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 bg-surface border border-border text-primary" title="Abrir Chat">
-        {isChatOpen ? <X size={24} /> : <MessageSquare size={24} />}
-      </button>
+      {!isChatOpen && (
+        <button type="button" onClick={() => setIsChatOpen(true)} aria-label="Abrir chat" className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 bg-surface border border-border text-primary" title="Abrir Chat">
+          <MessageSquare size={24} />
+        </button>
+      )}
 
-      {/* Botón de Tema original tuyo */}
       <button type="button" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label="Cambiar tema" className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 bg-surface border border-border text-foreground" title={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}>
         {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
       </button>

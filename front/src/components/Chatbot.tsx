@@ -51,10 +51,11 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed bottom-28 right-6 z-50 flex h-135 w-95 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-md">
+    <div
+      className={`fixed bottom-28 right-6 z-50 flex h-135 w-95 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-md transition-all duration-300 origin-bottom-right
+      ${isOpen ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}`}
+    >
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface relative">
         <div className="absolute bottom-0 left-0 h-0.5 w-full bg-primary/70" />
 
@@ -101,7 +102,6 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
             placeholder:text-muted/50"
           />
 
-          {/* Botón con naranja */}
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim()}
