@@ -124,6 +124,9 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
         role: fullUser.role?.name || 'user',
         address: fullUser.address || '',
         phone: fullUser.phone || '',
+        birthdate: fullUser.profile?.birthdate || '',
+        gender: fullUser.profile?.gender || '',
+        country: fullUser.country || '',
       },
     };
 
