@@ -8,7 +8,6 @@ type Message = {
   text: string;
 };
 
-// Recibe isOpen y onClose desde el padre
 export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,28 +37,15 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
       });
 
       const data = await response.json();
-      console.log('Respuesta del backend:', data);
 
       if (!response.ok) {
-        const rawError = typeof data?.error === 'string' ? data.error : 'El asistente no está disponible en este momento.';
-        const lowerError = rawError.toLowerCase();
-        let friendlyMessage = rawError;
-
-        if (lowerError.includes('quota') || lowerError.includes('exceeded') || lowerError.includes('rate limit')) {
-          friendlyMessage = '⚠️ El asistente alcanzó temporalmente el límite de uso gratuito.\n\nProbá nuevamente en unos segundos.';
-        }
-        if (lowerError.includes('api key') || lowerError.includes('authentication')) {
-          friendlyMessage = '🔑 No se pudo autenticar el asistente.\n\nRevisá la configuración de la API.';
-        }
-
-        setMessages([...updatedMessages, { role: 'assistant', text: friendlyMessage }]);
+        setMessages([...updatedMessages, { role: 'assistant', text: 'Error del asistente.' }]);
         return;
       }
 
-      setMessages([...updatedMessages, { role: 'assistant', text: data.message || 'No pude responder en este momento. Intentá nuevamente.' }]);
-    } catch (error) {
-      console.error('Error en chatbot:', error);
-      setMessages([...updatedMessages, { role: 'assistant', text: '⚠️ Hubo un problema al conectar con el asistente.\n\nIntentá nuevamente en unos segundos.' }]);
+      setMessages([...updatedMessages, { role: 'assistant', text: data.message }]);
+    } catch {
+      setMessages([...updatedMessages, { role: 'assistant', text: 'Error de conexión.' }]);
     } finally {
       setIsLoading(false);
     }
@@ -68,43 +54,62 @@ export default function Chatbot({ isOpen, onClose }: { isOpen: boolean; onClose:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-28 right-6 z-50 flex h-135 w-95 flex-col overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white shadow-2xl">
-      <div className="flex items-center justify-between bg-[#1F2933] px-5 py-4 text-white">
+    <div className="fixed bottom-28 right-6 z-50 flex h-135 w-95 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-md">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface relative">
+        <div className="absolute bottom-0 left-0 h-0.5 w-full bg-primary/70" />
+
         <div>
-          <h3 className="text-base font-semibold">Asistente Trackifly</h3>
-          <p className="text-sm text-gray-300">En línea</p>
+          <h3 className="text-base font-bold tracking-tight text-foreground">Asistente Trackifly</h3>
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+            <p className="text-xs text-muted">En línea</p>
+          </div>
         </div>
-        <button onClick={onClose} className="transition hover:text-[#D96B4A]">
-          <X size={22} />
+
+        <button onClick={onClose} className="p-1 rounded-lg transition-colors hover:bg-surface-muted text-muted hover:text-primary">
+          <X size={20} />
         </button>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto bg-[#F9FAFB] p-4">
+      <div className="flex-1 space-y-4 overflow-y-auto bg-surface-muted p-4">
         {messages.map((message, index) => (
-          <div key={`${message.role}-${index}`} className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm whitespace-pre-wrap wrap-break-words ${message.role === 'assistant' ? 'rounded-bl-md border border-[#E5E7EB] bg-white text-[#1F2933]' : 'ml-auto rounded-br-md bg-[#D96B4A] text-white'}`} style={{ fontSize: '15px', lineHeight: '1.6', fontWeight: 400 }}>
+          <div key={index} className={`max-w-[85%] rounded-2xl px-4 py-3 text-[14.5px] ${message.role === 'assistant' ? 'rounded-bl-none border border-border bg-surface text-foreground' : 'ml-auto rounded-br-none bg-primary text-white shadow-md shadow-primary/20'}`}>
             {message.text}
           </div>
         ))}
 
-        {isLoading && (
-          <div className="max-w-[85%] rounded-2xl rounded-bl-md border border-[#E5E7EB] bg-white px-4 py-3 text-[#6B7280] shadow-sm" style={{ fontSize: '15px', lineHeight: '1.6' }}>
-            Escribiendo...
-          </div>
-        )}
+        {isLoading && <div className="text-xs text-muted italic">Escribiendo...</div>}
 
         <div className="flex flex-wrap gap-2 pt-2">
-          {['Quiero rastrear un envío', 'Quiero crear un pedido', '¿Dónde puedo ver sucursales?', 'Mostrame preguntas frecuentes'].map((text, i) => (
-            <button key={i} type="button" onClick={() => sendMessage(text)} className="rounded-full border border-[#E5E7EB] bg-white px-3 py-2 text-xs text-[#1F2933] transition hover:border-[#D96B4A] hover:text-[#D96B4A]">
-              {text.includes('rastrear') ? 'Rastrear envío' : text.includes('crear') ? 'Crear pedido' : text.includes('sucursales') ? 'Sucursales' : 'FAQ'}
+          {['Rastrear envío', 'Crear pedido', 'Sucursales', 'FAQ'].map((text, i) => (
+            <button key={i} onClick={() => sendMessage(text)} className="rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground transition-all hover:border-primary hover:bg-primary/5 hover:text-primary">
+              {text}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="border-t border-[#E5E7EB] bg-white p-4">
+      <div className="border-t border-border bg-surface p-4">
         <div className="flex items-center gap-2">
-          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendMessage()} placeholder="Escribí tu mensaje..." className="flex-1 rounded-xl border border-[#E5E7EB] px-4 py-3 text-sm text-[#1F2933] outline-none transition focus:border-[#D96B4A]" />
-          <button onClick={() => sendMessage()} disabled={isLoading} className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D96B4A] text-white transition hover:bg-[#C65A3B] disabled:opacity-50">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Escribí tu mensaje..."
+            className="flex-1 rounded-xl border border-border bg-surface-muted px-4 py-3 text-sm outline-none transition 
+            focus:border-primary focus:ring-2 focus:ring-primary/20 
+            placeholder:text-muted/50"
+          />
+
+          {/* Botón con naranja */}
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim()}
+            className="flex h-12 w-12 items-center justify-center rounded-xl 
+            bg-orange-500 text-white transition-all 
+            hover:bg-orange-600 active:scale-95 
+            shadow-md shadow-orange-500/30"
+          >
             <Send size={18} />
           </button>
         </div>
