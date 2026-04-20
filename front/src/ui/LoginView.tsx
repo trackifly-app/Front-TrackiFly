@@ -60,7 +60,7 @@ const LoginView = () => {
                 setUserData(response);
 
                 // Redirigimos al dashboard
-                router.push('/dashboard/user');
+                router.push('/');
               }
 
               setSubmitting(false);
