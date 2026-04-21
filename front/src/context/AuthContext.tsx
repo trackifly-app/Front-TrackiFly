@@ -25,7 +25,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetch(`${API_URL}/auth/me`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUserData(data))
+      .then((data) => {
+        if (!data) {
+          setUserData(null);
+          return;
+        }
+        // /auth/me devuelve { id, role, status }
+        // lo transformamos al formato IUserSession
+        setUserData({
+          user: {
+            id: data.id,
+            role: data.role,
+            email: "",
+            first_name: "",
+            last_name: "",
+            address: "",
+            phone: "",
+          },
+        });
+      })
       .catch(() => setUserData(null));
   }, []);
 

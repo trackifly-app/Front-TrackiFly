@@ -13,16 +13,17 @@ export default function GoogleSessionSync() {
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
 
-    // Pedimos los datos del usuario al back usando la cookie que seteó /auth/google
     const syncSession = async () => {
       try {
+        // La cookie ya fue seteada por el signIn callback de NextAuth
+        // Solo pedimos los datos del usuario
         const res = await fetch(`${APIURL}/auth/me`, {
-          credentials: "include", // la cookie viaja sola
+          credentials: "include",
         });
 
         if (!res.ok) return;
 
-        const userData = await res.json();
+        const userData = (await res.json()) as { id: string; role: string };
 
         setUserData({
           user: {
@@ -36,9 +37,7 @@ export default function GoogleSessionSync() {
           },
         });
 
-        const esNuevo = session.isNewGoogleUser;
-
-        if (!esNuevo) {
+        if (!session.isNewGoogleUser) {
           Swal.fire({
             icon: "success",
             title: "Hola de nuevo",
@@ -62,8 +61,8 @@ export default function GoogleSessionSync() {
         }).then(() => {
           window.location.href = "/";
         });
-      } catch (error) {
-        console.error("Error sincronizando sesión de Google:", error);
+      } catch (err) {
+        console.error("Error sincronizando sesión de Google:", err);
       }
     };
 
