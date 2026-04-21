@@ -190,3 +190,21 @@ export interface RoleCatalogEntry {
   allowSelfSignUp: boolean;
   requiresApproval: boolean;
 }
+
+export interface ILoginCompany{
+  token: string;
+  role?:{
+    id: string,
+    email:string,
+    name: string;
+  };
+  company?:{
+    company_name:string,
+    industry:string,
+    contact_name:string,
+    plan: "free" | "pro" | "enterprise";
+    phone:string,
+    address:string
+    country:string,
+  }
+}
