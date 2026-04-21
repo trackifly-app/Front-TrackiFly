@@ -59,8 +59,6 @@ export async function registerCompany(companyData: IRegisterCompanyProps): Promi
 // Registra empleados/operadores (esta acción requiere que el usuario esté autenticado)
 export async function registerEmployee(employeeData: any): Promise<boolean> {
   try {
-    const stored = localStorage.getItem('userSession');
-    const token = stored ? JSON.parse(stored).token : null;
     const response = await fetch(`${APIURL}/auth/register-operator`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
