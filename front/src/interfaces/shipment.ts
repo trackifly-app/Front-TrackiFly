@@ -52,7 +52,6 @@ export interface CalculatorValues {
 // --- AUTENTICACIÓN Y SESIÓN ---
 
 export interface IUserSession {
-  token: string;
   user: {
     id: string;
     first_name: string;
@@ -116,7 +115,7 @@ export interface IRegisterCompanyProps {
   phone: string;
   address: string;
   country: string;
-  plan: string;
+  plan?: string;
 }
 
 export interface IRegisterCompanyErrors {

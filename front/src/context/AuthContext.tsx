@@ -1,8 +1,16 @@
 "use client";
 import { IAuthContextProps, IUserSession } from "@/interfaces/shipment";
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { logout as logoutService } from "@/services/authService";
 import { signOut } from "next-auth/react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const AuthContext = createContext<IAuthContextProps>({
   userData: null,
@@ -12,21 +20,14 @@ export const AuthContext = createContext<IAuthContextProps>({
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Iniciamos el estado buscando si ya hay una sesión guardada en el navegador
-  const [userData, setUserData] = useState<IUserSession | null>(() => {
-    if (typeof window !== "undefined") {
-      const storedData = localStorage.getItem("userSession");
+  const [userData, setUserData] = useState<IUserSession | null>(null);
 
-      if (storedData) {
-        try {
-          // Si existe la sesión, la transformamos de texto a objeto
-          return JSON.parse(storedData);
-        } catch (error) {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
+  useEffect(() => {
+    fetch(`${API_URL}/auth/me`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setUserData(data))
+      .catch(() => setUserData(null));
+  }, []);
 
   // Función para cerrar la sesión por completo
   const handleLogout = () => {
