@@ -52,12 +52,38 @@ const LoginView = () => {
             initialValues={{ email: '', password: '' }}
             validate={validateFormLogin}
             onSubmit={async (values, { setSubmitting }) => {
-              // Llamamos a la función de servicio que definimos antes
+              // ← ACÁ va el onSubmit
               const response = await login(values);
 
               if (response) {
-                // Si el login es exitoso, actualizamos el contexto global
-                setUserData(response);
+                const meRes = await fetch(
+                  `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+                  {
+                    credentials: "include",
+                  },
+                );
+
+                if (meRes.ok) {
+                  const data = (await meRes.json()) as {
+                    id: string;
+                    role: string;
+                    status: string;
+                  };
+
+                  const session: IUserSession = {
+                    user: {
+                      id: data.id,
+                      role: data.role,
+                      email: values.email,
+                      first_name: "",
+                      last_name: "",
+                      address: "",
+                      phone: "",
+                    },
+                  };
+
+                  setUserData(session);
+                }
 
                 // Redirigimos al dashboard
                 router.push('/');
