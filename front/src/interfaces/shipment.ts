@@ -61,7 +61,9 @@ export interface IUserSession {
     address: string;
     phone: string;
     email: string;
-    name?: string;
+    birthdate:string;
+    gender:string;
+    country:string
   };
 }
 
