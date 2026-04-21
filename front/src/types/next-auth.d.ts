@@ -2,7 +2,6 @@ import "next-auth"
 
 declare module "next-auth" {
   interface Session {
-    backendToken: string
     isNewGoogleUser: boolean
     user: {
       id: string
@@ -12,14 +11,13 @@ declare module "next-auth" {
     }
   }
   interface User {
-    backendToken?: string
     isNewGoogleUser?: boolean
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    backendToken?: string
     isNewGoogleUser?: boolean
+    role?: string
   }
 }
