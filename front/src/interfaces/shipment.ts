@@ -68,6 +68,8 @@ export interface IUserSession {
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
+  companyData: ILoginCompany|null,
+  setCompanyData:(values:ILoginCompany|null) => void,
   handleLogout: () => void;
 }
 

@@ -1,9 +1,12 @@
-import { CompanyProfileCardProps } from '@/interfaces/shipment';
+"use client"
+import { useAuth } from '@/context/AuthContext';
+import { ILoginCompany } from '@/interfaces/shipment';
 import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
 
 
 
-export default function CompanyProfileCard({ company }: CompanyProfileCardProps) {
+export default function CompanyProfileCard({ company }: ILoginCompany) {
+  const {companyData}=useAuth();
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
       <div className="mb-6">
@@ -18,7 +21,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <Mail size={16} />
             <span>Email</span>
           </div>
-          <p className="font-semibold text-foreground">{company.email}</p>
+          <p className="font-semibold text-foreground">{companyData?.role?.email}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">

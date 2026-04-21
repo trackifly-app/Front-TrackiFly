@@ -1,23 +1,16 @@
 import Swal from 'sweetalert2';
-import { ILoginProps, IRegisterCompanyProps, IRegisterProps, IUserSession } from '@/interfaces/shipment';
+import { ILoginProps, IRegisterCompanyProps, IRegisterProps, IUserSession, ILoginCompany } from '@/interfaces/shipment';
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 // --- Utilidades Internas ---
 
-// Función para decodificar el token JWT y obtener la información del usuario
 function parseJwt(token: string) {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const jsonPayload = decodeURIComponent(
-      window
-        .atob(base64)
-        .split('')
-        .map((c) => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        })
-        .join(''),
+      window.atob(base64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
     );
     return JSON.parse(jsonPayload);
   } catch (e) {
@@ -25,7 +18,6 @@ function parseJwt(token: string) {
   }
 }
 
-// Centralizamos los errores con SweetAlert para mostrar alertas visuales
 const handleError = (message: string) => {
   Swal.fire({
     icon: 'error',
@@ -35,9 +27,8 @@ const handleError = (message: string) => {
   });
 };
 
-// --- Funciones de Autenticación ---
+// --- Funciones de Registro ---
 
-// Envía los datos al backend para crear un nuevo usuario final
 export async function registerUser(userData: IRegisterProps) {
   try {
     const response = await fetch(`${APIURL}/auth/signup/user`, {
@@ -47,18 +38,15 @@ export async function registerUser(userData: IRegisterProps) {
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Error en el registro');
-    }
-
+    if (!response.ok) throw new Error(data.message || 'Error en el registro');
     return data;
   } catch (error: any) {
+    handleError(error.message);
     throw error;
   }
 }
 
-// Envía los datos al backend para registrar una nueva empresa de logística
+// ESTA ES LA FUNCIÓN QUE FALTABA
 export async function registerCompany(companyData: IRegisterCompanyProps): Promise<boolean> {
   try {
     const response = await fetch(`${APIURL}/auth/signup/company`, {
@@ -66,14 +54,26 @@ export async function registerCompany(companyData: IRegisterCompanyProps): Promi
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(companyData),
     });
-    return response.ok;
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al registrar la empresa');
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Registro exitoso',
+      text: 'La empresa ha sido registrada correctamente.',
+    });
+
+    return true;
   } catch (error: any) {
     handleError(error.message);
     return false;
   }
 }
 
-// Registra empleados/operadores (esta acción requiere que el usuario esté autenticado)
 export async function registerEmployee(employeeData: any): Promise<boolean> {
   try {
     const stored = localStorage.getItem('userSession');
@@ -93,7 +93,8 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
   }
 }
 
-// Maneja el login: obtiene el token, busca los datos del usuario y guarda la sesión localmente
+// --- Funciones de Login ---
+
 export async function login(userData: ILoginProps): Promise<IUserSession | null> {
   try {
     const response = await fetch(`${APIURL}/auth/signin`, {
@@ -105,7 +106,6 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
 
-    // Decodificamos el token para saber el ID del usuario y pedir su perfil completo
     const decoded = parseJwt(data.token);
     const userResp = await fetch(`${APIURL}/users/${decoded.id || decoded.sub}`, {
       headers: { Authorization: `Bearer ${data.token}` },
@@ -113,7 +113,6 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
 
     const fullUser = await userResp.json();
 
-    // Armamos el objeto de sesión que usará toda la app
     const session: IUserSession = {
       token: data.token,
       user: {
@@ -127,10 +126,7 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
       },
     };
 
-    // Persistencia de datos en el navegador
     localStorage.setItem('userSession', JSON.stringify(session));
-    localStorage.setItem('userToken', data.token);
-
     return session;
   } catch (error: any) {
     handleError(error.message || 'Error al iniciar sesión');
@@ -138,12 +134,53 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
   }
 }
 
-// Borra toda la información de seguridad del almacenamiento local
+export async function loginCompany(companyData: ILoginCompany): Promise<ILoginCompany | null> {
+  try {
+    const response = await fetch(`${APIURL}/auth/signin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(companyData),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+
+    const decoded = parseJwt(data.token);
+    const userResp = await fetch(`${APIURL}/users/${decoded.id || decoded.sub}`, {
+      headers: { Authorization: `Bearer ${data.token}` },
+    });
+
+    const fullCompany = await userResp.json();
+
+    const company: ILoginCompany = {
+      token: data.token,
+      role: {
+        id: fullCompany.id,
+        email: fullCompany.email,
+        name: fullCompany.name,
+      },
+      company: {
+        company_name: fullCompany.company?.company_name || '',
+        industry: fullCompany.company?.industry || '',
+        contact_name: fullCompany.company?.contact_name || '',
+        address: fullCompany.company?.address || '',
+        phone: fullCompany.company?.phone || '',
+        plan: fullCompany?.company?.plan || '',
+        country: fullCompany?.company?.country || '',
+      },
+    };
+
+    // Usamos 'companySession' para que el AuthContext lo detecte por separado
+    localStorage.setItem('companySession', JSON.stringify(company));
+    return company;
+  } catch (error: any) {
+    handleError(error.message || 'Error al iniciar sesión');
+    return null;
+  }
+}
+
 export const logout = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem('userSession');
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('googleToastShown')
-        localStorage.clear(); 
-    }
+  if (typeof window !== 'undefined') {
+    localStorage.clear();
+  }
 };
