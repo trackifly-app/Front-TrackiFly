@@ -55,15 +55,15 @@ export interface IUserSession {
   token: string;
   user: {
     id: string; // M cambio aqui
-    email: string;
     first_name: string;
     last_name: string;
     role: string;
-    address: string; // M cambio aqui
-    phone: string; // M cambio aqui
-    birthdate?: string; // M cambio aqui
-    gender?: string; // M cambio aqui
-    country?: string; // M cambio aqui
+    address: string;
+    phone: string;
+    email: string;
+    birthdate:string;
+    gender:string;
+    country:string
   };
 }
 
