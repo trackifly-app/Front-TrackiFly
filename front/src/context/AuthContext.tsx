@@ -13,7 +13,6 @@ import { signOut } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Extendemos la interfaz para incluir 'loading' y la función 'checkSession'
 export const AuthContext = createContext<
   IAuthContextProps & { loading: boolean; checkSession: () => Promise<void> }
 >({
@@ -28,13 +27,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<IUserSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Definimos fetchSession con useCallback para poder reutilizarla
   const fetchSession = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Validando sesión activa...");
-
-      // 1. Validamos sesión básica (/auth/me)
+      
       const res = await fetch(`${API_URL}/auth/me`, {
         credentials: "include",
         cache: "no-store",
@@ -47,74 +43,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const basicData = await res.json();
 
-      // 2. Si hay ID, buscamos el perfil completo (/users/:id)
       if (basicData?.id) {
         const userRes = await fetch(`${API_URL}/users/${basicData.id}`, {
           credentials: "include",
           cache: "no-store",
         });
 
-        if (userRes.ok) {
-          const fullData = await userRes.json();
-          
-          // Este es el log que verás en la consola apenas te loguees
-          console.log("¡PERFIL COMPLETO CARGADO!", fullData);
+        const fullData = userRes.ok ? await userRes.json() : basicData;
 
-          setUserData({
-            user: {
-              id: fullData.id,
-              email: fullData.email,
-              role: {
-                id: fullData.role?.id || "",
-                name: fullData.role?.name || "user",
-              },
-              profile: {
-                id: fullData.profile?.id || "",
-                first_name: fullData.profile?.first_name || "",
-                last_name: fullData.profile?.last_name || "",
-                birthdate: fullData.profile?.birthdate || "",
-                gender: fullData.profile?.gender || "",
-                phone: fullData.profile?.phone || "",
-                address: fullData.profile?.address || "",
-                country: fullData.profile?.country || "",
-                profile_image: fullData.profile?.profile_image || "",
-              },
+        setUserData({
+          user: {
+            id: fullData.id,
+            email: fullData.email,
+            role: {
+              id: fullData.role?.id || "",
+              name: fullData.role?.name || "user",
             },
-          });
-        } else {
-          // Fallback a data básica si falla el perfil
-          setUserData({
-  user: {
-    id: fullData.id,
-    email: fullData.email,
-    role: {
-      id: fullData.role?.id || "",
-      name: fullData.role?.name || "user",
-    },
-    // MAPEO DE COMPANY:
-    // Aquí pasamos el objeto company que vimos que venía en tu consola
-    company: fullData.company ? {
-      id: fullData.company.id,
-      company_name: fullData.company.company_name,
-      industry: fullData.company.industry,
-      contact_name: fullData.company.contact_name,
-      plan: fullData.company.plan,
-      phone: fullData.company.phone,
-      address: fullData.company.address,
-      country: fullData.company.country,
-      profile_image: fullData.company.profile_image
-    } : undefined,
-
-    profile: {
-      id: fullData.profile?.id || "",
-      first_name: fullData.profile?.first_name || "",
-      last_name: fullData.profile?.last_name || "",
-      profile_image: fullData.profile?.profile_image || "",
-      // ... (demás campos del perfil)
-    },
-  },
-} as IUserSession);
-        }
+            profile: {
+              id: fullData.profile?.id || "",
+              first_name: fullData.profile?.first_name || "",
+              last_name: fullData.profile?.last_name || "",
+              birthdate: fullData.profile?.birthdate || "",
+              gender: fullData.profile?.gender || "",
+              phone: fullData.profile?.phone || "",
+              address: fullData.profile?.address || "",
+              country: fullData.profile?.country || "",
+              profile_image: fullData.profile?.profile_image || "",
+            },
+            // Mapeo limpio de company
+            company: fullData.company ? {
+              id: fullData.company.id,
+              company_name: fullData.company.company_name,
+              industry: fullData.company.industry,
+              contact_name: fullData.company.contact_name,
+              plan: fullData.company.plan,
+              phone: fullData.company.phone,
+              address: fullData.company.address,
+              country: fullData.company.country,
+              profile_image: fullData.company.profile_image,
+            } : undefined,
+          },
+        } as IUserSession);
       }
     } catch (error) {
       console.error("Error al recuperar la sesión:", error);
@@ -124,7 +93,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Se ejecuta automáticamente al cargar la página
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
@@ -147,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUserData,
         handleLogout,
         loading,
-        checkSession: fetchSession, // Pasamos la función al contexto
+        checkSession: fetchSession,
       }}
     >
       {children}

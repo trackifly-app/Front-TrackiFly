@@ -45,7 +45,7 @@ export default function CompanyProfileCard({ company }: IUserSession) {
             <UserRound size={16} />
             <span>Nombre de contacto</span>
           </div>
-          <p className="font-semibold text-foreground">{company.contact_name}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.contact_name}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -53,7 +53,7 @@ export default function CompanyProfileCard({ company }: IUserSession) {
             <Phone size={16} />
             <span>Teléfono</span>
           </div>
-          <p className="font-semibold text-foreground">{company.phone}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.phone}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -61,7 +61,7 @@ export default function CompanyProfileCard({ company }: IUserSession) {
             <Globe size={16} />
             <span>País</span>
           </div>
-          <p className="font-semibold text-foreground">{company.country}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.country}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4 md:col-span-2">
@@ -69,7 +69,7 @@ export default function CompanyProfileCard({ company }: IUserSession) {
             <MapPinned size={16} />
             <span>Dirección</span>
           </div>
-          <p className="font-semibold text-foreground">{company.address}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.address}</p>
         </div>
       </div>
     </section>

@@ -58,7 +58,7 @@ const onSubmit = async (data) => {
       const isOp = userRole === Role.Operator;
       links.push({
         href: "/dashboard/company",
-        label: isOp ? "Operaciones" : "Empresa",
+        label: isOp ? "Operaciones" : `Empresa ${userData?.user?.company?.company_name}`,
         icon: isOp ? <LayoutDashboard size={30} /> : <Building2 size={30} />,
         mobileIcon: isOp ? (
           <LayoutDashboard size={24} />
