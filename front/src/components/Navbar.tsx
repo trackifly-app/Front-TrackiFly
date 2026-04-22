@@ -27,7 +27,7 @@ const Navbar = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const isAuthenticated = !!userData?.user?.id;
-  const userRole = userData?.user?.role as Role;
+  const userRole = userData?.user.role.name;
 
   const getRoleLinks = () => {
     if (!isAuthenticated || !userRole) return [];
@@ -63,7 +63,7 @@ const Navbar = () => {
     if (userRole !== Role.Company) {
       links.push({
         href: "/dashboard/user",
-        label: "Perfil",
+        label: `Perfil de ${userData?.user?.profile?.first_name}` ,
         icon: <UserCircle size={30} />,
         mobileIcon: <UserCircle size={24} />,
       });
@@ -200,24 +200,16 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {roleLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-primary flex items-center gap-3 py-2"
-                    onClick={closeMobileMenu}
-                  >
+                  <Link key={link.href} href={link.href} className="text-primary flex items-center gap-3 py-2" onClick={closeMobileMenu}>
                     {link.mobileIcon} <span>{link.label}</span>
                   </Link>
                 ))}
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    closeMobileMenu();
-                  }}
-                  className="flex items-center gap-3 text-muted pt-4 border-t border-border font-medium w-full text-left"
-                >
-                  <LogOut size={20} /> <span>Cerrar Sesión</span>
-                </button>
+                <button onClick={handleLogout} className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
+  <LogOut size={18} />
+  <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-500 ease-in-out group-hover:max-w-25 group-hover:opacity-100 group-hover:ml-2">
+    Salir
+  </span>
+</button>
               </>
             ) : (
               <div className="flex flex-col gap-3">

@@ -54,13 +54,22 @@ export interface CalculatorValues {
 export interface IUserSession {
   user: {
     id: string;
-    first_name: string;
-    last_name: string;
-    role: string;
-    address: string;
-    phone: string;
     email: string;
-    name?: string;
+    role: {
+      id: string;
+      name: string;
+    };
+    profile: {
+      id: string;
+      first_name?: string;
+      last_name?: string;
+      birthdate?: string;
+      gender?: string;
+      phone?: string;
+      address?: string;
+      country?: string;
+      profile_image?: string;
+    };
   };
 }
 

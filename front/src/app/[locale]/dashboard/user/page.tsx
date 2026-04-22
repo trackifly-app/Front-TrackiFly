@@ -1,8 +1,11 @@
+"use client"
 import UserProfileCard from '@/components/dashboardUser/UserProfileCard';
 import ActiveOrders from '@/components/dashboardUser/ActiveOrders';
 import OrderHistory from '@/components/dashboardUser/OrderHistory';
+import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardUserPage() {
+  const {userData}=useAuth();
   const user = {
     email: 'miguel@gmail.com',
     name: 'Miguel RV',
@@ -60,7 +63,7 @@ export default function DashboardUserPage() {
             <div>
               <p className="text-primary font-semibold mb-2">Dashboard de usuario</p>
 
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Bienvenido, {user.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Bienvenido, {userData?.user.profile.first_name}  {userData?.user.profile.last_name}</h1>
 
               <p className="text-muted mt-2">Aquí puedes revisar tu información, tus pedidos en camino y tu historial.</p>
             </div>

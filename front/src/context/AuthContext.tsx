@@ -12,77 +12,107 @@ import { signOut } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const AuthContext = createContext<IAuthContextProps>({
+export const AuthContext = createContext<IAuthContextProps & { loading: boolean }>({
   userData: null,
+  loading: true, 
   setUserData: () => {},
   handleLogout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<IUserSession | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Al montar la app, consultamos /auth/me para saber si el usuario
-  // ya tiene una sesión activa (cookie httpOnly válida en el browser).
-  // Esto reemplaza el viejo localStorage — ahora la persistencia la maneja la cookie.
   useEffect(() => {
-    fetch(`${API_URL}/auth/me`, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) {
+    const fetchSession = async () => {
+      try {
+        // 1. Validamos sesión básica
+        // Agregamos no-store para que no te traiga data vieja al recargar
+        const res = await fetch(`${API_URL}/auth/me`, { 
+          credentials: "include",
+          cache: "no-store" 
+        });
+        
+        if (!res.ok) {
           setUserData(null);
           return;
         }
 
-        // /auth/me devuelve solo { id, role, status } desde el JWT.
-        // Los datos completos del usuario (nombre, email, etc.) se cargan
-        // en cada vista de perfil por separado cuando se necesitan.
-        setUserData({
-          user: {
-            id: data.id,
-            role: data.role,
-            email: "",
-            first_name: "",
-            last_name: "",
-            address: "",
-            phone: "",
-          },
-        });
-      })
-      .catch(() => setUserData(null));
+        const basicData = await res.json();
+
+        // 2. Si tenemos ID, buscamos el perfil completo
+        if (basicData?.id) {
+          const userRes = await fetch(`${API_URL}/users/${basicData.id}`, { 
+            credentials: "include",
+            cache: "no-store"
+          });
+          
+          if (userRes.ok) {
+            const fullData = await userRes.json();
+            
+            // ESTE ES EL LOG QUE NECESITÁS:
+            console.log("INFORMACIÓN DEL USUARIO RECUPERADA:", fullData);
+            
+            setUserData({
+              user: {
+                id: fullData.id,
+                email: fullData.email,
+                role: {
+                  id: fullData.role?.id || "",
+                  name: fullData.role?.name || "user",
+                },
+                profile: {
+                  id: fullData.profile?.id || "",
+                  first_name: fullData.profile?.first_name || "",
+                  last_name: fullData.profile?.last_name || "",
+                  birthdate: fullData.profile?.birthdate || "",
+                  gender: fullData.profile?.gender || "",
+                  phone: fullData.profile?.phone || "",
+                  address: fullData.profile?.address || "",
+                  country: fullData.profile?.country || "",
+                  profile_image: fullData.profile?.profile_image || "",
+                },
+              },
+            });
+          } else {
+            console.warn("No se pudo obtener el perfil completo, usando data básica.");
+            setUserData({
+              user: {
+                id: basicData.id,
+                email: basicData.email,
+                role: basicData.role || { id: "", name: "user" },
+                profile: { id: "", first_name: "", last_name: "" }
+              }
+            } as IUserSession);
+          }
+        }
+      } catch (error) {
+        console.error("Error en el proceso de carga de sesión:", error);
+        setUserData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
   }, []);
 
-  const handleLogout = () => {
-    if (typeof window === "undefined") return;
-
+  const handleLogout = async () => {
     try {
-      // Llamamos al back para que borre la cookie httpOnly del servidor.
-      // Sin este paso, la cookie quedaría viva aunque limpiemos el estado local.
-      logoutService();
-
-      // Limpiamos el estado global para que la UI refleje que no hay sesión
+      await logoutService();
       setUserData(null);
-
-      // Si el usuario había iniciado sesión con Google, cerramos esa sesión también
-      signOut({ redirect: false });
-
-      alert("Su sesión fue cerrada exitosamente.");
+      await signOut({ redirect: false });
       window.location.href = "/";
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error("Logout error:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ userData, setUserData, handleLogout }}>
+    <AuthContext.Provider value={{ userData, setUserData, handleLogout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
