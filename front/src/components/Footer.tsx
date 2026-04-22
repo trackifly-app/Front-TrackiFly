@@ -8,7 +8,10 @@ const Footer = () => {
           <span className="text-white text-xl font-bold">
             Tracki<span className="text-primary">fly</span>
           </span>
-          <p className="text-sm leading-relaxed text-slate-400">La plataforma de logística más confiable para envíos nacionales e internacionales. Rápido, seguro y transparente.</p>
+          <p className="text-sm leading-relaxed text-slate-400">
+            La plataforma de logística más confiable para envíos nacionales e internacionales.
+            Rápido, seguro y transparente.
+          </p>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -23,27 +26,52 @@ const Footer = () => {
         <div className="flex flex-col gap-4">
           <h3 className="text-white font-semibold">Empresa</h3>
           <ul className="flex flex-col gap-2 list-none text-sm text-slate-400">
-            <Link href="/about" className="hover:text-primary transition-colors">
-              Sobre nosotros
-            </Link>
-            <li>Términos y condiciones</li>
-            <li>Política de privacidad</li>
+            <li>
+              <Link href="/es/about" className="hover:text-primary transition-colors">
+                Sobre nosotros
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/es/terminos-y-condiciones"
+                className="hover:text-primary transition-colors"
+              >
+                Términos y condiciones
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/es/politica-de-privacidad"
+                className="hover:text-primary transition-colors"
+              >
+                Política de privacidad
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div className="flex flex-col gap-4 col-span-2 md:col-span-1">
           <h3 className="text-white font-semibold">Contacto</h3>
-          <p className="text-sm text-slate-400">Av. del libertador 1234, Buenos Aires, Argentina</p>
+          <p className="text-sm text-slate-400">
+            Av. del Libertador 1234, Buenos Aires, Argentina
+          </p>
           <p className="text-sm text-slate-400">08000-333-8356</p>
           <p className="text-sm text-slate-400">trackifly@gmail.com.ar</p>
 
           <div className="flex flex-col gap-2 mt-2">
-            <label htmlFor="" className="text-sm text-slate-400">
+            <label htmlFor="trackingCode" className="text-sm text-slate-400">
               Rastrear mi envío
             </label>
             <div className="flex">
-              <input type="text" placeholder="VLZ-2024-XXXXXX" className="flex-1 bg-[#111827] text-sm text-slate-200 placeholder-slate-500 px-3 py-2 rounded-l outline-none border border-slate-700" />
-              <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r text-sm font-medium transition-colors">Ir</button>
+              <input
+                id="trackingCode"
+                type="text"
+                placeholder="VLZ-2024-XXXXXX"
+                className="flex-1 bg-[#111827] text-sm text-slate-200 placeholder-slate-500 px-3 py-2 rounded-l outline-none border border-slate-700"
+              />
+              <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r text-sm font-medium transition-colors">
+                Ir
+              </button>
             </div>
           </div>
         </div>
@@ -56,9 +84,12 @@ const Footer = () => {
             <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
             Sistema operativo
           </span>
-          <a href="#" className="hover:text-slate-200 transition-colors">
+          <Link
+            href="/es/terminos-y-condiciones"
+            className="hover:text-slate-200 transition-colors"
+          >
             Aviso legal
-          </a>
+          </Link>
           <a href="#" className="hover:text-slate-200 transition-colors">
             Cookies
           </a>

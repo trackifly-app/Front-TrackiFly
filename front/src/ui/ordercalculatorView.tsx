@@ -20,7 +20,9 @@ export default function CalcularEnvioPage() {
 
   const traducirDireccionACoordenadas = async (direccion: string) => {
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`
+      );
       const data = await response.json();
 
       if (data && data.length > 0) {
@@ -33,8 +35,12 @@ export default function CalcularEnvioPage() {
     return null;
   };
 
-  const calcularRutaInterna = async (origin: string, destiny: string, setFieldValue: (field: string, value: any) => void) => {
-    if (origin.length < 5 || destiny.length < 5) return;
+  const calcularRutaInterna = async (
+    origin: string,
+    destiny: string,
+    setFieldValue: (field: string, value: any) => void
+  ) => {
+    if (origin.trim().length < 5 || destiny.trim().length < 5) return;
 
     setIsCalculating(true);
 
@@ -43,12 +49,14 @@ export default function CalcularEnvioPage() {
       const coordsDest = await traducirDireccionACoordenadas(destiny);
 
       if (coordsOrg && coordsDest) {
-        const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`);
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`
+        );
         const data = await response.json();
 
         if (data.routes && data.routes[0]) {
           const kms = data.routes[0].distance / 1000;
-          setFieldValue('distancia', kms);
+          setFieldValue('distance', kms);
         }
       }
     } catch (error) {
@@ -68,7 +76,7 @@ export default function CalcularEnvioPage() {
     width: 0,
     depth: 0,
     weight: 0,
-    unit: '',
+    unit: 'cm',
     pickup_direction: '',
     delivery_direction: '',
     distance: 0,
@@ -92,8 +100,8 @@ export default function CalcularEnvioPage() {
         const profM = (Number(values.depth) || 0) * factor;
 
         const volumen = altoM * anchoM * profM;
-        const precioBase = volumen * COSTO_M3 + values.distance * COSTO_KM;
         const pesoNum = Number(values.weight) || 0;
+        const precioBase = volumen * COSTO_M3 + (Number(values.distance) || 0) * COSTO_KM;
 
         let recargoPeso = 0;
         if (pesoNum > 2) {
@@ -112,61 +120,144 @@ export default function CalcularEnvioPage() {
 
         return (
           <Form className="bg-surface border border-border rounded-2xl p-3 shadow-sm w-full">
-            <h2 className="text-2xl font-semibold text-foreground mb-2">Calculadora de Envío</h2>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              Calculadora de Envío
+            </h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-2 space-y-2">
                 <div className="space-y-1">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted">Punto de Retiro:</label>
-                    <Field name="origen" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <label className="mb-1 block text-xs font-medium text-muted">
+                      Punto de Retiro:
+                    </label>
+                    <Field
+                      name="pickup_direction"
+                      placeholder="Calle y altura, Ciudad"
+                      onBlur={() =>
+                        calcularRutaInterna(
+                          values.pickup_direction,
+                          values.delivery_direction,
+                          setFieldValue
+                        )
+                      }
+                      className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    />
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-muted">Punto de Entrega:</label>
-                    <Field name="destino" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <label className="mb-1 block text-xs font-medium text-muted">
+                      Punto de Entrega:
+                    </label>
+                    <Field
+                      name="delivery_direction"
+                      placeholder="Calle y altura, Ciudad"
+                      onBlur={() =>
+                        calcularRutaInterna(
+                          values.pickup_direction,
+                          values.delivery_direction,
+                          setFieldValue
+                        )
+                      }
+                      className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    />
                   </div>
 
-                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">{isCalculating ? 'Calculando distancia...' : values.distance > 0 ? `Distancia: ${values.distance.toFixed(2)} km / ${(values.distance * KM_A_MILLAS).toFixed(2)} mi` : 'Completa ambas direcciones'}</div>
+                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">
+                    {isCalculating
+                      ? 'Calculando distancia...'
+                      : values.distance > 0
+                        ? `Distancia: ${values.distance.toFixed(2)} km / ${(
+                            values.distance * KM_A_MILLAS
+                          ).toFixed(2)} mi`
+                        : 'Completa ambas direcciones'}
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-muted">Unidad:</label>
-                  <Field name="unidad" as="select" className="w-full rounded-lg border border-border bg-surface-muted text-foreground px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30">
+                  <label className="mb-1 block text-xs font-medium text-muted">
+                    Unidad:
+                  </label>
+                  <Field
+                    name="unit"
+                    as="select"
+                    className="w-full rounded-lg border border-border bg-surface-muted text-foreground px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  >
                     <option value="cm">cm</option>
                     <option value="in">in</option>
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-1 gap-1">
-                  <Field name="alto" type="number" placeholder={`Alto (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="ancho" type="number" placeholder={`Ancho (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="peso" type="number" placeholder="Peso (kg)" className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field
+                    name="height"
+                    type="number"
+                    placeholder={`Alto (${values.unit || 'cm'})`}
+                    className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
+                  <Field
+                    name="width"
+                    type="number"
+                    placeholder={`Ancho (${values.unit || 'cm'})`}
+                    className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
+                  <Field
+                    name="depth"
+                    type="number"
+                    placeholder={`Profundidad (${values.unit || 'cm'})`}
+                    className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
+                  <Field
+                    name="weight"
+                    type="number"
+                    placeholder="Peso (kg)"
+                    className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
+                  />
                 </div>
 
                 <hr className="border-border" />
 
                 <fieldset className="space-y-1">
-                  <legend className="text-sm font-semibold text-foreground">Extras:</legend>
+                  <legend className="text-sm font-semibold text-foreground">
+                    Extras:
+                  </legend>
 
                   <div className="space-y-1 text-xs text-muted">
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="fragil" />
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Field
+                        type="checkbox"
+                        name="fragile"
+                        className="cursor-pointer"
+                      />
                       Frágil
                     </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="peligroso" />
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Field
+                        type="checkbox"
+                        name="dangerous"
+                        className="cursor-pointer"
+                      />
                       Peligroso
                     </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="refrigerado" />
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Field
+                        type="checkbox"
+                        name="cooled"
+                        className="cursor-pointer"
+                      />
                       Refrigerado
                     </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="urgente" />
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Field
+                        type="checkbox"
+                        name="urgent"
+                        className="cursor-pointer"
+                      />
                       Urgente
                     </label>
                   </div>
@@ -176,24 +267,39 @@ export default function CalcularEnvioPage() {
 
             <div className="mt-3 border-t border-border pt-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
               <section className="md:col-span-2 bg-surface-muted border border-border rounded-xl p-3 space-y-1 min-h-22.5">
-                <h3 className="text-base font-semibold text-foreground">Presupuesto</h3>
+                <h3 className="text-base font-semibold text-foreground">
+                  Presupuesto
+                </h3>
 
-                <p className="text-xs text-muted">Volumen: {volumen.toFixed(4)} m³</p>
+                <p className="text-xs text-muted">
+                  Volumen: {volumen.toFixed(4)} m³
+                </p>
 
-                <p className="text-xs text-muted">Trayecto: {values.distance.toFixed(1)} km</p>
+                <p className="text-xs text-muted">
+                  Trayecto: {values.distance.toFixed(1)} km
+                </p>
 
                 <p className="text-xs text-muted">
                   Peso: {pesoNum} kg
                   {recargoPeso > 0 && ` (+${(recargoPeso * 100).toFixed(0)}%)`}
                 </p>
 
-                {porcentajeExtra > 0 && <p className="text-xs text-primary">Recargos: +${montoRecargo.toLocaleString('es-AR')}</p>}
+                {porcentajeExtra > 0 && (
+                  <p className="text-xs text-primary">
+                    Recargos: +${montoRecargo.toLocaleString('es-AR')}
+                  </p>
+                )}
 
-                <h2 className="text-xl font-bold text-foreground">Total: ${precioFinal.toLocaleString('es-AR')}</h2>
+                <h2 className="text-xl font-bold text-foreground">
+                  Total: ${precioFinal.toLocaleString('es-AR')}
+                </h2>
               </section>
 
               <div className="flex md:justify-center md:items-center h-full">
-                <button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-hover text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto"
+                >
                   Aceptar envío
                 </button>
               </div>
