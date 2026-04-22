@@ -76,6 +76,8 @@ export interface IUserSession {
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
+  companyData: ILoginCompany|null,
+  setCompanyData:(values:ILoginCompany|null) => void,
   handleLogout: () => void;
 }
 
@@ -197,4 +199,22 @@ export interface RoleCatalogEntry {
   seedOnBootstrap: boolean;
   allowSelfSignUp: boolean;
   requiresApproval: boolean;
+}
+
+export interface ILoginCompany{
+  token: string;
+  role?:{
+    id: string,
+    email:string,
+    name: string;
+  };
+  company?:{
+    company_name:string,
+    industry:string,
+    contact_name:string,
+    plan: "free" | "pro" | "enterprise";
+    phone:string,
+    address:string
+    country:string,
+  }
 }
