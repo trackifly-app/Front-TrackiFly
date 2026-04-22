@@ -62,13 +62,8 @@ const Navbar = () => {
     // === PERFIL - Visible para TODOS los roles EXCEPTO Company ===
     if (userRole !== Role.Company) {
       links.push({
-<<<<<<< HEAD
-        href: '/dashboard/user',
-        label: `Perfil de ${userData?.user?.first_name}  ${userData?.user?.last_name}`,
-=======
         href: "/dashboard/user",
-        label: "Perfil",
->>>>>>> develop
+        label: `Perfil de ${userData?.user?.first_name || ""} ${userData?.user?.last_name || ""}`.trim(),
         icon: <UserCircle size={30} />,
         mobileIcon: <UserCircle size={24} />,
       });
@@ -143,14 +138,6 @@ const Navbar = () => {
                 </div>
               ))}
 
-<<<<<<< HEAD
-              <button onClick={handleLogout} className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
-  <LogOut size={18} />
-  <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-500 ease-in-out group-hover:max-w-25 group-hover:opacity-100 group-hover:ml-2">
-    Salir
-  </span>
-</button>
-=======
               <button
                 onClick={handleLogout}
                 className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer"
@@ -160,7 +147,6 @@ const Navbar = () => {
                   Salir
                 </span>
               </button>
->>>>>>> develop
             </>
           ) : (
             <>

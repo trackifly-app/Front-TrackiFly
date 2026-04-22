@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { ShipmentValues } from '@/interfaces/shipment';
+import { useRouter } from 'next/navigation';
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -17,7 +18,7 @@ const RECARGOS = {
 
 export default function CalcularEnvioPage() {
   const [isCalculating, setIsCalculating] = useState(false);
-
+  const router = useRouter();
   const traducirDireccionACoordenadas = async (direccion: string) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`);
@@ -33,7 +34,7 @@ export default function CalcularEnvioPage() {
     return null;
   };
 
-  const calcularRutaInterna = async (origin: string, destiny: string, setFieldValue: (field: string, value: any) => void) => {
+  const calcularRutaInterna = async (origin: string, destiny: string, setFieldValue: (field: string, value: unknown) => void) => {
     if (origin.length < 5 || destiny.length < 5) return;
 
     setIsCalculating(true);
@@ -48,7 +49,7 @@ export default function CalcularEnvioPage() {
 
         if (data.routes && data.routes[0]) {
           const kms = data.routes[0].distance / 1000;
-          setFieldValue('distancia', kms);
+          setFieldValue('distance', kms);
         }
       }
     } catch (error) {
@@ -68,7 +69,7 @@ export default function CalcularEnvioPage() {
     width: 0,
     depth: 0,
     weight: 0,
-    unit: '',
+    unit: 'cm',
     pickup_direction: '',
     delivery_direction: '',
     distance: 0,
@@ -83,6 +84,7 @@ export default function CalcularEnvioPage() {
       initialValues={initialValues}
       onSubmit={(values) => {
         console.log('Cotización aceptada:', values);
+        router.push('/es/orders');
       }}
     >
       {({ values, setFieldValue }) => {
@@ -119,12 +121,12 @@ export default function CalcularEnvioPage() {
                 <div className="space-y-1">
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted">Punto de Retiro:</label>
-                    <Field name="origen" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <Field name="pickup_direction" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   </div>
 
                   <div>
                     <label className="mb-1 block text-xs font-medium text-muted">Punto de Entrega:</label>
-                    <Field name="destino" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                    <Field name="delivery_direction" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   </div>
 
                   <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">{isCalculating ? 'Calculando distancia...' : values.distance > 0 ? `Distancia: ${values.distance.toFixed(2)} km / ${(values.distance * KM_A_MILLAS).toFixed(2)} mi` : 'Completa ambas direcciones'}</div>
@@ -134,17 +136,17 @@ export default function CalcularEnvioPage() {
               <div className="space-y-2">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted">Unidad:</label>
-                  <Field name="unidad" as="select" className="w-full rounded-lg border border-border bg-surface-muted text-foreground px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30">
+                  <Field name="unit" as="select" className="w-full rounded-lg border border-border bg-surface-muted text-foreground px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30">
                     <option value="cm">cm</option>
                     <option value="in">in</option>
                   </Field>
                 </div>
 
                 <div className="grid grid-cols-1 gap-1">
-                  <Field name="alto" type="number" placeholder={`Alto (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="ancho" type="number" placeholder={`Ancho (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="profundidad" type="number" placeholder={`Profundidad (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  <Field name="peso" type="number" placeholder="Peso (kg)" className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="height" type="number" placeholder={`Alto (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="width" type="number" placeholder={`Ancho (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="depth" type="number" placeholder={`Profundidad (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
+                  <Field name="weight" type="number" placeholder="Peso (kg)" className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                 </div>
 
                 <hr className="border-border" />
@@ -154,19 +156,19 @@ export default function CalcularEnvioPage() {
 
                   <div className="space-y-1 text-xs text-muted">
                     <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="fragil" />
+                      <Field type="checkbox" name="fragile" />
                       Frágil
                     </label>
                     <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="peligroso" />
+                      <Field type="checkbox" name="dangerous" />
                       Peligroso
                     </label>
                     <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="refrigerado" />
+                      <Field type="checkbox" name="cooled" />
                       Refrigerado
                     </label>
                     <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="urgente" />
+                      <Field type="checkbox" name="urgent" />
                       Urgente
                     </label>
                   </div>

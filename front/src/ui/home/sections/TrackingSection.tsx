@@ -3,10 +3,12 @@
 import { useState } from "react";
 import axios from "axios";
 import { useFeedback } from "@/context/feedback/useFeedback";
-
+import Lottie from 'lottie-react';
+import deliveryTruck from '@/assets/lottie/Truck.json';
 
 const TrackingSection = () => {
     const [trackingId, setTrackingId] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const { showToast, showHttpError } = useFeedback();
 
     const handleSearch = async () => {
@@ -15,11 +17,12 @@ const TrackingSection = () => {
         return;
     }
 
+    setIsLoading(true);
+
     try {
         const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/orders/${trackingId}`
         );
-
         console.log("Resultado tracking:", response.data);
 
         showToast("Envío encontrado", "success");
@@ -27,6 +30,9 @@ const TrackingSection = () => {
         // luego aquí puedes redirigir o mostrar info
     } catch (error) {
         showHttpError(error, "No se encontró el envío");
+    }
+    finally{
+        setIsLoading(false);
     }
     };
   return (
@@ -53,6 +59,20 @@ const TrackingSection = () => {
                     className="bg-primary hover:bg-primary-hover text-white px-5 py-3 text-sm font-medium transition-colors">
                     Buscar
                 </button>
+            </div>
+
+            <div className="flex items-center">
+                <Lottie
+                    animationData={deliveryTruck}
+                    loop
+                    autoplay
+                    className="h-64 w-64 scale-120 "
+                />
+                {isLoading && (
+                    <span className="text-sm font-medium text-primary">
+                        Buscando envio...
+                    </span>
+                )}
             </div>
 
             <p className="text-xs text-gray-400 mb-6">
