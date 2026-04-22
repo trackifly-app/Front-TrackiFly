@@ -52,9 +52,8 @@ export interface CalculatorValues {
 // --- AUTENTICACIÓN Y SESIÓN ---
 
 export interface IUserSession {
-  token: string;
   user: {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
     role: string;
@@ -116,7 +115,7 @@ export interface IRegisterCompanyProps {
   phone: string;
   address: string;
   country: string;
-  plan: string;
+  plan?: string;
 }
 
 export interface IRegisterCompanyErrors {
@@ -182,4 +181,11 @@ export interface ICountryProps {
   value: string;
   onChange: (value: string) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
+}
+
+// Interfaz para el catálogo de roles
+export interface RoleCatalogEntry {
+  seedOnBootstrap: boolean;
+  allowSelfSignUp: boolean;
+  requiresApproval: boolean;
 }

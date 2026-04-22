@@ -117,7 +117,9 @@ export const validateFormRegister = (values: IRegisterProps) => {
     errors.birthdate = 'La fecha es obligatoria';
   } else {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const birth = new Date(values.birthdate);
+    birth.setHours(0, 0, 0, 0);
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
