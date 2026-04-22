@@ -6,96 +6,128 @@ import {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import { logout as logoutService } from "@/services/authService";
 import { signOut } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const AuthContext = createContext<IAuthContextProps & { loading: boolean }>({
+// Extendemos la interfaz para incluir 'loading' y la función 'checkSession'
+export const AuthContext = createContext<
+  IAuthContextProps & { loading: boolean; checkSession: () => Promise<void> }
+>({
   userData: null,
-  loading: true, 
+  loading: true,
   setUserData: () => {},
   handleLogout: () => {},
+  checkSession: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userData, setUserData] = useState<IUserSession | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        // 1. Validamos sesión básica
-        // Agregamos no-store para que no te traiga data vieja al recargar
-        const res = await fetch(`${API_URL}/auth/me`, { 
-          credentials: "include",
-          cache: "no-store" 
-        });
-        
-        if (!res.ok) {
-          setUserData(null);
-          return;
-        }
+  // Definimos fetchSession con useCallback para poder reutilizarla
+  const fetchSession = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log("Validando sesión activa...");
 
-        const basicData = await res.json();
+      // 1. Validamos sesión básica (/auth/me)
+      const res = await fetch(`${API_URL}/auth/me`, {
+        credentials: "include",
+        cache: "no-store",
+      });
 
-        // 2. Si tenemos ID, buscamos el perfil completo
-        if (basicData?.id) {
-          const userRes = await fetch(`${API_URL}/users/${basicData.id}`, { 
-            credentials: "include",
-            cache: "no-store"
-          });
-          
-          if (userRes.ok) {
-            const fullData = await userRes.json();
-            
-            // ESTE ES EL LOG QUE NECESITÁS:
-            console.log("INFORMACIÓN DEL USUARIO RECUPERADA:", fullData);
-            
-            setUserData({
-              user: {
-                id: fullData.id,
-                email: fullData.email,
-                role: {
-                  id: fullData.role?.id || "",
-                  name: fullData.role?.name || "user",
-                },
-                profile: {
-                  id: fullData.profile?.id || "",
-                  first_name: fullData.profile?.first_name || "",
-                  last_name: fullData.profile?.last_name || "",
-                  birthdate: fullData.profile?.birthdate || "",
-                  gender: fullData.profile?.gender || "",
-                  phone: fullData.profile?.phone || "",
-                  address: fullData.profile?.address || "",
-                  country: fullData.profile?.country || "",
-                  profile_image: fullData.profile?.profile_image || "",
-                },
-              },
-            });
-          } else {
-            console.warn("No se pudo obtener el perfil completo, usando data básica.");
-            setUserData({
-              user: {
-                id: basicData.id,
-                email: basicData.email,
-                role: basicData.role || { id: "", name: "user" },
-                profile: { id: "", first_name: "", last_name: "" }
-              }
-            } as IUserSession);
-          }
-        }
-      } catch (error) {
-        console.error("Error en el proceso de carga de sesión:", error);
+      if (!res.ok) {
         setUserData(null);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchSession();
+      const basicData = await res.json();
+
+      // 2. Si hay ID, buscamos el perfil completo (/users/:id)
+      if (basicData?.id) {
+        const userRes = await fetch(`${API_URL}/users/${basicData.id}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (userRes.ok) {
+          const fullData = await userRes.json();
+          
+          // Este es el log que verás en la consola apenas te loguees
+          console.log("¡PERFIL COMPLETO CARGADO!", fullData);
+
+          setUserData({
+            user: {
+              id: fullData.id,
+              email: fullData.email,
+              role: {
+                id: fullData.role?.id || "",
+                name: fullData.role?.name || "user",
+              },
+              profile: {
+                id: fullData.profile?.id || "",
+                first_name: fullData.profile?.first_name || "",
+                last_name: fullData.profile?.last_name || "",
+                birthdate: fullData.profile?.birthdate || "",
+                gender: fullData.profile?.gender || "",
+                phone: fullData.profile?.phone || "",
+                address: fullData.profile?.address || "",
+                country: fullData.profile?.country || "",
+                profile_image: fullData.profile?.profile_image || "",
+              },
+            },
+          });
+        } else {
+          // Fallback a data básica si falla el perfil
+          setUserData({
+  user: {
+    id: fullData.id,
+    email: fullData.email,
+    role: {
+      id: fullData.role?.id || "",
+      name: fullData.role?.name || "user",
+    },
+    // MAPEO DE COMPANY:
+    // Aquí pasamos el objeto company que vimos que venía en tu consola
+    company: fullData.company ? {
+      id: fullData.company.id,
+      company_name: fullData.company.company_name,
+      industry: fullData.company.industry,
+      contact_name: fullData.company.contact_name,
+      plan: fullData.company.plan,
+      phone: fullData.company.phone,
+      address: fullData.company.address,
+      country: fullData.company.country,
+      profile_image: fullData.company.profile_image
+    } : undefined,
+
+    profile: {
+      id: fullData.profile?.id || "",
+      first_name: fullData.profile?.first_name || "",
+      last_name: fullData.profile?.last_name || "",
+      profile_image: fullData.profile?.profile_image || "",
+      // ... (demás campos del perfil)
+    },
+  },
+} as IUserSession);
+        }
+      }
+    } catch (error) {
+      console.error("Error al recuperar la sesión:", error);
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Se ejecuta automáticamente al cargar la página
+  useEffect(() => {
+    fetchSession();
+  }, [fetchSession]);
 
   const handleLogout = async () => {
     try {
@@ -104,12 +136,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await signOut({ redirect: false });
       window.location.href = "/";
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Error en Logout:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ userData, setUserData, handleLogout, loading }}>
+    <AuthContext.Provider
+      value={{
+        userData,
+        setUserData,
+        handleLogout,
+        loading,
+        checkSession: fetchSession, // Pasamos la función al contexto
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

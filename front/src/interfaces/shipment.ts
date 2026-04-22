@@ -59,7 +59,7 @@ export interface IUserSession {
       id: string;
       name: string;
     };
-    profile: {
+    profile?: {
       id: string;
       first_name?: string;
       last_name?: string;
@@ -70,6 +70,17 @@ export interface IUserSession {
       country?: string;
       profile_image?: string;
     };
+    company?:{
+      id: string,
+			company_name: string,
+			industry: string,
+			contact_name: string,
+			plan: string,
+			phone: string,
+			address: string,
+			country: string,
+			profile_image: string
+    }
   };
 }
 

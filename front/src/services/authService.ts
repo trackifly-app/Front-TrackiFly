@@ -81,21 +81,56 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
 
 // --- Funciones de Login ---
 
+/**
+ * Inicia sesión mediante el Proxy de Next.js.
+ * @param userData - Objeto con email y password.
+ * @returns - Promesa con el objeto IUserSession o null si falla.
+ */
 export async function login(userData: ILoginProps): Promise<IUserSession | null> {
   try {
+    // Es fundamental usar la URL que apunta a tu Proxy (/api/proxy/...)
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
       body: JSON.stringify(userData),
-      credentials: 'include',
+      // credentials: 'include' permite que el navegador capture el Set-Cookie 
+      // enviado por el Proxy y lo guarde automáticamente.
+      credentials: 'include', 
     });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
+    // Verificamos si la respuesta tiene contenido antes de parsear JSON
+    const contentType = response.headers.get("content-type");
+    let data;
+
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      // Si no es JSON (como el error 405 que vimos), leemos el texto para debuguear
+      const errorText = await response.text();
+      console.error("Error del servidor (no JSON):", errorText);
+      throw new Error("El servidor no respondió en el formato esperado.");
+    }
+
+    if (!response.ok) {
+      // Capturamos el mensaje de error del backend (ej: "Usuario no encontrado")
+      throw new Error(data?.message || 'Error en las credenciales');
+    }
+
+    // Log para verificar que el login devolvió los datos correctamente
+    console.log("Login exitoso. Datos recibidos:", data);
 
     return data;
+    
   } catch (error: any) {
-    handleError(error.message || 'Error al iniciar sesión');
+    console.error("Error en el servicio de login:", error.message);
+    
+    // Si tienes una función para mostrar notificaciones (Toast/SweetAlert)
+    if (typeof handleError === "function") {
+      handleError(error.message || 'Error al iniciar sesión');
+    }
+    
     return null;
   }
 }

@@ -1,12 +1,12 @@
 "use client"
 import { useAuth } from '@/context/AuthContext';
-import { ILoginCompany } from '@/interfaces/shipment';
+import {  IUserSession } from '@/interfaces/shipment';
 import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
 
 
 
-export default function CompanyProfileCard({ company }: ILoginCompany) {
-  const {companyData}=useAuth();
+export default function CompanyProfileCard({ company }: IUserSession) {
+  const {userData}=useAuth();
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
       <div className="mb-6">
@@ -21,7 +21,7 @@ export default function CompanyProfileCard({ company }: ILoginCompany) {
             <Mail size={16} />
             <span>Email</span>
           </div>
-          <p className="font-semibold text-foreground">{companyData?.role?.email}</p>
+          <p className="font-semibold text-foreground">{userData?.user.email}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -29,7 +29,7 @@ export default function CompanyProfileCard({ company }: ILoginCompany) {
             <Building2 size={16} />
             <span>Nombre de empresa</span>
           </div>
-          <p className="font-semibold text-foreground">{company.company_name}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.company_name}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -37,7 +37,7 @@ export default function CompanyProfileCard({ company }: ILoginCompany) {
             <BriefcaseBusiness size={16} />
             <span>Industria</span>
           </div>
-          <p className="font-semibold text-foreground">{company.industry}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.industry}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">

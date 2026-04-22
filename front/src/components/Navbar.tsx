@@ -16,6 +16,15 @@ import { useAuth } from "@/context/AuthContext";
 import { Role } from "@/types/roles";
 
 const Navbar = () => {
+  const { checkSession } = useAuth();
+
+const onSubmit = async (data) => {
+  const res = await login(data);
+  if (res.ok) {
+    await checkSession(); // <--- Esto carga al usuario en el Navbar sin recargar
+    router.push("/dashboard");
+  }
+}
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { userData, handleLogout } = useAuth();
@@ -33,7 +42,7 @@ const Navbar = () => {
     if (!isAuthenticated || !userRole) return [];
 
     const links = [];
-
+    
     // Dashboard Admin (solo Admins)
     if (userRole === Role.Admin || userRole === Role.SuperAdmin) {
       links.push({
