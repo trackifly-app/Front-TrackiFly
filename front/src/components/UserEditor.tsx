@@ -13,7 +13,7 @@ interface Props {
   type?: 'text' | 'select' | 'date';
 }
 
-export default function EditableField({ label, value, field, editingField, tempValue, setTempValue, onEdit, onSave, onCancel, type = 'text' }: Props) {
+export default function UserEditor({ label, value, field, editingField, tempValue, setTempValue, onEdit, onSave, onCancel, type = 'text' }: Props) {
   const isEditing = editingField === field;
 
   return (

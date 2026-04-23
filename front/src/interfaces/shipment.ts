@@ -239,3 +239,11 @@ export interface IUpdateProfilePayload {
   country?: string;
   profile_image?: string;
 }
+
+export interface ICompanyInputProps {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  isEditing: boolean;
+  onChange: (value: string) => void;
+}

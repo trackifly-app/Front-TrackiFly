@@ -1,18 +1,45 @@
-"use client"
+'use client';
+
 import { useAuth } from '@/context/AuthContext';
-import {  IUserSession } from '@/interfaces/shipment';
-import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
+import { CompanyProfileCardProps } from '@/interfaces/shipment';
+import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound, Edit2 } from 'lucide-react';
+import { CompanyEditor, CompanyInputField } from '../CompanyEditor';
 
+type Props = CompanyProfileCardProps & {
+  onCompanyUpdated?: (company: any) => void;
+};
 
+export default function CompanyProfileCard({ company, onCompanyUpdated }: Props) {
+  const { userData } = useAuth();
+  const userId = userData?.user?.id;
 
-export default function CompanyProfileCard({ company }: IUserSession) {
-  const {userData}=useAuth();
+  const { isEditing, startEditing, form, updateField, reset, save, loading } = CompanyEditor(
+    company,
+    userId,
+    onCompanyUpdated
+  );
+
+  const displayData = form ?? company;
+
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
-      <div className="mb-6">
-        <p className="mb-2 font-semibold text-primary">Datos de empresa</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <p className="mb-2 font-semibold text-primary">Datos de empresa</p>
+          <h2 className="text-2xl font-bold text-foreground">Información general</h2>
+        </div>
 
-        <h2 className="text-2xl font-bold text-foreground">Información general</h2>
+        <button
+          onClick={() => {
+            if (isEditing) reset();
+            else startEditing();
+          }}
+          className="p-2 text-primary hover:opacity-80"
+          type="button"
+          aria-label={isEditing ? 'Cancelar edición' : 'Editar información'}
+        >
+          <Edit2 size={20} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -21,57 +48,80 @@ export default function CompanyProfileCard({ company }: IUserSession) {
             <Mail size={16} />
             <span>Email</span>
           </div>
-          <p className="font-semibold text-foreground">{userData?.user.email}</p>
+          <p className="font-semibold text-foreground">{displayData?.email ?? '-'}</p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <Building2 size={16} />
-            <span>Nombre de empresa</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.company_name}</p>
-        </div>
+        <CompanyInputField
+          label="Empresa"
+          icon={<Building2 size={16} />}
+          value={displayData?.company_name}
+          isEditing={isEditing}
+          onChange={(v: string) => updateField('company_name', v)}
+        />
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <BriefcaseBusiness size={16} />
-            <span>Industria</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.industry}</p>
-        </div>
+        <CompanyInputField
+          label="Industria"
+          icon={<BriefcaseBusiness size={16} />}
+          value={displayData?.industry}
+          isEditing={isEditing}
+          onChange={(v: string) => updateField('industry', v)}
+        />
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <UserRound size={16} />
-            <span>Nombre de contacto</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.contact_name}</p>
-        </div>
+        <CompanyInputField
+          label="Contacto"
+          icon={<UserRound size={16} />}
+          value={displayData?.contact_name}
+          isEditing={isEditing}
+          onChange={(v: string) => updateField('contact_name', v)}
+        />
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <Phone size={16} />
-            <span>Teléfono</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.phone}</p>
-        </div>
+        <CompanyInputField
+          label="Teléfono"
+          icon={<Phone size={16} />}
+          value={displayData?.phone}
+          isEditing={isEditing}
+          onChange={(v: string) => updateField('phone', v)}
+        />
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <Globe size={16} />
-            <span>País</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.country}</p>
-        </div>
+        <CompanyInputField
+          label="País"
+          icon={<Globe size={16} />}
+          value={displayData?.country}
+          isEditing={isEditing}
+          onChange={(v: string) => updateField('country', v)}
+        />
 
-        <div className="rounded-2xl border border-border bg-surface-muted p-4 md:col-span-2">
-          <div className="mb-1 flex items-center gap-2 text-sm text-muted">
-            <MapPinned size={16} />
-            <span>Dirección</span>
-          </div>
-          <p className="font-semibold text-foreground">{userData?.user?.company?.address}</p>
+        <div className="md:col-span-2">
+          <CompanyInputField
+            label="Dirección"
+            icon={<MapPinned size={16} />}
+            value={displayData?.address}
+            isEditing={isEditing}
+            onChange={(v: string) => updateField('address', v)}
+          />
         </div>
       </div>
+
+      {isEditing && (
+        <div className="mt-8 flex justify-end gap-3">
+          <button
+            onClick={reset}
+            type="button"
+            className="rounded-xl border border-border px-6 py-2 transition-all hover:bg-surface-muted"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={save}
+            type="button"
+            disabled={loading}
+            className="rounded-xl bg-primary px-6 py-2 text-white transition-all shadow-md shadow-primary/20 hover:opacity-90 disabled:opacity-50"
+          >
+            {loading ? 'Guardando...' : 'Guardar Cambios'}
+          </button>
+        </div>
+      )}
     </section>
   );
 }

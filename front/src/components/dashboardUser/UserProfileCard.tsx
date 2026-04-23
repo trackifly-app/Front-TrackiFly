@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
-import EditableField from '../EditableField';
+import UserEditor from '../UserEditor';
 import { IUpdateProfilePayload } from '@/interfaces/shipment';
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
@@ -109,15 +109,15 @@ export default function UserProfileCard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Email" value={userData.user.email} />
 
-        <EditableField label="Nombre" field="name" value={`${profile?.first_name || ''} ${profile?.last_name || ''}`} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
+        <UserEditor label="Nombre" field="name" value={`${profile?.first_name || ''} ${profile?.last_name || ''}`} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
 
-        <EditableField label="Dirección" field="address" value={profile?.address} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
+        <UserEditor label="Dirección" field="address" value={profile?.address} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
 
-        <EditableField label="Teléfono" field="phone" value={profile?.phone} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
+        <UserEditor label="Teléfono" field="phone" value={profile?.phone} editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
 
-        <EditableField label="Fecha de nacimiento" field="birthdate" value={profile?.birthdate} type="date" editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
+        <UserEditor label="Fecha de nacimiento" field="birthdate" value={profile?.birthdate} type="date" editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
 
-        <EditableField label="Género" field="gender" value={profile?.gender} type="select" editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
+        <UserEditor label="Género" field="gender" value={profile?.gender} type="select" editingField={editingField} tempValue={tempValue} setTempValue={setTempValue} onEdit={handleEdit} onSave={handleSave} onCancel={handleCancel} />
 
         <div className="bg-surface-muted rounded-xl p-4 border border-border md:col-span-2">
           <p className="text-sm text-muted">País</p>
