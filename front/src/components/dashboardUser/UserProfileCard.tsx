@@ -1,17 +1,22 @@
-"use client"
-import { useAuth } from "@/context/AuthContext";
-import { UserProfileCardProps } from "@/types/types";
+'use client';
+import { useAuth } from '@/context/AuthContext';
 
+export default function UserProfileCard() {
+  const { userData } = useAuth();
 
-export default function UserProfileCard({ user }: UserProfileCardProps) {
-  const {userData} = useAuth();
+  if (!userData) {
+    return <p className="text-center py-10">Cargando perfil...</p>;
+  }
+
+  const profile = userData.user.profile;
+
   return (
     <div>
       <section className="bg-surface rounded-3xl shadow-sm border border-border p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={user.image || 'https://via.placeholder.com/150'} alt="Foto de perfil" className="w-full h-full object-cover" />
+            <img src={profile?.profile_image || '/default-avatar.png'} alt="Foto de perfil" className="w-full h-full object-cover" />
           </div>
 
           <div>
@@ -21,42 +26,33 @@ export default function UserProfileCard({ user }: UserProfileCardProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Email</p>
-            <p className="text-foreground font-medium wrap-break-words">{userData?.user.email}</p>
-          </div>
+          <Field label="Email" value={userData.user.email} />
 
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Nombre</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.first_name} {userData?.user.profile.last_name}</p>
-          </div>
+          <Field label="Nombre" value={`${profile?.first_name || ''} ${profile?.last_name || ''}`} />
 
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Dirección</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.address}</p>
-          </div>
+          <Field label="Dirección" value={profile?.address} />
 
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Teléfono</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.phone}</p>
-          </div>
+          <Field label="Teléfono" value={profile?.phone} />
 
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Fecha de nacimiento</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.birthdate}</p>
-          </div>
+          <Field label="Fecha de nacimiento" value={profile?.birthdate} />
 
-          <div className="bg-surface-muted rounded-xl p-4 border border-border">
-            <p className="text-sm text-muted">Género</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.gender}</p>
-          </div>
+          <Field label="Género" value={profile?.gender} />
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border md:col-span-2">
             <p className="text-sm text-muted">País</p>
-            <p className="text-foreground font-medium">{userData?.user.profile.country}</p>
+            <p className="text-foreground font-medium">{profile?.country || 'No especificado'}</p>
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="bg-surface-muted rounded-xl p-4 border border-border">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="text-foreground font-medium">{value || 'No especificado'}</p>
     </div>
   );
 }
