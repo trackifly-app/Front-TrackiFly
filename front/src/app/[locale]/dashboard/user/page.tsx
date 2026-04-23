@@ -3,7 +3,6 @@ import UserProfileCard from '@/components/dashboardUser/UserProfileCard';
 import ActiveOrders from '@/components/dashboardUser/ActiveOrders';
 import OrderHistory from '@/components/dashboardUser/OrderHistory';
 import { useAuth } from '@/context/AuthContext';
-import EditUserProfileForm from '@/components/EditUserProfileForm';
 
 export default function DashboardUserPage() {
   const { userData } = useAuth();
@@ -69,7 +68,6 @@ export default function DashboardUserPage() {
         </section>
 
         <UserProfileCard />
-        <EditUserProfileForm />
 
         <ActiveOrders orders={activeOrders} />
 
