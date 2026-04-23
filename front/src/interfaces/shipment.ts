@@ -53,22 +53,42 @@ export interface CalculatorValues {
 
 export interface IUserSession {
   user: {
-    id: string; // M cambio aqui
-    first_name: string;
-    last_name: string;
-    role: string;
-    address: string;
-    phone: string;
+    id: string;
     email: string;
-    birthdate:string;
-    gender:string;
-    country:string
+    role: {
+      id: string;
+      name: string;
+    };
+    profile?: {
+      id: string;
+      first_name?: string;
+      last_name?: string;
+      birthdate?: string;
+      gender?: string;
+      phone?: string;
+      address?: string;
+      country?: string;
+      profile_image?: string;
+    };
+    company?:{
+      id: string,
+			company_name: string,
+			industry: string,
+			contact_name: string,
+			plan: string,
+			phone: string,
+			address: string,
+			country: string,
+			profile_image: string
+    }
   };
 }
 
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
+  companyData: ILoginCompany|null,
+  setCompanyData:(values:ILoginCompany|null) => void,
   handleLogout: () => void;
 }
 
@@ -190,4 +210,22 @@ export interface RoleCatalogEntry {
   seedOnBootstrap: boolean; // M cambio aqui
   allowSelfSignUp: boolean; // M cambio aqui
   requiresApproval: boolean; // M cambio aqui
+}
+
+export interface ILoginCompany{
+  token: string;
+  role?:{
+    id: string,
+    email:string,
+    name: string;
+  };
+  company?:{
+    company_name:string,
+    industry:string,
+    contact_name:string,
+    plan: "free" | "pro" | "enterprise";
+    phone:string,
+    address:string
+    country:string,
+  }
 }

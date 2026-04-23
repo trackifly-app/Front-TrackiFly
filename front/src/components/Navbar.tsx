@@ -16,6 +16,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Role } from "@/types/roles";
 
 const Navbar = () => {
+  const { checkSession } = useAuth();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { userData, handleLogout } = useAuth();
@@ -27,13 +29,13 @@ const Navbar = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const isAuthenticated = !!userData?.user?.id;
-  const userRole = userData?.user?.role as Role;
+  const userRole = userData?.user.role.name;
 
   const getRoleLinks = () => {
     if (!isAuthenticated || !userRole) return [];
 
     const links = [];
-
+    
     // Dashboard Admin (solo Admins)
     if (userRole === Role.Admin || userRole === Role.SuperAdmin) {
       links.push({
@@ -49,7 +51,7 @@ const Navbar = () => {
       const isOp = userRole === Role.Operator;
       links.push({
         href: "/dashboard/company",
-        label: isOp ? "Operaciones" : "Empresa",
+        label: isOp ? "Operaciones" : `Empresa ${userData?.user?.company?.company_name}`,
         icon: isOp ? <LayoutDashboard size={30} /> : <Building2 size={30} />,
         mobileIcon: isOp ? (
           <LayoutDashboard size={24} />
@@ -67,6 +69,7 @@ const Navbar = () => {
         icon: <UserCircle size={30} />,
         mobileIcon: <UserCircle size={24} />,
       });
+
     }
 
     return links;
@@ -200,23 +203,15 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {roleLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-primary flex items-center gap-3 py-2"
-                    onClick={closeMobileMenu}
-                  >
+                  <Link key={link.href} href={link.href} className="text-primary flex items-center gap-3 py-2" onClick={closeMobileMenu}>
                     {link.mobileIcon} <span>{link.label}</span>
                   </Link>
                 ))}
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    closeMobileMenu();
-                  }}
-                  className="flex items-center gap-3 text-muted pt-4 border-t border-border font-medium w-full text-left"
-                >
-                  <LogOut size={20} /> <span>Cerrar Sesión</span>
+                <button onClick={handleLogout} className="group flex items-center text-muted px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
+                  <LogOut size={18} />
+                  <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-500 ease-in-out group-hover:max-w-25 group-hover:opacity-100 group-hover:ml-2">
+                    Salir
+                  </span>
                 </button>
               </>
             ) : (

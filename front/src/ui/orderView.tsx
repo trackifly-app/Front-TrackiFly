@@ -12,10 +12,15 @@ import {
 
 import { CATEGORIES } from "@/lib/categories";
 import { validateShipment } from "@/lib/validates";
+import { createOrder } from "@/services/orderService";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
 const centerDefault = { lat: -34.5997, lng: -58.3819 };
+
+// COORDENADAS Y DIRECCIÓN DEL OBELISCO
+const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
+const OBELISCO_ADDRESS = "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -26,17 +31,16 @@ const RECARGOS = {
   URGENTE: 0.5,
 };
 
-// ========================================
-// COMPONENTE PRINCIPAL: OrderView
-// Gestiona el formulario de creación de órdenes con mapa interactivo
-// ========================================
 const OrderView = () => {
-  // Estado para almacenar coordenadas de origen y destino
   const router = useRouter();
+  
+  // ESTADO PARA EL BOTÓN DEL OBELISCO
+  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
+
   const [coords, setCoords] = useState<{
     origen: google.maps.LatLngLiteral | null;
     destino: google.maps.LatLngLiteral | null;
-  }>({ origen: null, destino: null });
+  }>({ origen: OBELISCO_COORDS, destino: null }); // Iniciamos con Obelisco en origen
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(() => {
@@ -56,21 +60,15 @@ const OrderView = () => {
   // Referencia al mapa para controlar el zoom y encuadre manualmente
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
-  // Referencias para los inputs de autocompletado de Google Maps
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
   const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  // Cargador de la API de Google Maps
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries,
   });
 
-  // ========================================
-  // FUNCIÓN: calcularRutaReal
-  // Calcula la ruta real entre origen y destino usando Google Directions Service
-  // ========================================
   const calcularRutaReal = useCallback(
     (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
       const directionsService = new google.maps.DirectionsService();
@@ -82,8 +80,7 @@ const OrderView = () => {
         },
         (result, status) => {
           if (status === "OK" && result) {
-            const distKm =
-              (result.routes[0].legs[0].distance?.value || 0) / 1000;
+            const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
             setDistance(distKm);
             const path = result.routes[0].overview_path.map((p) => ({
               lat: p.lat(),
@@ -91,7 +88,6 @@ const OrderView = () => {
             }));
             setRoutePath(path);
 
-            // Ajuste automático del mapa para mostrar toda la ruta
             if (mapRef && result.routes[0].bounds) {
               mapRef.fitBounds(result.routes[0].bounds);
             }
@@ -102,14 +98,26 @@ const OrderView = () => {
     [mapRef],
   );
 
-  // ========================================
-  // FUNCIÓN: onPlaceChanged
-  // Maneja el cambio de ubicación en los inputs de autocompletado
-  // Actualiza coordenadas y calcula la ruta cuando ambas se seleccionan
-  // ========================================
+  // FUNCIÓN PARA EL BOTÓN DEL OBELISCO
+  const handleSwapObelisco = (setFieldValue: any) => {
+    const nextState = !obeliscoIsOrigin;
+    setObeliscoIsOrigin(nextState);
+    setDistance(0);
+    setRoutePath([]);
+
+    if (nextState) {
+      setFieldValue("pickup_direction", OBELISCO_ADDRESS);
+      setFieldValue("delivery_direction", "");
+      setCoords({ origen: OBELISCO_COORDS, destino: null });
+    } else {
+      setFieldValue("pickup_direction", "");
+      setFieldValue("delivery_direction", OBELISCO_ADDRESS);
+      setCoords({ origen: null, destino: OBELISCO_COORDS });
+    }
+  };
+
   const onPlaceChanged = (type: "origen" | "destino", setFieldValue: any) => {
-    const autocomplete =
-      type === "origen" ? originRef.current : destinationRef.current;
+    const autocomplete = type === "origen" ? originRef.current : destinationRef.current;
     if (autocomplete) {
       const place = autocomplete.getPlace();
       if (!place.geometry || !place.geometry.location) return;
@@ -119,8 +127,7 @@ const OrderView = () => {
         lng: place.geometry.location.lng(),
       };
 
-      const fieldName =
-        type === "origen" ? "pickup_direction" : "delivery_direction";
+      const fieldName = type === "origen" ? "pickup_direction" : "delivery_direction";
       setFieldValue(fieldName, place.formatted_address);
 
       setCoords((prev) => {
@@ -133,13 +140,9 @@ const OrderView = () => {
     }
   };
 
-  // ========================================
-  // ESTILOS REUTILIZABLES (actualizados al sistema de variables)
-  // ========================================
-  const inputStyle =
-    "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
-  const errorLabel =
-    "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
+  const inputStyle = "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
+  const readOnlyStyle = "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
+  const errorLabel = "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
 
   //================================================
   // SECCION VALORES PRECARGADOS DESDE CALCULADORA
@@ -149,7 +152,7 @@ const OrderView = () => {
     description: "",
     category_id: "",
     image: "",
-    pickup_direction: "",
+    pickup_direction: OBELISCO_ADDRESS,
     delivery_direction: "",
     weight: "",
     height: "",
@@ -247,16 +250,28 @@ const OrderView = () => {
 
         return errors;
       }}
-      // ========================================
-      // MANEJADOR DE ENVÍO DEL FORMULARIO
-      // ========================================
-      onSubmit={async (values) => {
+      onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          alert("Selecciona origen y destino válidos en el mapa.");
+          alert("Selecciona origen y destino válidos en el mapa para calcular la distancia.");
+          setSubmitting(false);
           return;
         }
-        console.log("Enviando a TrackiFly:", values);
-        router.push("/dashboard/user");
+
+        try {
+          // Unimos los valores del formulario con la distancia calculada
+          const orderToSave = { ...values, distance };
+          const response = await createOrder(orderToSave);
+          
+          if (response) {
+            alert("¡Pedido confirmado con éxito!");
+            router.push("/dashboard/user");
+          }
+        } catch (error: any) {
+          console.error("Error al crear la orden:", error);
+          alert(error.message || "Hubo un problema al guardar tu pedido. Reintentá.");
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
       {({
@@ -267,10 +282,6 @@ const OrderView = () => {
         isSubmitting,
         submitCount,
       }) => {
-        // ========================================
-        // CÁLCULOS DE PRESUPUESTO
-        // Calcula volumen, precio base, recargos por peso y servicios adicionales
-        // ========================================
         const factor = values.unit === "cm" ? 0.01 : 0.0254;
         const volumenM3 =
           Number(values.height) *
@@ -302,7 +313,6 @@ const OrderView = () => {
           <main className="min-h-screen bg-background px-4 py-10">
             <div className="mx-auto max-w-7xl">
               <Form className="flex flex-col lg:flex-row gap-8 lg:gap-10">
-                {/* ====================== COLUMNA IZQUIERDA ====================== */}
                 <div className="flex-1 space-y-8">
                   <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
                     <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">
@@ -428,48 +438,48 @@ const OrderView = () => {
                   </div>
 
                   <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">
-                      Trayecto
-                    </h3>
+                    <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
+                      <h3 className="text-lg font-bold uppercase text-foreground">
+                        Trayecto
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => handleSwapObelisco(setFieldValue)}
+                        className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-lg border border-primary/20 hover:bg-primary hover:text-white font-bold transition-all uppercase"
+                      >
+                        ⇅ Intercambiar de lugar Obelisco
+                      </button>
+                    </div>
+
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
-                        <Autocomplete
-                          onLoad={(ref) => (originRef.current = ref)}
-                          onPlaceChanged={() =>
-                            onPlaceChanged("origen", setFieldValue)
-                          }
+                        {obeliscoIsOrigin ? (
+                          <input readOnly value={OBELISCO_ADDRESS} className={readOnlyStyle} />
+                        ) : (
+                          <Autocomplete
+                            onLoad={(ref) => (originRef.current = ref)}
+                            onPlaceChanged={() => onPlaceChanged("origen", setFieldValue)}
                           >
-                          <input
-                            type="text"
-                            placeholder="Origen"
-                            defaultValue={values.pickup_direction}
-                            className={inputStyle}
-                          />
-                        </Autocomplete>
+                            <input type="text" placeholder="Origen" className={inputStyle} />
+                          </Autocomplete>
+                        )}
                         {errors.pickup_direction && submitCount > 0 && (
-                          <p className={errorLabel}>
-                            {errors.pickup_direction}
-                          </p>
+                          <p className={errorLabel}>{errors.pickup_direction}</p>
                         )}
                       </div>
                       <div>
-                        <Autocomplete
-                          onLoad={(ref) => (destinationRef.current = ref)}
-                          onPlaceChanged={() =>
-                            onPlaceChanged("destino", setFieldValue)
-                          }
+                        {!obeliscoIsOrigin ? (
+                          <input readOnly value={OBELISCO_ADDRESS} className={readOnlyStyle} />
+                        ) : (
+                          <Autocomplete
+                            onLoad={(ref) => (destinationRef.current = ref)}
+                            onPlaceChanged={() => onPlaceChanged("destino", setFieldValue)}
                           >
-                          <input
-                            type="text"
-                            placeholder="Destino"
-                            defaultValue={values.delivery_direction}
-                            className={inputStyle}
-                          />
-                        </Autocomplete>
+                            <input type="text" placeholder="Destino" className={inputStyle} />
+                          </Autocomplete>
+                        )}
                         {errors.delivery_direction && submitCount > 0 && (
-                          <p className={errorLabel}>
-                            {errors.delivery_direction}
-                          </p>
+                          <p className={errorLabel}>{errors.delivery_direction}</p>
                         )}
                       </div>
                     </div>
@@ -478,18 +488,14 @@ const OrderView = () => {
                       <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
                         <button
                           type="button"
-                          onClick={() =>
-                            mapRef?.setZoom((mapRef.getZoom() || 12) + 1)
-                          }
+                          onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) + 1)}
                           className="flex h-9 w-9 items-center justify-center rounded-t-lg border-b border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface"
                         >
                           +
                         </button>
                         <button
                           type="button"
-                          onClick={() =>
-                            mapRef?.setZoom((mapRef.getZoom() || 12) - 1)
-                          }
+                          onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)}
                           className="flex h-9 w-9 items-center justify-center rounded-b-lg border border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface"
                         >
                           −
@@ -501,39 +507,14 @@ const OrderView = () => {
                         mapContainerStyle={mapContainerStyle}
                         center={coords.origen || centerDefault}
                         zoom={12}
-                        options={{
-                          disableDefaultUI: true,
-                          zoomControl: false,
-                        }}
+                        options={{ disableDefaultUI: true, zoomControl: false }}
                       >
-                        {coords.origen && (
-                          <Marker
-                            position={coords.origen}
-                            label={{
-                              text: "A",
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          />
-                        )}
-                        {coords.destino && (
-                          <Marker
-                            position={coords.destino}
-                            label={{
-                              text: "B",
-                              color: "white",
-                              fontWeight: "bold",
-                            }}
-                          />
-                        )}
+                        {coords.origen && <Marker position={coords.origen} label={{ text: "A", color: "white", fontWeight: "bold" }} />}
+                        {coords.destino && <Marker position={coords.destino} label={{ text: "B", color: "white", fontWeight: "bold" }} />}
                         {routePath.length > 0 && (
                           <Polyline
                             path={routePath}
-                            options={{
-                              strokeColor: "#D96B4A",
-                              strokeWeight: 5,
-                              strokeOpacity: 0.9,
-                            }}
+                            options={{ strokeColor: "#D96B4A", strokeWeight: 5, strokeOpacity: 0.9 }}
                           />
                         )}
                       </GoogleMap>
@@ -541,7 +522,6 @@ const OrderView = () => {
                   </div>
                 </div>
 
-                {/* ====================== COLUMNA DERECHA - PRESUPUESTO ====================== */}
                 <div className="lg:w-96 shrink-0">
                   <div className="rounded-2xl bg-surface p-8 shadow-xl text-foreground border border-border h-fit">
                     <h2 className="text-xl font-black mb-6 border-b border-border pb-2 uppercase">
