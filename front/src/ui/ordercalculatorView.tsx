@@ -1,9 +1,12 @@
 'use client';
-
-import { useState } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { ShipmentValues } from '@/interfaces/shipment';
 import { useRouter } from 'next/navigation';
+import { descargarReporte } from '@/lib/orderCalculatorReport';
+import RouteMapFields from "@/components/forms/RouteMapFields";
+import { useFeedback } from "@/context/feedback/useFeedback";
+
+
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -17,58 +20,17 @@ const RECARGOS = {
 };
 
 export default function CalcularEnvioPage() {
-  const [isCalculating, setIsCalculating] = useState(false);
   const router = useRouter();
-  const traducirDireccionACoordenadas = async (direccion: string) => {
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion)}&limit=1`);
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        return { lat: data[0].lat, lon: data[0].lon };
-      }
-    } catch (error) {
-      console.error('Error traduciendo dirección:', error);
-    }
-
-    return null;
-  };
-
-  const calcularRutaInterna = async (origin: string, destiny: string, setFieldValue: (field: string, value: unknown) => void) => {
-    if (origin.length < 5 || destiny.length < 5) return;
-
-    setIsCalculating(true);
-
-    try {
-      const coordsOrg = await traducirDireccionACoordenadas(origin);
-      const coordsDest = await traducirDireccionACoordenadas(destiny);
-
-      if (coordsOrg && coordsDest) {
-        const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsOrg.lon},${coordsOrg.lat};${coordsDest.lon},${coordsDest.lat}?overview=false`);
-        const data = await response.json();
-
-        if (data.routes && data.routes[0]) {
-          const kms = data.routes[0].distance / 1000;
-          setFieldValue('distance', kms);
-        }
-      }
-    } catch (error) {
-      console.error('Error calculando ruta:', error);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
-
+  const { showToast } = useFeedback();
   const initialValues: ShipmentValues = {
     name: '',
     category_id: '',
     description: '',
     image: '',
-
-    height: 0,
-    width: 0,
-    depth: 0,
-    weight: 0,
+    height: '',
+    width: '',
+    depth: '',
+    weight: '',
     unit: 'cm',
     pickup_direction: '',
     delivery_direction: '',
@@ -83,8 +45,30 @@ export default function CalcularEnvioPage() {
     <Formik
       initialValues={initialValues}
       onSubmit={(values) => {
-        console.log('Cotización aceptada:', values);
-        router.push('/es/orders');
+      
+        const calculatorData ={
+          height: values.height,
+          width: values.width,
+          depth: values.depth,
+          weight: values.weight,
+          unit: values.unit,
+          pickup_direction: values.pickup_direction,
+          delivery_direction: values.delivery_direction,
+          distance: values.distance,
+          fragile: values.fragile,
+          dangerous: values.dangerous,
+          cooled: values.cooled,
+          urgent: values.urgent,
+        };
+
+        sessionStorage.setItem("calculatorOrderDraft", JSON.stringify(calculatorData));
+
+        showToast("Cotizacion aceptada", "success", 1800);
+        showToast("Redirigiendo a Realizar Pedidos...", "success", 2600);
+
+        setTimeout(() => {
+          router.push("/es/orders");
+        }, 1800);
       }}
     >
       {({ values, setFieldValue }) => {
@@ -118,19 +102,21 @@ export default function CalcularEnvioPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-2 space-y-2">
-                <div className="space-y-1">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted">Punto de Retiro:</label>
-                    <Field name="pickup_direction" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  </div>
 
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted">Punto de Entrega:</label>
-                    <Field name="delivery_direction" placeholder="Calle y altura, Ciudad" onBlur={() => calcularRutaInterna(values.pickup_direction, values.delivery_direction, setFieldValue)} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
-                  </div>
+                <div className="space-y-2">
+                  <RouteMapFields
+                    pickupDirection={values.pickup_direction}
+                    deliveryDirection={values.delivery_direction}
+                    setFieldValue={setFieldValue}
+                  />
 
-                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">{isCalculating ? 'Calculando distancia...' : values.distance > 0 ? `Distancia: ${values.distance.toFixed(2)} km / ${(values.distance * KM_A_MILLAS).toFixed(2)} mi` : 'Completa ambas direcciones'}</div>
+                  <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">
+                    {values.distance > 0
+                      ? `Distancia: ${values.distance.toFixed(2)} km / ${(values.distance * KM_A_MILLAS).toFixed(2)} mi`
+                      : "Selecciona punto de retiro y punto de entrega"}
+                  </div>
                 </div>
+
               </div>
 
               <div className="space-y-2">
@@ -194,11 +180,32 @@ export default function CalcularEnvioPage() {
                 <h2 className="text-xl font-bold text-foreground">Total: ${precioFinal.toLocaleString('es-AR')}</h2>
               </section>
 
-              <div className="flex md:justify-center md:items-center h-full">
-                <button type="submit" className="bg-primary hover:bg-primary-hover text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto">
-                  Aceptar envío
+              {/*======= BOTONES PRINCIPALES ================*/}
+              <div className="flex flex-col md:flex-row md:justify-center md:items-center gap-2 h-full">
+                <button
+                  type="submit"
+                  className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto"
+                >
+                  Aceptar envio
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    descargarReporte(
+                      values,
+                      volumen,
+                      precioBase,
+                      montoRecargo,
+                      precioFinal,
+                      pesoNum
+                    )
+                  }
+                  className="border border-border bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto"
+                >
+                  Descargar cotización
                 </button>
               </div>
+              {/*======= FIN BOTONES PRINCIPALES ================*/}
             </div>
           </Form>
         );

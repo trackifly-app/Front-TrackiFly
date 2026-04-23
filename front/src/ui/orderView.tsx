@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect} from "react";
 import { Formik, Form, Field } from "formik";
 import { useRouter } from "next/navigation";
 import {
@@ -39,7 +39,19 @@ const OrderView = () => {
   }>({ origen: null, destino: null });
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
-  const [distance, setDistance] = useState(0);
+  const [distance, setDistance] = useState(() => {
+    if (typeof window === "undefined") return 0;
+
+    const stored = sessionStorage.getItem("calculatorOrderDraft");
+    if (!stored) return 0;
+
+    try {
+      const calculatorData = JSON.parse(stored);
+      return Number(calculatorData.distance) || 0;
+    } catch {
+      return 0;
+    }
+  });
 
   // Referencia al mapa para controlar el zoom y encuadre manualmente
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
@@ -129,36 +141,72 @@ const OrderView = () => {
   const errorLabel =
     "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
 
+  //================================================
+  // SECCION VALORES PRECARGADOS DESDE CALCULADORA
+  //================================================
+  const emptyOrderValues = {
+    name: "",
+    description: "",
+    category_id: "",
+    image: "",
+    pickup_direction: "",
+    delivery_direction: "",
+    weight: "",
+    height: "",
+    width: "",
+    depth: "",
+    unit: "cm",
+    fragile: false,
+    dangerous: false,
+    cooled: false,
+    urgent: false,
+  };
+  
+  const [initialOrderValues] = useState(() => {
+    if (typeof window === "undefined") return emptyOrderValues;
+    const stored = sessionStorage.getItem("calculatorOrderDraft");
+    if (!stored) return emptyOrderValues;
+
+    try {
+      const calculatorData = JSON.parse(stored);
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return {
+        ...emptyOrderValues,
+        height: calculatorData.height || "",
+        width: calculatorData.width || "",
+        depth: calculatorData.depth || "",
+        weight: calculatorData.weight || "",
+        unit: calculatorData.unit || "cm",
+        pickup_direction: calculatorData.pickup_direction || "",
+        delivery_direction: calculatorData.delivery_direction || "",
+        fragile: calculatorData.fragile || false,
+        dangerous: calculatorData.dangerous || false,
+        cooled: calculatorData.cooled || false,
+        urgent: calculatorData.urgent || false,
+      };
+    } catch {
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return emptyOrderValues;
+    }
+  });
+  // ======== FIN SECCION VALORES PRECARGADOS DESDE CALCULADORA =========
+  
+
   if (!isLoaded)
     return (
       <div className="p-10 text-center font-bold text-primary animate-pulse text-lg">
         Iniciando TrackiFly...
       </div>
     );
-
+    
   // ========================================
   // FORMULARIO PRINCIPAL: Formik
   // Maneja validación, estado y envío del formulario de orden de envío
   // ========================================
   return (
     <Formik
-      initialValues={{
-        name: "",
-        description: "",
-        category_id: "",
-        image: "",
-        pickup_direction: "",
-        delivery_direction: "",
-        weight: "",
-        height: "",
-        width: "",
-        depth: "",
-        unit: "cm",
-        fragile: false,
-        dangerous: false,
-        cooled: false,
-        urgent: false,
-      }}
+      initialValues={initialOrderValues} // se recepcionan los valores precargados de calculadora
+       
       // ========================================
       // VALIDACIÓN DE FORMULARIO
       // ========================================
@@ -245,7 +293,8 @@ const OrderView = () => {
 
         const precioFinal =
           precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
-
+        
+        
         // ========================================
         // RENDERIZADO DEL COMPONENTE
         // ========================================
@@ -389,10 +438,11 @@ const OrderView = () => {
                           onPlaceChanged={() =>
                             onPlaceChanged("origen", setFieldValue)
                           }
-                        >
+                          >
                           <input
                             type="text"
                             placeholder="Origen"
+                            defaultValue={values.pickup_direction}
                             className={inputStyle}
                           />
                         </Autocomplete>
@@ -408,10 +458,11 @@ const OrderView = () => {
                           onPlaceChanged={() =>
                             onPlaceChanged("destino", setFieldValue)
                           }
-                        >
+                          >
                           <input
                             type="text"
                             placeholder="Destino"
+                            defaultValue={values.delivery_direction}
                             className={inputStyle}
                           />
                         </Autocomplete>
