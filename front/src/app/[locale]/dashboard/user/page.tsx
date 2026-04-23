@@ -171,9 +171,29 @@ export default function DashboardUserPage() { // Componente principal del dashbo
   return ( // Si todo salió bien, renderiza el dashboard completo
     <main className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        <UserProfileCard user={user} /> {/* Muestra los datos personales */}
-        <ActiveOrders orders={activeOrders} /> {/* Muestra órdenes activas */}
-        <OrderHistory orders={orderHistory} /> {/* Muestra historial de órdenes */}
+        <section className="bg-surface rounded-3xl shadow-sm border border-border p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-primary font-semibold mb-2">Dashboard de usuario</p>
+
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">Bienvenido, {userData?.user.profile.first_name}  {userData?.user.profile.last_name}</h1>
+
+              <p className="text-muted mt-2">Aquí puedes revisar tu información, tus pedidos en camino y tu historial.</p>
+            </div>
+
+            <div className="bg-primary/10 border border-primary/30 rounded-2xl px-5 py-4">
+              <p className="text-sm text-muted">Pedidos activos</p>
+
+              <p className="text-3xl font-bold text-primary">{activeOrders.length}</p>
+            </div>
+          </div>
+        </section>
+
+        <UserProfileCard user={user} />
+
+        <ActiveOrders orders={activeOrders} />
+
+        <OrderHistory orders={orderHistory} />
       </div>
     </main>
   );

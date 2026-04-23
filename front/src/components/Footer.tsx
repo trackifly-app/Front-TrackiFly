@@ -33,7 +33,7 @@ const Footer = () => {
 
         <div className="flex flex-col gap-4 col-span-2 md:col-span-1">
           <h3 className="text-white font-semibold">Contacto</h3>
-          <p className="text-sm text-slate-400">Av. del libertador 1234, Buenos Aires, Argentina</p>
+          <p className="text-sm text-slate-400">Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires</p>
           <p className="text-sm text-slate-400">08000-333-8356</p>
           <p className="text-sm text-slate-400">trackifly@gmail.com.ar</p>
 

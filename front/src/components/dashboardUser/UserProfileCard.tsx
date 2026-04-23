@@ -1,11 +1,10 @@
-'use client'
-import { UserProfileCardProps } from "@/types/types";
+"use client"
 import { useAuth } from "@/context/AuthContext";
+import { UserProfileCardProps } from "@/types/types";
+
 
 export default function UserProfileCard({ user }: UserProfileCardProps) {
-  // Traemos los datos de la sesión global para complementar la info del perfil
-  const { userData } = useAuth();
-
+  const {userData} = useAuth();
   return (
     <div>
       <section className="bg-surface rounded-3xl shadow-sm border border-border p-6">
@@ -28,40 +27,37 @@ export default function UserProfileCard({ user }: UserProfileCardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Email</p>
-            {/* Usamos los datos del contexto para mostrar el email actual de la sesión */}
-            <p className="text-foreground font-medium wrap-break-words">
-              {userData?.user?.email}
-            </p>
+            <p className="text-foreground font-medium wrap-break-words">{userData?.user.email}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Nombre</p>
-            <p className="text-foreground font-medium">{userData?.user?.first_name} {userData?.user?.last_name}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.first_name} {userData?.user.profile.last_name}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Dirección</p>
-            <p className="text-foreground font-medium">{userData?.user?.address}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.address}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Teléfono</p>
-            <p className="text-foreground font-medium">{userData?.user?.phone}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.phone}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Fecha de nacimiento</p>
-            <p className="text-foreground font-medium">{userData?.user?.birthdate}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.birthdate}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border">
             <p className="text-sm text-muted">Género</p>
-            <p className="text-foreground font-medium">{userData?.user?.gender}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.gender}</p>
           </div>
 
           <div className="bg-surface-muted rounded-xl p-4 border border-border md:col-span-2">
             <p className="text-sm text-muted">País</p>
-            <p className="text-foreground font-medium">{userData?.user?.country}</p>
+            <p className="text-foreground font-medium">{userData?.user.profile?.country}</p>
           </div>
         </div>
       </section>

@@ -1,10 +1,9 @@
-'use client'
-import { CompanyProfileCardProps } from '@/interfaces/shipment';
-import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
+"use client"
 import { useAuth } from '@/context/AuthContext';
+import {  IUserSession } from '@/interfaces/shipment';
+import { Building2, Mail, Phone, MapPinned, Globe, BriefcaseBusiness, UserRound } from 'lucide-react';
 
-
-export default function CompanyProfileCard({ company }: CompanyProfileCardProps) {
+export default function CompanyProfileCard({ company }: IUserSession) {
   const {userData}=useAuth();
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
@@ -20,7 +19,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <Mail size={16} />
             <span>Email</span>
           </div>
-          <p className="font-semibold text-foreground">{userData?.user?.email}</p>
+          <p className="font-semibold text-foreground">{userData?.user.email}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -28,7 +27,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <Building2 size={16} />
             <span>Nombre de empresa</span>
           </div>
-          <p className="font-semibold text-foreground">{company.company_name}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.company_name}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -36,7 +35,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <BriefcaseBusiness size={16} />
             <span>Industria</span>
           </div>
-          <p className="font-semibold text-foreground">{company.industry}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.industry}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -44,7 +43,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <UserRound size={16} />
             <span>Nombre de contacto</span>
           </div>
-          <p className="font-semibold text-foreground">{company.contact_name}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.contact_name}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -52,7 +51,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <Phone size={16} />
             <span>Teléfono</span>
           </div>
-          <p className="font-semibold text-foreground">{company.phone}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.phone}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4">
@@ -60,7 +59,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <Globe size={16} />
             <span>País</span>
           </div>
-          <p className="font-semibold text-foreground">{company.country}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.country}</p>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-muted p-4 md:col-span-2">
@@ -68,7 +67,7 @@ export default function CompanyProfileCard({ company }: CompanyProfileCardProps)
             <MapPinned size={16} />
             <span>Dirección</span>
           </div>
-          <p className="font-semibold text-foreground">{company.address}</p>
+          <p className="font-semibold text-foreground">{userData?.user?.company?.address}</p>
         </div>
       </div>
     </section>
