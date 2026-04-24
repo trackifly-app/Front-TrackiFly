@@ -1,11 +1,14 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Edit2 } from 'lucide-react';
+import { Camera, Edit2 } from 'lucide-react';
 import { useUserEditor, UserInputField } from '../UserEditor';
 
 export default function UserProfileCard() {
   const { userData, setUserData } = useAuth();
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const profile = userData?.user?.profile;
   const userId = userData?.user?.id;
@@ -27,6 +30,69 @@ export default function UserProfileCard() {
     });
   });
 
+  const handleImageClick = () => {
+    if (uploadingImage) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file || !userId || !userData) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Solo puedes subir imágenes PNG, JPG, JPEG o WEBP');
+      event.target.value = '';
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profiles/user/${userId}/image`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData,
+      });
+
+      let data: any;
+
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Error al actualizar la imagen');
+      }
+
+      const updatedProfile = data?.profile ?? data?.user?.profile ?? data;
+
+      setUserData({
+        ...userData,
+        user: {
+          ...userData.user,
+          profile: {
+            ...userData.user.profile,
+            profile_image: updatedProfile?.profile_image ?? userData.user.profile?.profile_image,
+          },
+        },
+      });
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.message || 'Ocurrió un error al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
+    }
+  };
+
   if (!userData) {
     return <p className="text-center py-10">Cargando perfil...</p>;
   }
@@ -37,9 +103,13 @@ export default function UserProfileCard() {
     <section className="bg-surface rounded-3xl shadow-sm border border-border p-6">
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted shrink-0">
-            <img src={profile?.profile_image || '/default-avatar.png'} alt="Foto de perfil" className="w-full h-full object-cover" />
-          </div>
+          <button type="button" onClick={handleImageClick} disabled={uploadingImage} className="group relative w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted shrink-0 disabled:cursor-not-allowed disabled:opacity-70" aria-label="Cambiar foto de perfil">
+            <img src={profile?.profile_image || '/default-avatar.png'} alt="Foto de perfil" className="w-full h-full object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-75" />
+
+            <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition duration-300 group-hover:opacity-100">{uploadingImage ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <Camera size={22} className="text-white" />}</div>
+          </button>
+
+          <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/jpg,image/webp" className="hidden" onChange={handleImageChange} />
 
           <div>
             <h2 className="text-2xl font-bold text-foreground">Mis datos</h2>

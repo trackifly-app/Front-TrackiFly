@@ -22,6 +22,7 @@ type DashboardCompanyData = {
 export default function DashboardCompanyPage() {
   const { userData, loading } = useAuth();
   const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const company = userData?.user?.company;
@@ -43,6 +44,51 @@ export default function DashboardCompanyPage() {
       image: company.profile_image || '',
     });
   }, [userData]);
+
+  const handleCompanyImageSelected = async (file: File) => {
+    if (!userData?.user?.id) return;
+
+    try {
+      setUploadingImage(true);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/user/${userData.user.id}/image`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData,
+      });
+
+      let data: any;
+
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Error al actualizar la imagen');
+      }
+
+      const updatedCompany = data?.company ?? data?.user?.company ?? data;
+
+      setCompanyData((prev) =>
+        prev
+          ? {
+              ...prev,
+              image: updatedCompany?.profile_image ?? prev.image,
+            }
+          : prev,
+      );
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.message || 'Ocurrió un error al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -71,6 +117,8 @@ export default function DashboardCompanyPage() {
             image: companyData.image,
           }}
           moduleCount={companyModules.length}
+          uploadingImage={uploadingImage}
+          onImageSelected={handleCompanyImageSelected}
         />
 
         <CompanyProfileCard
