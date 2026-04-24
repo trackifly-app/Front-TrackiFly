@@ -1,31 +1,166 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import CompanyWelcomeCard from '@/components/dashboardCompany/CompanyWelcomeCard';
 import CompanyProfileCard from '@/components/dashboardCompany/CompanyProfileCard';
 import CompanyQuickAccess, { companyModules } from '@/components/dashboardCompany/CompanyQuickAccess';
 import CompanyAccountDetails, { companyAccountDetails } from '@/components/dashboardCompany/CompanyAccountDetails';
 
+type DashboardCompanyData = {
+  email: string;
+  company_name: string;
+  industry: string;
+  contact_name: string;
+  phone: string;
+  address: string;
+  country: string;
+  plan: string;
+  image: string;
+};
+
 export default function DashboardCompanyPage() {
-  const company = {
-    email: 'contacto@trackifly.com',
-    company_name: 'Trackifly Logistics',
-    industry: 'Tecnología y logística',
-    contact_name: 'Miguel RV',
-    phone: '987654321',
-    address: 'Av. Los Ángeles 245, Arequipa',
-    country: 'PE',
-    plan: 'Business Pro',
-    image: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?q=80&w=1200&auto=format&fit=crop',
+  const { userData, loading } = useAuth();
+  const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    const company = userData?.user?.company;
+
+    if (!company) {
+      setCompanyData(null);
+      return;
+    }
+
+    setCompanyData({
+      email: userData?.user?.email || '',
+      company_name: company.company_name || '',
+      industry: company.industry || '',
+      contact_name: company.contact_name || '',
+      phone: company.phone || '',
+      address: company.address || '',
+      country: company.country || '',
+      plan: company.plan || '',
+      image: company.profile_image || '',
+    });
+  }, [userData]);
+
+  const handleCompanyImageSelected = async (file: File) => {
+    if (!userData?.user?.id) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setCompanyData((prev) =>
+      prev
+        ? {
+            ...prev,
+            image: previewUrl,
+          }
+        : prev,
+    );
+
+    try {
+      setUploadingImage(true);
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/user/${userData.user.id}/image`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData,
+      });
+
+      let data: any;
+
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error('Respuesta inválida del servidor');
+      }
+
+      if (!res.ok) {
+        throw new Error(data?.message || 'Error al actualizar la imagen');
+      }
+
+      const updatedCompany = data?.company ?? data?.user?.company ?? data;
+      const newImageUrl = updatedCompany?.profile_image;
+
+      setCompanyData((prev) =>
+        prev
+          ? {
+              ...prev,
+              image: newImageUrl ? `${newImageUrl}?t=${Date.now()}` : previewUrl,
+            }
+          : prev,
+      );
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.message || 'Ocurrió un error al subir la imagen');
+    } finally {
+      setUploadingImage(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p>Cargando...</p>
+      </main>
+    );
+  }
+
+  if (!companyData) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <p>No hay datos de empresa</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background px-4 py-10 md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
-        <CompanyWelcomeCard company={company} moduleCount={companyModules.length} />
+        <CompanyWelcomeCard
+          company={{
+            company_name: companyData.company_name,
+            country: companyData.country,
+            plan: companyData.plan,
+            image: companyData.image,
+          }}
+          moduleCount={companyModules.length}
+          uploadingImage={uploadingImage}
+          onImageSelected={handleCompanyImageSelected}
+        />
 
-        <CompanyProfileCard company={company} />
+        <CompanyProfileCard
+          company={{
+            email: companyData.email,
+            company_name: companyData.company_name,
+            industry: companyData.industry,
+            contact_name: companyData.contact_name,
+            phone: companyData.phone,
+            address: companyData.address,
+            country: companyData.country,
+          }}
+          onCompanyUpdated={(updatedCompany: any) =>
+            setCompanyData((prev) => ({
+              email: updatedCompany?.email ?? prev?.email ?? '',
+              company_name: updatedCompany?.company_name ?? prev?.company_name ?? '',
+              industry: updatedCompany?.industry ?? prev?.industry ?? '',
+              contact_name: updatedCompany?.contact_name ?? prev?.contact_name ?? '',
+              phone: updatedCompany?.phone ?? prev?.phone ?? '',
+              address: updatedCompany?.address ?? prev?.address ?? '',
+              country: updatedCompany?.country ?? prev?.country ?? '',
+              plan: updatedCompany?.plan ?? prev?.plan ?? '',
+              image: updatedCompany?.image ?? updatedCompany?.profile_image ?? prev?.image ?? '',
+            }))
+          }
+        />
 
         <CompanyQuickAccess modules={companyModules} />
 
-        <CompanyAccountDetails accountDetails={companyAccountDetails(company.plan)} />
+        <CompanyAccountDetails accountDetails={companyAccountDetails(companyData.plan)} />
       </div>
     </main>
   );
