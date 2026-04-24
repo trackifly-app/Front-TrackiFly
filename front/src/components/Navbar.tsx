@@ -116,7 +116,7 @@ const Navbar = () => {
               <button onClick={handleLogout} className="group flex items-center text-primary px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
                 <LogOut size={18} className="stroke-current" />
 
-                <span className="ml-2 w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:w-[60px] group-hover:opacity-100">Salir</span>
+                <span className="ml-2 w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-300 group-hover:w-15 group-hover:opacity-100">Salir</span>
               </button>
             </>
           ) : (

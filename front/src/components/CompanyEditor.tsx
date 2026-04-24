@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { ICompanyInputProps } from '@/interfaces/shipment';
 
-export function CompanyInputField({ label, icon, value, isEditing, onChange }: ICompanyInputProps) {
+type CompanyInputFieldExtendedProps = ICompanyInputProps & {
+  type?: 'text' | 'select';
+  options?: {
+    label: string;
+    value: string;
+  }[];
+};
+
+export function CompanyInputField({ label, icon, value, isEditing, onChange, type = 'text', options = [] }: CompanyInputFieldExtendedProps) {
   return (
     <div className="rounded-2xl border border-border bg-surface-muted p-4 transition-all focus-within:border-primary/50">
       <div className="mb-1 flex items-center gap-2 text-sm text-muted">
@@ -11,28 +19,70 @@ export function CompanyInputField({ label, icon, value, isEditing, onChange }: I
       </div>
 
       {isEditing ? (
-        <input
-          type="text"
-          className="w-full border-b border-primary bg-transparent py-1 font-medium text-foreground outline-none animate-in fade-in duration-300"
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        type === 'select' ? (
+          <select className="w-full border-b border-primary bg-transparent py-1 font-medium text-foreground outline-none animate-in fade-in duration-300" value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+            <option value="">Seleccionar</option>
+
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input type="text" className="w-full border-b border-primary bg-transparent py-1 font-medium text-foreground outline-none animate-in fade-in duration-300" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
+        )
       ) : (
-        <p className="truncate font-semibold text-foreground">{value || 'No especificado'}</p>
+        <p className="truncate font-semibold text-foreground">{formatCompanyDisplayValue(label, value)}</p>
       )}
     </div>
   );
 }
 
-export function CompanyEditor(
-  initialCompany: any,
-  userId: string | undefined,
-  onCompanyUpdated?: (company: any) => void
-) {
+function formatCompanyDisplayValue(label: string, value?: string) {
+  if (!value) return 'No especificado';
+
+  if (label === 'País') {
+    const countryMap: Record<string, string> = {
+      AR: 'Argentina',
+      BO: 'Bolivia',
+      BR: 'Brasil',
+      CL: 'Chile',
+      CO: 'Colombia',
+      CR: 'Costa Rica',
+      CU: 'Cuba',
+      DO: 'República Dominicana',
+      EC: 'Ecuador',
+      SV: 'El Salvador',
+      GT: 'Guatemala',
+      HN: 'Honduras',
+      MX: 'México',
+      NI: 'Nicaragua',
+      PA: 'Panamá',
+      PY: 'Paraguay',
+      PE: 'Perú',
+      UY: 'Uruguay',
+      VE: 'Venezuela',
+    };
+
+    return countryMap[value] ?? value;
+  }
+
+  return value;
+}
+
+export function useCompanyEditor(initialCompany: any, userId: string | undefined, onCompanyUpdated?: (company: any) => void) {
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<any>(initialCompany ?? null);
   const [original, setOriginal] = useState<any>(initialCompany ?? null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!initialCompany || isEditing) return;
+
+    setForm(initialCompany);
+    setOriginal(initialCompany);
+  }, [initialCompany, isEditing]);
 
   const updateField = (key: string, value: string) => {
     setForm((prev: any) => ({
