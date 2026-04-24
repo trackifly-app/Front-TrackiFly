@@ -10,7 +10,6 @@ import {
   Autocomplete,
 } from "@react-google-maps/api";
 
-import { CATEGORIES } from "@/lib/categories";
 import { validateShipment } from "@/lib/validates";
 import { createOrder } from "@/services/orderService";
 
@@ -58,6 +57,7 @@ const OrderView = () => {
   });
 
   // Referencia al mapa para controlar el zoom y encuadre manualmente
+  const [backendCategories, setBackendCategories] = useState([]);
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -115,7 +115,18 @@ const OrderView = () => {
       setCoords({ origen: null, destino: OBELISCO_COORDS });
     }
   };
-
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("https://back-trackifly-production.up.railway.app/categories");
+      const data = await response.json();
+      setBackendCategories(data);
+    } catch (error) {
+      console.error("Error al cargar categorías:", error);
+    }
+  };
+  fetchCategories();
+}, []);
   const onPlaceChanged = (type: "origen" | "destino", setFieldValue: any) => {
     const autocomplete = type === "origen" ? originRef.current : destinationRef.current;
     if (autocomplete) {
@@ -352,12 +363,15 @@ const OrderView = () => {
                             name="category_id"
                             className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? "border-red-500" : ""}`}
                           >
-                            <option value="">Categorí­a...</option>
-                            {CATEGORIES.map((c) => (
+                            {backendCategories.length > 0 ? (
+                            backendCategories.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.name}
                               </option>
-                            ))}
+                            ))
+                            ) : (
+                              <option disabled>Cargando...</option>
+                            )}
                           </Field>
                           {errors.category_id &&
                             (touched.category_id || submitCount > 0) && (

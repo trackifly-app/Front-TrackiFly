@@ -3,7 +3,7 @@
 import Select from 'react-select';
 import countryList from 'react-select-country-list';
 import { useMemo, useEffect, useState } from 'react';
-import {  ICountryProps } from '@/interfaces/shipment';
+import { ICountryProps } from '@/interfaces/shipment';
 import { CountryOption } from '@/types/types';
 
 const LATAM_COUNTRIES = ['AR', 'BO', 'BR', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'SV', 'GT', 'HN', 'MX', 'NI', 'PA', 'PY', 'PE', 'UY', 'VE'];

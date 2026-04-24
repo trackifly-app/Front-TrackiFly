@@ -187,3 +187,47 @@ h6 {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
+.app-select {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--foreground);
+  padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+  font-weight: 500;
+  outline: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+  color-scheme: light;
+  accent-color: var(--brand-primary);
+}
+
+.app-select:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 22%, transparent);
+}
+
+.app-select option {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+html.dark .app-select {
+  color-scheme: dark;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+  accent-color: #f97316;
+}
+
+html.dark .app-select:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.22);
+}
+
+html.dark .app-select option {
+  background-color: #111827;
+  color: #e2e8f0;
+}

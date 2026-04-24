@@ -70,25 +70,25 @@ export interface IUserSession {
       country?: string;
       profile_image?: string;
     };
-    company?:{
-      id: string,
-			company_name: string,
-			industry: string,
-			contact_name: string,
-			plan: string,
-			phone: string,
-			address: string,
-			country: string,
-			profile_image: string
-    }
+    company?: {
+      id: string;
+      company_name: string;
+      industry: string;
+      contact_name: string;
+      plan: string;
+      phone: string;
+      address: string;
+      country: string;
+      profile_image: string;
+    };
   };
 }
 
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
-  companyData: ILoginCompany|null,
-  setCompanyData:(values:ILoginCompany|null) => void,
+  companyData: ILoginCompany | null;
+  setCompanyData: (values: ILoginCompany | null) => void;
   handleLogout: () => void;
 }
 
@@ -212,20 +212,38 @@ export interface RoleCatalogEntry {
   requiresApproval: boolean; // M cambio aqui
 }
 
-export interface ILoginCompany{
+export interface ILoginCompany {
   token: string;
-  role?:{
-    id: string,
-    email:string,
+  role?: {
+    id: string;
+    email: string;
     name: string;
   };
-  company?:{
-    company_name:string,
-    industry:string,
-    contact_name:string,
-    plan: "free" | "pro" | "enterprise";
-    phone:string,
-    address:string
-    country:string,
-  }
+  company?: {
+    company_name: string;
+    industry: string;
+    contact_name: string;
+    plan: 'free' | 'pro' | 'enterprise';
+    phone: string;
+    address: string;
+    country: string;
+  };
+}
+export interface IUpdateProfilePayload {
+  first_name?: string;
+  last_name?: string;
+  birthdate?: string;
+  gender?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  profile_image?: string;
+}
+
+export interface ICompanyInputProps {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  isEditing: boolean;
+  onChange: (value: string) => void;
 }
