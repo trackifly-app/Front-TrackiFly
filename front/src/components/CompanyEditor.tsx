@@ -20,7 +20,7 @@ export function CompanyInputField({ label, icon, value, isEditing, onChange, typ
 
       {isEditing ? (
         type === 'select' ? (
-          <select className="w-full border-b border-primary bg-transparent py-1 font-medium text-foreground outline-none animate-in fade-in duration-300" value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+          <select className="app-select animate-in fade-in duration-300" value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
             <option value="">Seleccionar</option>
 
             {options.map((option) => (
