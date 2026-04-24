@@ -48,6 +48,19 @@ export default function UserProfileCard() {
       return;
     }
 
+    const previewUrl = URL.createObjectURL(file);
+
+    setUserData({
+      ...userData,
+      user: {
+        ...userData.user,
+        profile: {
+          ...userData.user.profile,
+          profile_image: previewUrl,
+        },
+      },
+    });
+
     try {
       setUploadingImage(true);
 
@@ -73,6 +86,7 @@ export default function UserProfileCard() {
       }
 
       const updatedProfile = data?.profile ?? data?.user?.profile ?? data;
+      const newImageUrl = updatedProfile?.profile_image;
 
       setUserData({
         ...userData,
@@ -80,7 +94,7 @@ export default function UserProfileCard() {
           ...userData.user,
           profile: {
             ...userData.user.profile,
-            profile_image: updatedProfile?.profile_image ?? userData.user.profile?.profile_image,
+            profile_image: newImageUrl ? `${newImageUrl}?t=${Date.now()}` : previewUrl,
           },
         },
       });

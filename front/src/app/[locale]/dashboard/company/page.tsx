@@ -48,6 +48,17 @@ export default function DashboardCompanyPage() {
   const handleCompanyImageSelected = async (file: File) => {
     if (!userData?.user?.id) return;
 
+    const previewUrl = URL.createObjectURL(file);
+
+    setCompanyData((prev) =>
+      prev
+        ? {
+            ...prev,
+            image: previewUrl,
+          }
+        : prev,
+    );
+
     try {
       setUploadingImage(true);
 
@@ -73,12 +84,13 @@ export default function DashboardCompanyPage() {
       }
 
       const updatedCompany = data?.company ?? data?.user?.company ?? data;
+      const newImageUrl = updatedCompany?.profile_image;
 
       setCompanyData((prev) =>
         prev
           ? {
               ...prev,
-              image: updatedCompany?.profile_image ?? prev.image,
+              image: newImageUrl ? `${newImageUrl}?t=${Date.now()}` : previewUrl,
             }
           : prev,
       );
