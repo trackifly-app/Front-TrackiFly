@@ -6,11 +6,12 @@ import { descargarReporte } from '@/lib/orderCalculatorReport';
 import RouteMapFields from "@/components/forms/RouteMapFields";
 import { useFeedback } from "@/context/feedback/useFeedback";
 
-
-
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
 const KM_A_MILLAS = 0.621371;
+const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
+const OBELISCO_ADDRESS =
+  "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
 
 const RECARGOS = {
   FRAGIL: 0.15,
@@ -32,7 +33,7 @@ export default function CalcularEnvioPage() {
     depth: '',
     weight: '',
     unit: 'cm',
-    pickup_direction: '',
+    pickup_direction: OBELISCO_ADDRESS,
     delivery_direction: '',
     distance: 0,
     fragile: false,
@@ -45,7 +46,18 @@ export default function CalcularEnvioPage() {
     <Formik
       initialValues={initialValues}
       onSubmit={(values) => {
-      
+        const factor = values.unit === "cm" ? 0.01 : 0.0254;
+        const altoM = (Number(values.height) || 0) * factor;
+        const anchoM = (Number(values.width) || 0) * factor;
+        const profM = (Number(values.depth) || 0) * factor;
+        const volumen = altoM * anchoM * profM;
+        const pesoNum = Number(values.weight) || 0;
+
+        if (volumen === 0 || values.distance === 0 || pesoNum === 0) {
+          showToast("Cotizacion vacia o sin datos", "warning", 2500);
+          return;
+        }
+
         const calculatorData ={
           height: values.height,
           width: values.width,
@@ -108,6 +120,10 @@ export default function CalcularEnvioPage() {
                     pickupDirection={values.pickup_direction}
                     deliveryDirection={values.delivery_direction}
                     setFieldValue={setFieldValue}
+                    fixedAddress={OBELISCO_ADDRESS}
+                    fixedCoords={OBELISCO_COORDS}
+                    fixedStartsAsOrigin={true}
+                    fixedLocationName="Obelisco"
                   />
 
                   <div className="text-xs text-muted bg-surface-muted border border-border rounded-lg px-2 py-1.5 min-h-8.5 flex items-center">

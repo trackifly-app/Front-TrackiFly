@@ -18,9 +18,9 @@ const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
 const centerDefault = { lat: -34.5997, lng: -58.3819 };
 
-// COORDENADAS Y DIRECCIÓN DEL OBELISCO
+// COORDENADAS Y DIRECCIÃ“N DEL OBELISCO
 const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
-const OBELISCO_ADDRESS = "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
+const OBELISCO_ADDRESS = "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad AutÃ³noma de Buenos Aires";
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -34,7 +34,7 @@ const RECARGOS = {
 const OrderView = () => {
   const router = useRouter();
   
-  // ESTADO PARA EL BOTÓN DEL OBELISCO
+  // ESTADO PARA EL BOTON DEL OBELISCO
   const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
 
   const [coords, setCoords] = useState<{
@@ -98,7 +98,7 @@ const OrderView = () => {
     [mapRef],
   );
 
-  // FUNCIÓN PARA EL BOTÓN DEL OBELISCO
+  // FUNCION PARA EL BOTON DEL OBELISCO
   const handleSwapObelisco = (setFieldValue: any) => {
     const nextState = !obeliscoIsOrigin;
     setObeliscoIsOrigin(nextState);
@@ -180,8 +180,8 @@ const OrderView = () => {
         depth: calculatorData.depth || "",
         weight: calculatorData.weight || "",
         unit: calculatorData.unit || "cm",
-        pickup_direction: calculatorData.pickup_direction || "",
-        delivery_direction: calculatorData.delivery_direction || "",
+        pickup_direction: calculatorData.pickup_direction || emptyOrderValues.pickup_direction,
+        delivery_direction: calculatorData.delivery_direction || emptyOrderValues.delivery_direction,
         fragile: calculatorData.fragile || false,
         dangerous: calculatorData.dangerous || false,
         cooled: calculatorData.cooled || false,
@@ -204,14 +204,14 @@ const OrderView = () => {
     
   // ========================================
   // FORMULARIO PRINCIPAL: Formik
-  // Maneja validación, estado y envío del formulario de orden de envío
+  // Maneja validacionn, estado y envio del formulario de orden de envÃ­o
   // ========================================
   return (
     <Formik
       initialValues={initialOrderValues} // se recepcionan los valores precargados de calculadora
        
       // ========================================
-      // VALIDACIÓN DE FORMULARIO
+      // VALIDACION DE FORMULARIO
       // ========================================
       validate={(values) => {
         const shipmentValues = {
@@ -228,7 +228,7 @@ const OrderView = () => {
         if (!values.description) {
           errors.description = "Requerido";
         } else if (values.description.length < 10) {
-          errors.description = "Muy corta (mín. 10 caracteres)";
+          errors.description = "Muy corta (mÃ­n. 10 caracteres)";
         }
 
         const pesoNum = Number(values.weight);
@@ -237,11 +237,11 @@ const OrderView = () => {
         } else if (pesoNum <= 0) {
           errors.weight = "Debe ser mayor a 0";
         } else if (pesoNum > 500) {
-          errors.weight = "Máximo 500kg por envío";
+          errors.weight = "MÃ¡ximo 500kg por envÃ­o";
         }
 
         if (!values.name) errors.name = "Requerido";
-        if (!values.category_id) errors.category_id = "Seleccioná categoría";
+        if (!values.category_id) errors.category_id = "SeleccionÃ¡ categorÃ­a";
         if (!values.image) errors.image = "URL obligatoria";
         if (!values.pickup_direction)
           errors.pickup_direction = "Origen requerido";
@@ -252,7 +252,7 @@ const OrderView = () => {
       }}
       onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          alert("Selecciona origen y destino válidos en el mapa para calcular la distancia.");
+          alert("Selecciona origen y destino vÃ¡lidos en el mapa para calcular la distancia.");
           setSubmitting(false);
           return;
         }
@@ -263,12 +263,12 @@ const OrderView = () => {
           const response = await createOrder(orderToSave);
           
           if (response) {
-            alert("¡Pedido confirmado con éxito!");
+            alert("Â¡Pedido confirmado con Ã©xito!");
             router.push("/dashboard/user");
           }
         } catch (error: any) {
           console.error("Error al crear la orden:", error);
-          alert(error.message || "Hubo un problema al guardar tu pedido. Reintentá.");
+          alert(error.message || "Hubo un problema al guardar tu pedido. ReintentÃ¡.");
         } finally {
           setSubmitting(false);
         }
@@ -305,7 +305,9 @@ const OrderView = () => {
         const precioFinal =
           precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
         
-        
+        console.log("pickup: hola hola", values.pickup_direction);
+        console.log("delivery: hola hola", values.delivery_direction);
+
         // ========================================
         // RENDERIZADO DEL COMPONENTE
         // ========================================
@@ -350,7 +352,7 @@ const OrderView = () => {
                             name="category_id"
                             className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? "border-red-500" : ""}`}
                           >
-                            <option value="">Categoría...</option>
+                            <option value="">Categorí­a...</option>
                             {CATEGORIES.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.name}
@@ -498,7 +500,7 @@ const OrderView = () => {
                           onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)}
                           className="flex h-9 w-9 items-center justify-center rounded-b-lg border border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface"
                         >
-                          −
+                          -
                         </button>
                       </div>
 
