@@ -32,14 +32,69 @@ const RECARGOS = {
 
 const OrderView = () => {
   const router = useRouter();
+
+  //================================================
+  // SECCION VALORES PRECARGADOS DESDE CALCULADORA
+  //================================================
+  const emptyOrderValues = {
+    name: "",
+    description: "",
+    category_id: "",
+    image: "",
+    pickup_direction: OBELISCO_ADDRESS,
+    delivery_direction: "",
+    weight: "",
+    height: "",
+    width: "",
+    depth: "",
+    unit: "cm",
+    fragile: false,
+    dangerous: false,
+    cooled: false,
+    urgent: false,
+  };
+  
+  const [initialOrderValues] = useState(() => {
+    if (typeof window === "undefined") return emptyOrderValues;
+    const stored = sessionStorage.getItem("calculatorOrderDraft");
+    if (!stored) return emptyOrderValues;
+
+    try {
+      const calculatorData = JSON.parse(stored);
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return {
+        ...emptyOrderValues,
+        height: calculatorData.height || "",
+        width: calculatorData.width || "",
+        depth: calculatorData.depth || "",
+        weight: calculatorData.weight || "",
+        unit: calculatorData.unit || "cm",
+        pickup_direction: calculatorData.pickup_direction || emptyOrderValues.pickup_direction,
+        delivery_direction: calculatorData.delivery_direction || emptyOrderValues.delivery_direction,
+        fragile: calculatorData.fragile || false,
+        dangerous: calculatorData.dangerous || false,
+        cooled: calculatorData.cooled || false,
+        urgent: calculatorData.urgent || false,
+      };
+    } catch {
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return emptyOrderValues;
+    }
+  });
+  // ======== FIN SECCION VALORES PRECARGADOS DESDE CALCULADORA =========
+  const obeliscoStartsAsOrigin =
+  initialOrderValues.pickup_direction === OBELISCO_ADDRESS;
   
   // ESTADO PARA EL BOTON DEL OBELISCO
-  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
-
+  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(obeliscoStartsAsOrigin);
+  
   const [coords, setCoords] = useState<{
     origen: google.maps.LatLngLiteral | null;
     destino: google.maps.LatLngLiteral | null;
-  }>({ origen: OBELISCO_COORDS, destino: null }); // Iniciamos con Obelisco en origen
+  }>({ 
+    origen: obeliscoStartsAsOrigin ? OBELISCO_COORDS : null,
+    destino: obeliscoStartsAsOrigin ? null : OBELISCO_COORDS, 
+  }); // Iniciamos con Obelisco en origen
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(() => {
@@ -154,57 +209,6 @@ const OrderView = () => {
   const inputStyle = "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
   const readOnlyStyle = "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
   const errorLabel = "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
-
-  //================================================
-  // SECCION VALORES PRECARGADOS DESDE CALCULADORA
-  //================================================
-  const emptyOrderValues = {
-    name: "",
-    description: "",
-    category_id: "",
-    image: "",
-    pickup_direction: OBELISCO_ADDRESS,
-    delivery_direction: "",
-    weight: "",
-    height: "",
-    width: "",
-    depth: "",
-    unit: "cm",
-    fragile: false,
-    dangerous: false,
-    cooled: false,
-    urgent: false,
-  };
-  
-  const [initialOrderValues] = useState(() => {
-    if (typeof window === "undefined") return emptyOrderValues;
-    const stored = sessionStorage.getItem("calculatorOrderDraft");
-    if (!stored) return emptyOrderValues;
-
-    try {
-      const calculatorData = JSON.parse(stored);
-      sessionStorage.removeItem("calculatorOrderDraft");
-      return {
-        ...emptyOrderValues,
-        height: calculatorData.height || "",
-        width: calculatorData.width || "",
-        depth: calculatorData.depth || "",
-        weight: calculatorData.weight || "",
-        unit: calculatorData.unit || "cm",
-        pickup_direction: calculatorData.pickup_direction || emptyOrderValues.pickup_direction,
-        delivery_direction: calculatorData.delivery_direction || emptyOrderValues.delivery_direction,
-        fragile: calculatorData.fragile || false,
-        dangerous: calculatorData.dangerous || false,
-        cooled: calculatorData.cooled || false,
-        urgent: calculatorData.urgent || false,
-      };
-    } catch {
-      sessionStorage.removeItem("calculatorOrderDraft");
-      return emptyOrderValues;
-    }
-  });
-  // ======== FIN SECCION VALORES PRECARGADOS DESDE CALCULADORA =========
-  
 
   if (!isLoaded)
     return (
@@ -476,7 +480,7 @@ const OrderView = () => {
                             onLoad={(ref) => (originRef.current = ref)}
                             onPlaceChanged={() => onPlaceChanged("origen", setFieldValue)}
                           >
-                            <input type="text" placeholder="Origen" className={inputStyle} />
+                            <input type="text" placeholder="Origen" defaultValue={values.pickup_direction} className={inputStyle} />
                           </Autocomplete>
                         )}
                         {errors.pickup_direction && submitCount > 0 && (
@@ -491,7 +495,7 @@ const OrderView = () => {
                             onLoad={(ref) => (destinationRef.current = ref)}
                             onPlaceChanged={() => onPlaceChanged("destino", setFieldValue)}
                           >
-                            <input type="text" placeholder="Destino" className={inputStyle} />
+                            <input type="text" placeholder="Destino" defaultValue={values.delivery_direction} className={inputStyle} />
                           </Autocomplete>
                         )}
                         {errors.delivery_direction && submitCount > 0 && (
