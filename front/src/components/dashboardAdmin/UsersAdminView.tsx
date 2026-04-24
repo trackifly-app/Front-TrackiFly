@@ -47,21 +47,29 @@ export default function UsersAdminView() {
   }, []);
 
   return (
-    <main className="space-y-6">
-      <section className="rounded-3xl border border-border bg-surface p-6 md:p-8">
-        <div className="mb-6">
-          <p className="text-primary font-semibold mb-2">Gestión principal</p>
+    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 md:px-6 lg:px-0">
+      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
+        <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="mb-2 font-semibold text-primary">Gestión principal</p>
 
-          <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
+            <h1 className="text-2xl font-bold text-foreground md:text-3xl">Usuarios</h1>
 
-          <p className="mt-2 text-muted">Listado de usuarios registrados con rol operador o usuario.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted md:text-base">Consulta el listado de usuarios registrados con rol operador o usuario.</p>
+          </div>
+
+          <AdminMetricCard title="Total de usuarios" value={users.length} icon={User} compact />
         </div>
 
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <AdminMetricCard title="Total de usuarios" value={users.length} description="Usuarios registrados con rol operator o user." icon={User} />
-        </div>
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-foreground">Listado de usuarios</h2>
 
-        {loading ? <div className="rounded-2xl border border-border bg-surface-muted p-6 text-sm text-muted">Cargando usuarios...</div> : <AdminUsersTable users={users} />}
+            <p className="mt-1 text-sm text-muted">Información general de usuarios y operadores registrados.</p>
+          </div>
+
+          {loading ? <div className="rounded-2xl border border-border bg-surface-muted p-6 text-sm text-muted">Cargando usuarios...</div> : <AdminUsersTable users={users} />}
+        </div>
       </section>
     </main>
   );

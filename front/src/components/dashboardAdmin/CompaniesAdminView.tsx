@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { Building2 } from 'lucide-react';
 
 import AdminMetricCard from '@/components/dashboardAdmin/AdminMetricCard';
+import AdminCompaniesTable from '@/components/dashboardAdmin/AdminCompaniesTable';
 
 import { AdminCompanyRow } from '@/interfaces/shipment';
 
 import { getCompanyByUserId, getUsers } from '@/services/adminUsers.service';
-import AdminCompaniesTable from './AdminCompaniesTable';
 
 export default function CompaniesAdminView() {
   const [companies, setCompanies] = useState<AdminCompanyRow[]>([]);
@@ -47,21 +47,29 @@ export default function CompaniesAdminView() {
   }, []);
 
   return (
-    <main className="space-y-6">
-      <section className="rounded-3xl border border-border bg-surface p-6 md:p-8">
-        <div className="mb-6">
-          <p className="text-primary font-semibold mb-2">Gestión principal</p>
+    <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 md:px-6 lg:px-0">
+      <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
+        <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="mb-2 font-semibold text-primary">Gestión principal</p>
 
-          <h1 className="text-2xl font-bold text-foreground">Empresas</h1>
+            <h1 className="text-2xl font-bold text-foreground md:text-3xl">Empresas</h1>
 
-          <p className="mt-2 text-muted">Listado de usuarios registrados con rol empresa.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted md:text-base">Consulta el listado de cuentas registradas con rol empresa dentro del sistema.</p>
+          </div>
+
+          <AdminMetricCard title="Total de empresas" value={companies.length} icon={Building2} compact />
         </div>
 
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <AdminMetricCard title="Total de empresas" value={companies.length} description="Usuarios registrados con rol company." icon={Building2} />
-        </div>
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-foreground">Listado de empresas</h2>
 
-        {loading ? <div className="rounded-2xl border border-border bg-surface-muted p-6 text-sm text-muted">Cargando empresas...</div> : <AdminCompaniesTable companies={companies} />}
+            <p className="mt-1 text-sm text-muted">Información general de las empresas registradas.</p>
+          </div>
+
+          {loading ? <div className="rounded-2xl border border-border bg-surface-muted p-6 text-sm text-muted">Cargando empresas...</div> : <AdminCompaniesTable companies={companies} />}
+        </div>
       </section>
     </main>
   );
