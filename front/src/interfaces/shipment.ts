@@ -1,4 +1,5 @@
-import { ModuleItem } from '@/types/types';
+import { AdminRoleName, AdminUserRole, ModuleItem } from '@/types/types';
+import { LucideIcon } from 'lucide-react';
 
 // --- ENVÍOS Y CALCULADORA ---
 
@@ -87,8 +88,8 @@ export interface IUserSession {
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
-  companyData: ILoginCompany | null;
-  setCompanyData: (values: ILoginCompany | null) => void;
+  companyData?: ILoginCompany | null;
+  setCompanyData?: (values: ILoginCompany | null) => void;
   handleLogout: () => void;
 }
 
@@ -166,7 +167,7 @@ export interface CompanyAccountDetailsProps {
 }
 
 export interface AdminModulesProps {
-  modules: ModuleItem[];
+  modules: AdminModule[];
 }
 
 export interface CompanyProfileCardProps {
@@ -246,4 +247,69 @@ export interface ICompanyInputProps {
   value: string;
   isEditing: boolean;
   onChange: (value: string) => void;
+}
+
+export interface AdminModule {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminUserRole;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface AdminApiRole {
+  id: string;
+  name: AdminRoleName;
+}
+
+export interface AdminApiProfile {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  birthdate?: string;
+  gender?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  profile_image?: string;
+}
+
+export interface AdminApiCompany {
+  id: string;
+  company_name: string;
+  industry?: string;
+  contact_name?: string;
+  plan?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  profile_image?: string;
+}
+
+export interface AdminApiUser {
+  id: string;
+  email: string;
+  role: AdminApiRole;
+  profile?: AdminApiProfile | null;
+  company?: AdminApiCompany | null;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface AdminCompanyRow {
+  user: AdminApiUser;
+  company: AdminApiCompany | null;
+}
+
+export interface AdminUserRow {
+  user: AdminApiUser;
+  profile: AdminApiProfile | null;
 }

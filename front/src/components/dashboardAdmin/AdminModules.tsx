@@ -1,5 +1,6 @@
-import { AdminModulesProps } from '@/interfaces/shipment';
+import Link from 'next/link';
 import { Building2, CreditCard, TriangleAlert, BarChart3, User } from 'lucide-react';
+import { AdminModulesProps } from '@/interfaces/shipment';
 
 export default function AdminModules({ modules }: AdminModulesProps) {
   return (
@@ -15,7 +16,7 @@ export default function AdminModules({ modules }: AdminModulesProps) {
           const Icon = module.icon;
 
           return (
-            <button key={module.title} type="button" className="group rounded-2xl border border-border bg-surface-muted p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/10">
+            <Link key={module.title} href={module.href} className="group rounded-2xl border border-border bg-surface-muted p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/40">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-surface text-primary shadow-sm transition-all duration-300 group-hover:bg-primary group-hover:text-white">
                 <Icon size={24} />
               </div>
@@ -23,7 +24,7 @@ export default function AdminModules({ modules }: AdminModulesProps) {
               <h3 className="text-lg font-bold text-foreground">{module.title}</h3>
 
               <p className="mt-2 text-sm text-muted">{module.description}</p>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -36,25 +37,30 @@ export const adminModulesData = [
     title: 'Empresas',
     description: 'Gestiona el registro, consulta y administración general de empresas.',
     icon: Building2,
+    href: '/dashboard/admin/empresas',
   },
   {
     title: 'Usuarios',
-    description: 'Gestiona el registro, consulta y administración general de empresas.',
+    description: 'Gestiona usuarios, roles, permisos y accesos del sistema.',
     icon: User,
+    href: '/dashboard/admin/usuarios',
   },
   {
     title: 'Planes / Suscripciones',
     description: 'Revisa y administra los planes disponibles del sistema.',
     icon: CreditCard,
+    href: '/dashboard/admin/planes',
   },
   {
     title: 'Incidencias',
     description: 'Consulta reportes, alertas y problemas globales del sistema.',
     icon: TriangleAlert,
+    href: '/dashboard/admin/incidencias',
   },
   {
     title: 'Reportes',
     description: 'Visualiza información consolidada y métricas generales.',
     icon: BarChart3,
+    href: '/dashboard/admin/reportes',
   },
 ];

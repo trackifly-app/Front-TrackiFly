@@ -5,7 +5,6 @@ const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 // --- Utilidades Internas ---
 
-
 const handleError = (message: string) => {
   Swal.fire({
     icon: 'error',
@@ -46,7 +45,7 @@ export async function registerCompany(companyData: IRegisterCompanyProps): Promi
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || 'Error al registrar la empresa');
     }
@@ -68,7 +67,7 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
   try {
     const response = await fetch(`${APIURL}/auth/register-operator`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(employeeData),
     });
@@ -91,26 +90,26 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
     // Es fundamental usar la URL que apunta a tu Proxy (/api/proxy/...)
     const response = await fetch(`${APIURL}/auth/signin`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json' 
+      headers: {
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(userData),
-      // credentials: 'include' permite que el navegador capture el Set-Cookie 
+      // credentials: 'include' permite que el navegador capture el Set-Cookie
       // enviado por el Proxy y lo guarde automáticamente.
-      credentials: 'include', 
+      credentials: 'include',
     });
 
     // Verificamos si la respuesta tiene contenido antes de parsear JSON
-    const contentType = response.headers.get("content-type");
+    const contentType = response.headers.get('content-type');
     let data;
 
-    if (contentType && contentType.includes("application/json")) {
+    if (contentType && contentType.includes('application/json')) {
       data = await response.json();
     } else {
       // Si no es JSON (como el error 405 que vimos), leemos el texto para debuguear
       const errorText = await response.text();
-      console.error("Error del servidor (no JSON):", errorText);
-      throw new Error("El servidor no respondió en el formato esperado.");
+      console.error('Error del servidor (no JSON):', errorText);
+      throw new Error('El servidor no respondió en el formato esperado.');
     }
 
     if (!response.ok) {
@@ -119,25 +118,24 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
     }
 
     // Log para verificar que el login devolvió los datos correctamente
-    console.log("Login exitoso. Datos recibidos:", data);
+    console.log('Login exitoso. Datos recibidos:', data);
 
     return data;
-    
   } catch (error: any) {
-    console.error("Error en el servicio de login:", error.message);
-    
+    console.error('Error en el servicio de login:', error.message);
+
     // Si tienes una función para mostrar notificaciones (Toast/SweetAlert)
-    if (typeof handleError === "function") {
+    if (typeof handleError === 'function') {
       handleError(error.message || 'Error al iniciar sesión');
     }
-    
+
     return null;
   }
 }
 
 // Borra toda la información de seguridad del almacenamiento local
 export const logout = async () => {
-    await fetch(`${APIURL}/auth/logout`, {
+  await fetch(`${APIURL}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
   });
