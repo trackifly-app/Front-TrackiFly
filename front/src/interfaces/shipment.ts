@@ -427,3 +427,7 @@ export interface ServiceBadgeProps {
   active?: boolean;
   label: string;
 }
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
+}
