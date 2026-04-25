@@ -396,3 +396,34 @@ export interface AdminWelcomeCardProps {
 export interface AdminManagersTableProps {
   admins: AdminApiUser[];
 }
+
+export interface AdminIncident {
+  id: string;
+  title: string;
+  description: string;
+  type: 'system' | 'order' | 'user' | 'company' | 'security';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  created_at: string;
+}
+
+export interface AdminIncidentsTableProps {
+  incidents: AdminIncident[];
+}
+
+export interface AdminStatItemProps {
+  title: string;
+  value: number;
+  loading: boolean;
+}
+
+export interface InfoItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}
+
+export interface ServiceBadgeProps {
+  active?: boolean;
+  label: string;
+}

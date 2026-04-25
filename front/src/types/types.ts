@@ -76,6 +76,5 @@ export type DetailItem = {
   title: string;
   description: string;
   icon: React.ElementType;
-  action: string;
   href: string;
 };

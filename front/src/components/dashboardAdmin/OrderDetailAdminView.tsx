@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Box, CalendarDays, MapPin, Package, Route, Scale, Tag, Truck } from 'lucide-react';
 
-import { AdminApiOrder, OrderDetailAdminViewProps } from '@/interfaces/shipment';
+import { AdminApiOrder, InfoItemProps, OrderDetailAdminViewProps, ServiceBadgeProps } from '@/interfaces/shipment';
 import { getOrderById } from '@/services/adminOrders.service';
 
 const statusLabels: Record<string, string> = {
@@ -218,12 +218,6 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
   );
 }
 
-interface InfoItemProps {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-}
-
 function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
   return (
     <div className="rounded-xl border border-border bg-surface px-4 py-3">
@@ -236,11 +230,6 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
       <p className="text-sm font-medium leading-relaxed text-foreground">{value}</p>
     </div>
   );
-}
-
-interface ServiceBadgeProps {
-  active?: boolean;
-  label: string;
 }
 
 function ServiceBadge({ active, label }: ServiceBadgeProps) {

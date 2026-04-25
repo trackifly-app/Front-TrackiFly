@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getAdminDashboardStats } from '@/services/adminDashboard.service';
-import { AdminDashboardStats, AdminWelcomeCardProps } from '@/interfaces/shipment';
+import { AdminDashboardStats, AdminStatItemProps, AdminWelcomeCardProps } from '@/interfaces/shipment';
 
 const initialStats: AdminDashboardStats = {
   totalCompanies: 0,
@@ -57,12 +57,6 @@ export default function AdminWelcomeCard({ adminName }: AdminWelcomeCardProps) {
       </div>
     </section>
   );
-}
-
-interface AdminStatItemProps {
-  title: string;
-  value: number;
-  loading: boolean;
 }
 
 function AdminStatItem({ title, value, loading }: AdminStatItemProps) {
