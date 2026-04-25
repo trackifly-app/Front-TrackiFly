@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
-import { useRouter } from "next/navigation";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -9,9 +8,9 @@ import {
   Polyline,
   Autocomplete,
 } from "@react-google-maps/api";
-
 import { validateShipment } from "@/lib/validates";
-import { createOrder } from "@/services/orderService";
+import { createMercadoPagoPreference } from "@/services/orderService";
+import { useAuth } from "@/context/AuthContext";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
@@ -19,7 +18,8 @@ const centerDefault = { lat: -34.5997, lng: -58.3819 };
 
 // COORDENADAS Y DIRECCIÓN DEL OBELISCO
 const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
-const OBELISCO_ADDRESS = "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
+const OBELISCO_ADDRESS =
+  "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -29,10 +29,8 @@ const RECARGOS = {
   REFRIGERADO: 0.2,
   URGENTE: 0.5,
 };
-
 const OrderView = () => {
-  const router = useRouter();
-  
+  const { userData } = useAuth();
   // ESTADO PARA EL BOTÓN DEL OBELISCO
   const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
 
@@ -43,7 +41,12 @@ const OrderView = () => {
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
-  const [backendCategories, setBackendCategories] = useState([]);
+
+  const precioFinalRef = useRef(0);
+
+  const [backendCategories, setBackendCategories] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -66,7 +69,8 @@ const OrderView = () => {
         },
         (result, status) => {
           if (status === "OK" && result) {
-            const distKm = (result.routes[0].legs[0].distance?.value || 0) / 1000;
+            const distKm =
+              (result.routes[0].legs[0].distance?.value || 0) / 1000;
             setDistance(distKm);
             const path = result.routes[0].overview_path.map((p) => ({
               lat: p.lat(),
@@ -102,19 +106,22 @@ const OrderView = () => {
     }
   };
   useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch("https://back-trackifly-production.up.railway.app/categories");
-      const data = await response.json();
-      setBackendCategories(data);
-    } catch (error) {
-      console.error("Error al cargar categorías:", error);
-    }
-  };
-  fetchCategories();
-}, []);
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://back-trackifly-production.up.railway.app/categories",
+        );
+        const data = await response.json();
+        setBackendCategories(data);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
   const onPlaceChanged = (type: "origen" | "destino", setFieldValue: any) => {
-    const autocomplete = type === "origen" ? originRef.current : destinationRef.current;
+    const autocomplete =
+      type === "origen" ? originRef.current : destinationRef.current;
     if (autocomplete) {
       const place = autocomplete.getPlace();
       if (!place.geometry || !place.geometry.location) return;
@@ -124,7 +131,8 @@ const OrderView = () => {
         lng: place.geometry.location.lng(),
       };
 
-      const fieldName = type === "origen" ? "pickup_direction" : "delivery_direction";
+      const fieldName =
+        type === "origen" ? "pickup_direction" : "delivery_direction";
       setFieldValue(fieldName, place.formatted_address);
 
       setCoords((prev) => {
@@ -137,9 +145,12 @@ const OrderView = () => {
     }
   };
 
-  const inputStyle = "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
-  const readOnlyStyle = "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
-  const errorLabel = "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
+  const inputStyle =
+    "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
+  const readOnlyStyle =
+    "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
+  const errorLabel =
+    "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
 
   if (!isLoaded)
     return (
@@ -155,7 +166,7 @@ const OrderView = () => {
         description: "",
         category_id: "",
         image: "",
-        pickup_direction: OBELISCO_ADDRESS, 
+        pickup_direction: OBELISCO_ADDRESS,
         delivery_direction: "",
         weight: "",
         height: "",
@@ -206,23 +217,32 @@ const OrderView = () => {
       }}
       onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          alert("Selecciona origen y destino válidos en el mapa para calcular la distancia.");
+          alert(
+            "Selecciona origen y destino válidos en el mapa para calcular la distancia.",
+          );
+          setSubmitting(false);
+          return;
+        }
+        if (!userData?.user?.id) {
+          alert("Debes estar logueado para realizar un envío.");
           setSubmitting(false);
           return;
         }
 
         try {
-          // Unimos los valores del formulario con la distancia calculada
-          const orderToSave = { ...values, distance };
-          const response = await createOrder(orderToSave);
-          
-          if (response) {
-            alert("¡Pedido confirmado con éxito!");
-            router.push("/dashboard/user");
-          }
+          await createMercadoPagoPreference({
+            ...values,
+            amount: precioFinalRef.current,
+            weight: Number(values.weight),
+            height: Number(values.height),
+            width: Number(values.width),
+            depth: Number(values.depth),
+            distance,
+          });
         } catch (error: any) {
-          console.error("Error al crear la orden:", error);
-          alert(error.message || "Hubo un problema al guardar tu pedido. Reintentá.");
+          alert(
+            error.message || "Hubo un problema al procesar el pago. Reintentá.",
+          );
         } finally {
           setSubmitting(false);
         }
@@ -258,6 +278,7 @@ const OrderView = () => {
 
         const precioFinal =
           precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+        precioFinalRef.current = precioFinal;
 
         return (
           <main className="min-h-screen bg-background px-4 py-10">
@@ -301,14 +322,14 @@ const OrderView = () => {
                             className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? "border-red-500" : ""}`}
                           >
                             {backendCategories.length > 0 ? (
-  backendCategories.map((c) => (
-    <option key={c.id} value={c.id}>
-      {c.name}
-    </option>
-  ))
-) : (
-  <option disabled>Cargando...</option>
-)}
+                              backendCategories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>Cargando...</option>
+                            )}
                           </Field>
                           {errors.category_id &&
                             (touched.category_id || submitCount > 0) && (
@@ -407,32 +428,56 @@ const OrderView = () => {
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
                         {obeliscoIsOrigin ? (
-                          <input readOnly value={OBELISCO_ADDRESS} className={readOnlyStyle} />
+                          <input
+                            readOnly
+                            value={OBELISCO_ADDRESS}
+                            className={readOnlyStyle}
+                          />
                         ) : (
                           <Autocomplete
                             onLoad={(ref) => (originRef.current = ref)}
-                            onPlaceChanged={() => onPlaceChanged("origen", setFieldValue)}
+                            onPlaceChanged={() =>
+                              onPlaceChanged("origen", setFieldValue)
+                            }
                           >
-                            <input type="text" placeholder="Origen" className={inputStyle} />
+                            <input
+                              type="text"
+                              placeholder="Origen"
+                              className={inputStyle}
+                            />
                           </Autocomplete>
                         )}
                         {errors.pickup_direction && submitCount > 0 && (
-                          <p className={errorLabel}>{errors.pickup_direction}</p>
+                          <p className={errorLabel}>
+                            {errors.pickup_direction}
+                          </p>
                         )}
                       </div>
                       <div>
                         {!obeliscoIsOrigin ? (
-                          <input readOnly value={OBELISCO_ADDRESS} className={readOnlyStyle} />
+                          <input
+                            readOnly
+                            value={OBELISCO_ADDRESS}
+                            className={readOnlyStyle}
+                          />
                         ) : (
                           <Autocomplete
                             onLoad={(ref) => (destinationRef.current = ref)}
-                            onPlaceChanged={() => onPlaceChanged("destino", setFieldValue)}
+                            onPlaceChanged={() =>
+                              onPlaceChanged("destino", setFieldValue)
+                            }
                           >
-                            <input type="text" placeholder="Destino" className={inputStyle} />
+                            <input
+                              type="text"
+                              placeholder="Destino"
+                              className={inputStyle}
+                            />
                           </Autocomplete>
                         )}
                         {errors.delivery_direction && submitCount > 0 && (
-                          <p className={errorLabel}>{errors.delivery_direction}</p>
+                          <p className={errorLabel}>
+                            {errors.delivery_direction}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -441,14 +486,18 @@ const OrderView = () => {
                       <div className="absolute right-3 top-3 z-10 flex flex-col gap-1">
                         <button
                           type="button"
-                          onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) + 1)}
+                          onClick={() =>
+                            mapRef?.setZoom((mapRef.getZoom() || 12) + 1)
+                          }
                           className="flex h-9 w-9 items-center justify-center rounded-t-lg border-b border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface"
                         >
                           +
                         </button>
                         <button
                           type="button"
-                          onClick={() => mapRef?.setZoom((mapRef.getZoom() || 12) - 1)}
+                          onClick={() =>
+                            mapRef?.setZoom((mapRef.getZoom() || 12) - 1)
+                          }
                           className="flex h-9 w-9 items-center justify-center rounded-b-lg border border-border bg-surface text-xl font-bold text-muted shadow-sm hover:bg-surface-muted active:bg-surface"
                         >
                           −
@@ -462,12 +511,34 @@ const OrderView = () => {
                         zoom={12}
                         options={{ disableDefaultUI: true, zoomControl: false }}
                       >
-                        {coords.origen && <Marker position={coords.origen} label={{ text: "A", color: "white", fontWeight: "bold" }} />}
-                        {coords.destino && <Marker position={coords.destino} label={{ text: "B", color: "white", fontWeight: "bold" }} />}
+                        {coords.origen && (
+                          <Marker
+                            position={coords.origen}
+                            label={{
+                              text: "A",
+                              color: "white",
+                              fontWeight: "bold",
+                            }}
+                          />
+                        )}
+                        {coords.destino && (
+                          <Marker
+                            position={coords.destino}
+                            label={{
+                              text: "B",
+                              color: "white",
+                              fontWeight: "bold",
+                            }}
+                          />
+                        )}
                         {routePath.length > 0 && (
                           <Polyline
                             path={routePath}
-                            options={{ strokeColor: "#D96B4A", strokeWeight: 5, strokeOpacity: 0.9 }}
+                            options={{
+                              strokeColor: "#D96B4A",
+                              strokeWeight: 5,
+                              strokeOpacity: 0.9,
+                            }}
                           />
                         )}
                       </GoogleMap>
