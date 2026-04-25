@@ -392,3 +392,7 @@ export interface AdminDashboardStats {
 export interface AdminWelcomeCardProps {
   adminName: string;
 }
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
+}
