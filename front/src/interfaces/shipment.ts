@@ -370,16 +370,6 @@ export interface AdminMetricCardProps {
   compact?: boolean;
 }
 
-export interface AdminWelcomeCardProps {
-  adminName: string;
-  stats: {
-    totalCompanies: number;
-    activeCompanies: number;
-    openIncidents: number;
-    activePlans: number;
-  };
-}
-
 export interface AdminUsersTableProps {
   users: AdminUserRow[];
 }
@@ -390,4 +380,15 @@ export interface AdminSystemDetailsProps {
 
 export interface AdminCompaniesTableProps {
   companies: AdminCompanyRow[];
+}
+
+export interface AdminDashboardStats {
+  totalCompanies: number;
+  activeCompanies: number;
+  openIncidents: number;
+  activePlans: number;
+}
+
+export interface AdminWelcomeCardProps {
+  adminName: string;
 }

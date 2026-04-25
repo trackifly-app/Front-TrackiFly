@@ -1,5 +1,5 @@
 import { AdminSystemDetailsProps } from '@/interfaces/shipment';
-import { Settings, ShieldCheck, ScrollText } from 'lucide-react';
+import { Settings, ScrollText } from 'lucide-react';
 
 export default function AdminSystemDetails({ details }: AdminSystemDetailsProps) {
   return (
@@ -37,17 +37,12 @@ export default function AdminSystemDetails({ details }: AdminSystemDetailsProps)
 
 export const adminSystemDetailsData = [
   {
-    title: 'Configuración',
-    description: 'Administra los ajustes generales y opciones principales del sistema.',
+    title: 'Gestión de Administradores',
+    description: 'Asigna usuarios para supervisar la aplicación como administrador.',
     icon: Settings,
     action: 'Administrar',
   },
-  {
-    title: 'Seguridad',
-    description: 'Revisa accesos, protección de cuenta y controles de seguridad.',
-    icon: ShieldCheck,
-    action: 'Revisar',
-  },
+
   {
     title: 'Registros (Logs)',
     description: 'Consulta el historial de eventos y movimientos importantes del sistema.',
