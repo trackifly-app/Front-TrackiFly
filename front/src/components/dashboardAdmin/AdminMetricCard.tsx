@@ -1,35 +1,19 @@
-import { LucideIcon } from 'lucide-react';
+import { AdminMetricCardProps } from '@/interfaces/shipment';
 
-interface AdminMetricCardProps {
-  title: string;
-  value: number;
-  description?: string;
-  icon: LucideIcon;
-  compact?: boolean;
-}
-
-export default function AdminMetricCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  compact = false,
-}: AdminMetricCardProps) {
+export default function AdminMetricCard({ title, value, description, icon: Icon, compact = false }: AdminMetricCardProps) {
   if (compact) {
     return (
-      <article className="flex min-w-47.5 items-center gap-4 rounded-2xl border border-border bg-surface-muted px-5 py-4 shadow-sm">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface text-primary shadow-sm">
-          <Icon size={22} />
-        </div>
+      <article className="w-full max-w-65 rounded-2xl border border-border bg-surface-muted px-5 py-4 shadow-sm">
+        <div className="grid grid-cols-[56px_1fr] items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-surface text-primary shadow-sm">
+            <Icon size={24} />
+          </div>
 
-        <div>
-          <p className="text-xs font-medium text-muted">
-            {title}
-          </p>
+          <div className="flex min-w-0 flex-col justify-center">
+            <p className="text-sm font-semibold leading-none text-muted">{title}</p>
 
-          <p className="mt-1 text-3xl font-bold leading-none text-foreground">
-            {value}
-          </p>
+            <p className="mt-2 text-4xl font-bold leading-none text-foreground">{value}</p>
+          </div>
         </div>
       </article>
     );
@@ -41,19 +25,11 @@ export default function AdminMetricCard({
         <Icon size={24} />
       </div>
 
-      <p className="text-sm font-medium text-muted">
-        {title}
-      </p>
+      <p className="text-sm font-medium text-muted">{title}</p>
 
-      <h2 className="mt-2 text-4xl font-bold leading-none text-foreground">
-        {value}
-      </h2>
+      <h2 className="mt-2 text-4xl font-bold leading-none text-foreground">{value}</h2>
 
-      {description && (
-        <p className="mt-3 text-sm leading-relaxed text-muted">
-          {description}
-        </p>
-      )}
+      {description && <p className="mt-3 text-sm leading-relaxed text-muted">{description}</p>}
     </article>
   );
 }

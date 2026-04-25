@@ -1,4 +1,4 @@
-import { AdminRoleName, AdminUserRole, ModuleItem } from '@/types/types';
+import { AdminRoleName, AdminUserRole, DetailItem, ModuleItem } from '@/types/types';
 import { LucideIcon } from 'lucide-react';
 
 // --- ENVÍOS Y CALCULADORA ---
@@ -312,4 +312,82 @@ export interface AdminCompanyRow {
 export interface AdminUserRow {
   user: AdminApiUser;
   profile: AdminApiProfile | null;
+}
+
+export interface AdminOrderPackageDimensions {
+  height: string;
+  width: string;
+  depth: string;
+  unit: string;
+}
+
+export interface AdminOrderPackage {
+  id: string;
+  name: string;
+  description: string;
+  weight: string;
+  dimensions: AdminOrderPackageDimensions;
+  fragile: boolean;
+  urgent: boolean;
+  category: string;
+}
+
+export interface AdminApiOrder {
+  id: string;
+  status: string;
+  pickup_direction: string;
+  delivery_direction: string;
+  distance: string;
+  created_at: string;
+  userId: string;
+  package: AdminOrderPackage;
+}
+
+export interface OrderDetailAdminViewProps {
+  orderId: string;
+  userId: string;
+}
+
+export interface AdminOrdersTableProps {
+  orders: AdminApiOrder[];
+}
+
+export interface OrderDetailPageProps {
+  params: Promise<{
+    id: string;
+    locale: string;
+  }>;
+  searchParams: Promise<{
+    userId?: string;
+  }>;
+}
+
+export interface AdminMetricCardProps {
+  title: string;
+  value: number;
+  description?: string;
+  icon: LucideIcon;
+  compact?: boolean;
+}
+
+export interface AdminWelcomeCardProps {
+  adminName: string;
+  stats: {
+    totalCompanies: number;
+    activeCompanies: number;
+    openIncidents: number;
+    activePlans: number;
+  };
+}
+
+export interface AdminUsersTableProps {
+  users: AdminUserRow[];
+}
+
+export interface AdminSystemDetailsProps {
+  details: DetailItem[];
+}
+
+export interface AdminCompaniesTableProps {
+  companies: AdminCompanyRow[];
 }

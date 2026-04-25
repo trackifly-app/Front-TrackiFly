@@ -1,12 +1,4 @@
-interface AdminWelcomeCardProps {
-  adminName: string;
-  stats: {
-    totalCompanies: number;
-    activeCompanies: number;
-    openIncidents: number;
-    activePlans: number;
-  };
-}
+import { AdminWelcomeCardProps } from '@/interfaces/shipment';
 
 export default function AdminWelcomeCard({ adminName, stats }: AdminWelcomeCardProps) {
   return (

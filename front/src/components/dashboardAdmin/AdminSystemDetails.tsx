@@ -1,15 +1,5 @@
+import { AdminSystemDetailsProps } from '@/interfaces/shipment';
 import { Settings, ShieldCheck, ScrollText } from 'lucide-react';
-
-type DetailItem = {
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  action: string;
-};
-
-interface AdminSystemDetailsProps {
-  details: DetailItem[];
-}
 
 export default function AdminSystemDetails({ details }: AdminSystemDetailsProps) {
   return (

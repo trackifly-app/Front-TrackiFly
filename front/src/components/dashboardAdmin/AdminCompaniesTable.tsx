@@ -1,8 +1,4 @@
-import { AdminCompanyRow } from '@/interfaces/shipment';
-
-interface AdminCompaniesTableProps {
-  companies: AdminCompanyRow[];
-}
+import { AdminCompaniesTableProps } from '@/interfaces/shipment';
 
 export default function AdminCompaniesTable({ companies }: AdminCompaniesTableProps) {
   return (
