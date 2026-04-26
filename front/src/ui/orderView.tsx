@@ -30,71 +30,13 @@ const RECARGOS = {
   URGENTE: 0.5,
 };
 
+const isObeliscoAddress = (value: string) => {
+  const normalized = value.toLowerCase();
+  return normalized.includes("obelisco") && normalized.includes("9 de julio");
+};
+
 const OrderView = () => {
   const router = useRouter();
-
-  //================================================
-  // SECCION VALORES PRECARGADOS DESDE CALCULADORA
-  //================================================
-  const emptyOrderValues = {
-    name: "",
-    description: "",
-    category_id: "",
-    image: "",
-    pickup_direction: OBELISCO_ADDRESS,
-    delivery_direction: "",
-    weight: "",
-    height: "",
-    width: "",
-    depth: "",
-    unit: "cm",
-    fragile: false,
-    dangerous: false,
-    cooled: false,
-    urgent: false,
-  };
-  
-  const [initialOrderValues] = useState(() => {
-    if (typeof window === "undefined") return emptyOrderValues;
-    const stored = sessionStorage.getItem("calculatorOrderDraft");
-    if (!stored) return emptyOrderValues;
-
-    try {
-      const calculatorData = JSON.parse(stored);
-      sessionStorage.removeItem("calculatorOrderDraft");
-      return {
-        ...emptyOrderValues,
-        height: calculatorData.height || "",
-        width: calculatorData.width || "",
-        depth: calculatorData.depth || "",
-        weight: calculatorData.weight || "",
-        unit: calculatorData.unit || "cm",
-        pickup_direction: calculatorData.pickup_direction || emptyOrderValues.pickup_direction,
-        delivery_direction: calculatorData.delivery_direction || emptyOrderValues.delivery_direction,
-        fragile: calculatorData.fragile || false,
-        dangerous: calculatorData.dangerous || false,
-        cooled: calculatorData.cooled || false,
-        urgent: calculatorData.urgent || false,
-      };
-    } catch {
-      sessionStorage.removeItem("calculatorOrderDraft");
-      return emptyOrderValues;
-    }
-  });
-  // ======== FIN SECCION VALORES PRECARGADOS DESDE CALCULADORA =========
-  const obeliscoStartsAsOrigin =
-  initialOrderValues.pickup_direction === OBELISCO_ADDRESS;
-  
-  // ESTADO PARA EL BOTON DEL OBELISCO
-  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(obeliscoStartsAsOrigin);
-  
-  const [coords, setCoords] = useState<{
-    origen: google.maps.LatLngLiteral | null;
-    destino: google.maps.LatLngLiteral | null;
-  }>({ 
-    origen: obeliscoStartsAsOrigin ? OBELISCO_COORDS : null,
-    destino: obeliscoStartsAsOrigin ? null : OBELISCO_COORDS, 
-  }); // Iniciamos con Obelisco en origen
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(() => {
@@ -210,6 +152,71 @@ const OrderView = () => {
   const readOnlyStyle = "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
   const errorLabel = "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
 
+  //================================================
+  // SECCION VALORES PRECARGADOS DESDE CALCULADORA
+  //================================================
+  const emptyOrderValues = {
+    name: "",
+    description: "",
+    category_id: "",
+    image: "",
+    pickup_direction: OBELISCO_ADDRESS,
+    delivery_direction: "",
+    weight: "",
+    height: "",
+    width: "",
+    depth: "",
+    unit: "cm",
+    fragile: false,
+    dangerous: false,
+    cooled: false,
+    urgent: false,
+  };
+  
+  const [initialOrderValues] = useState(() => {
+    if (typeof window === "undefined") return emptyOrderValues;
+    const stored = sessionStorage.getItem("calculatorOrderDraft");
+    if (!stored) return emptyOrderValues;
+
+    try {
+      const calculatorData = JSON.parse(stored);
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return {
+        ...emptyOrderValues,
+        height: calculatorData.height || "",
+        width: calculatorData.width || "",
+        depth: calculatorData.depth || "",
+        weight: calculatorData.weight || "",
+        unit: calculatorData.unit || "cm",
+        pickup_direction: calculatorData.pickup_direction ?? emptyOrderValues.pickup_direction,
+        delivery_direction: calculatorData.delivery_direction ?? emptyOrderValues.delivery_direction,
+        fragile: calculatorData.fragile || false,
+        dangerous: calculatorData.dangerous || false,
+        cooled: calculatorData.cooled || false,
+        urgent: calculatorData.urgent || false,
+      };
+    } catch {
+      sessionStorage.removeItem("calculatorOrderDraft");
+      return emptyOrderValues;
+    }
+  });
+  // ======== FIN SECCION VALORES PRECARGADOS DESDE CALCULADORA =========
+
+  const obeliscoStartsAsOrigin = isObeliscoAddress(
+    initialOrderValues.pickup_direction,
+  );
+
+  // ESTADO PARA EL BOTON DEL OBELISCO
+  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(obeliscoStartsAsOrigin);
+  
+  const [coords, setCoords] = useState<{
+    origen: google.maps.LatLngLiteral | null;
+    destino: google.maps.LatLngLiteral | null;
+  }>({ 
+    origen: obeliscoStartsAsOrigin ? OBELISCO_COORDS : null,
+    destino: obeliscoStartsAsOrigin ? null : OBELISCO_COORDS, 
+  }); // Iniciamos con Obelisco en origen
+  
   if (!isLoaded)
     return (
       <div className="p-10 text-center font-bold text-primary animate-pulse text-lg">
