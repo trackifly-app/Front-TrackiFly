@@ -12,10 +12,10 @@ export interface ShipmentValues {
   // ---
   pickup_direction: string;
   delivery_direction: string;
-  height: number|'';
-  width: number|'';
-  depth: number|'';
-  weight: number|'';
+  height: number | '';
+  width: number | '';
+  depth: number | '';
+  weight: number | '';
   fragile: boolean;
   cooled: boolean;
   dangerous: boolean;
@@ -329,6 +329,8 @@ export interface AdminOrderPackage {
   dimensions: AdminOrderPackageDimensions;
   fragile: boolean;
   urgent: boolean;
+  dangerous: boolean;
+  cooled: boolean;
   category: string;
 }
 

@@ -108,7 +108,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
   }
 
   const packageData = order.package;
-  const status = order.status || 'pending';
+  const status = order.status;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-0">
@@ -178,6 +178,8 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
 
             <div className="space-y-3">
               <ServiceBadge active={packageData?.fragile} label="Frágil" />
+              <ServiceBadge active={packageData?.dangerous} label="Peligroso" />
+              <ServiceBadge active={packageData?.cooled} label="Refrigerado" />
               <ServiceBadge active={packageData?.urgent} label="Urgente" />
             </div>
           </article>
