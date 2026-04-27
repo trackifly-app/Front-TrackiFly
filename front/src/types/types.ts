@@ -46,7 +46,7 @@ export type ActiveOrdersProps = {
 
 export type HistoryOrder = {
   id: string;
-  trackingCode: string;
+  tracking_code: string;
   deliveredDate: string;
   destination: string;
   status: string;

@@ -18,8 +18,13 @@ export default function ActiveOrders({ orders: initialOrders }: ActiveOrdersProp
           `https://back-trackifly-production.up.railway.app/orders?userId=${userData.user.id}`
         );
         if (!response.ok) throw new Error("Error al obtener las órdenes");
+        
         const data = await response.json();
-        setOrders(data);
+        const activeOnly = data.filter((order: any) => 
+  order.status.toLowerCase() !== "completed" && 
+  order.status.toLowerCase() !== "cancelled"
+);
+        setOrders(activeOnly);
       } catch (error) {
         console.error("Error al cargar órdenes:", error);
       } finally {
@@ -160,7 +165,7 @@ export default function ActiveOrders({ orders: initialOrders }: ActiveOrdersProp
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-[10px] text-muted uppercase tracking-widest font-bold">Seguimiento</p>
-                      <p className="font-bold text-foreground">TRK-{order.id.split('-')[0].toUpperCase()}</p>
+                      <p className="font-bold text-foreground">{order.tracking_code}</p>
                     </div>
                     <div className="flex flex-col justify-center">
                       <p className="text-[10px] text-muted uppercase tracking-widest font-bold">Ruta</p>
