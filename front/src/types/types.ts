@@ -1,5 +1,3 @@
-
-
 export type CountryOption = {
   value: string;
   label: string;
@@ -10,7 +8,7 @@ export type OrderFormValues = {
   name: string;
   description: string;
   category_id: string;
-  distance:number;
+  distance: number;
   image: string;
   pickup_direction: string;
   delivery_direction: string;
@@ -68,4 +66,15 @@ export type UserProfileCardProps = {
     country: string;
     image?: string;
   };
+};
+
+export type AdminUserRole = 'company' | 'operator' | 'user';
+
+export type AdminRoleName = 'admin' | 'company' | 'operator' | 'user';
+
+export type DetailItem = {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  href: string;
 };

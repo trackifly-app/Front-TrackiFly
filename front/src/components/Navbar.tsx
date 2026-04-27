@@ -8,15 +8,6 @@ import { useAuth } from '@/context/AuthContext';
 import { Role } from '@/types/roles';
 
 const Navbar = () => {
-  const { checkSession } = useAuth();
-
-  const onSubmit = async (data) => {
-    const res = await login(data);
-    if (res.ok) {
-      await checkSession(); // <--- Esto carga al usuario en el Navbar sin recargar
-      router.push('/dashboard');
-    }
-  };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { userData, handleLogout } = useAuth();
@@ -25,24 +16,65 @@ const Navbar = () => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
+
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const isAuthenticated = !!userData?.user?.id;
-  const userRole = userData?.user.role.name;
+  const userRole = userData?.user?.role?.name;
 
   const getRoleLinks = () => {
     if (!isAuthenticated || !userRole) return [];
 
-    const links = [];
+    switch (userRole) {
+      case Role.Admin:
+      case Role.SuperAdmin:
+        return [
+          {
+            href: '/dashboard/admin',
+            label: 'Admin',
+            icon: <ShieldCheck size={30} />,
+            mobileIcon: <ShieldCheck size={24} />,
+          },
+        ];
 
-    // Dashboard Admin (solo Admins)
-    if (userRole === Role.Admin || userRole === Role.SuperAdmin) {
-      links.push({
-        href: '/dashboard/admin',
-        label: 'Admin',
-        icon: <ShieldCheck size={30} />,
-        mobileIcon: <ShieldCheck size={24} />,
-      });
+      case Role.Company:
+        return [
+          {
+            href: '/dashboard/company',
+            label: `Empresa ${userData?.user?.company?.company_name ?? ''}`,
+            icon: <Building2 size={30} />,
+            mobileIcon: <Building2 size={24} />,
+          },
+        ];
+
+      case Role.Operator:
+        return [
+          {
+            href: '/dashboard/company',
+            label: `Empresa ${userData?.user?.company?.company_name ?? ''}`,
+            icon: <Building2 size={30} />,
+            mobileIcon: <Building2 size={24} />,
+          },
+          {
+            href: '/dashboard/user',
+            label: `Perfil de ${userData?.user?.profile?.first_name ?? ''}`,
+            icon: <UserCircle size={30} />,
+            mobileIcon: <UserCircle size={24} />,
+          },
+        ];
+
+      case Role.User:
+        return [
+          {
+            href: '/dashboard/user',
+            label: `Perfil de ${userData?.user?.profile?.first_name ?? ''}`,
+            icon: <UserCircle size={30} />,
+            mobileIcon: <UserCircle size={24} />,
+          },
+        ];
+
+      default:
+        return [];
     }
 
     // Dashboard Empresa / Operaciones
@@ -64,6 +96,7 @@ const Navbar = () => {
         icon: <UserCircle size={30} />,
         mobileIcon: <UserCircle size={24} />,
       });
+
     }
 
     return links;
@@ -157,6 +190,7 @@ const Navbar = () => {
                     {link.mobileIcon} <span>{link.label}</span>
                   </Link>
                 ))}
+
                 <button onClick={handleLogout} className="group flex items-center text-primary px-4 py-2 rounded-xl hover:bg-surface-muted transition-all duration-300 cursor-pointer">
                   <LogOut size={18} className="stroke-current" />
                   <span className="max-w-0 overflow-hidden opacity-0 whitespace-nowrap transition-all duration-500 ease-in-out group-hover:max-w-25 group-hover:opacity-100 group-hover:ml-2">Salir</span>

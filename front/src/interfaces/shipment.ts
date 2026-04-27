@@ -1,20 +1,21 @@
-import { ModuleItem } from '@/types/types';
+import { AdminRoleName, AdminUserRole, DetailItem, ModuleItem } from '@/types/types';
+import { LucideIcon } from 'lucide-react';
 
 // --- ENVÍOS Y CALCULADORA ---
 
 export interface ShipmentValues {
   // Agregué campos que estaban en Errors pero faltaban aquí
-  name: string;
-  category_id: string;
-  description: string;
-  image: string;
+  name: string; // M cambio aqui
+  category_id: string; // M cambio aqui
+  description: string; // M cambio aqui
+  image: string; // M cambio aqui
   // ---
   pickup_direction: string;
   delivery_direction: string;
-  height: number;
-  width: number;
-  depth: number;
-  weight: number;
+  height: number|'';
+  width: number|'';
+  depth: number|'';
+  weight: number|'';
   fragile: boolean;
   cooled: boolean;
   dangerous: boolean;
@@ -87,8 +88,8 @@ export interface IUserSession {
 export interface IAuthContextProps {
   userData: IUserSession | null;
   setUserData: (values: IUserSession | null) => void;
-  companyData: ILoginCompany | null;
-  setCompanyData: (values: ILoginCompany | null) => void;
+  companyData?: ILoginCompany | null;
+  setCompanyData?: (values: ILoginCompany | null) => void;
   handleLogout: () => void;
 }
 
@@ -109,9 +110,9 @@ export interface IRegisterProps {
   last_name: string;
   address: string;
   phone: string;
-  gender?: string;
-  birthdate?: string;
-  country: string;
+  gender?: string; // M cambio aqui
+  birthdate?: string; // M cambio aqui
+  country: string; // M cambio aqui
 }
 
 export interface IRegisterErrors {
@@ -121,9 +122,9 @@ export interface IRegisterErrors {
   last_name?: string;
   address?: string;
   phone?: string;
-  gender?: string;
-  birthdate?: string;
-  country?: string;
+  gender?: string; // M cambio aqui
+  birthdate?: string; // M cambio aqui
+  country?: string; // M cambio aqui
 }
 
 // --- EMPRESAS ---
@@ -166,7 +167,7 @@ export interface CompanyAccountDetailsProps {
 }
 
 export interface AdminModulesProps {
-  modules: ModuleItem[];
+  modules: AdminModule[];
 }
 
 export interface CompanyProfileCardProps {
@@ -207,9 +208,9 @@ export interface ICountryProps {
 
 // Interfaz para el catálogo de roles
 export interface RoleCatalogEntry {
-  seedOnBootstrap: boolean;
-  allowSelfSignUp: boolean;
-  requiresApproval: boolean;
+  seedOnBootstrap: boolean; // M cambio aqui
+  allowSelfSignUp: boolean; // M cambio aqui
+  requiresApproval: boolean; // M cambio aqui
 }
 
 export interface ILoginCompany {
@@ -246,4 +247,187 @@ export interface ICompanyInputProps {
   value: string;
   isEditing: boolean;
   onChange: (value: string) => void;
+}
+
+export interface AdminModule {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminUserRole;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface AdminApiRole {
+  id: string;
+  name: AdminRoleName;
+}
+
+export interface AdminApiProfile {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  birthdate?: string;
+  gender?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  profile_image?: string;
+}
+
+export interface AdminApiCompany {
+  id: string;
+  company_name: string;
+  industry?: string;
+  contact_name?: string;
+  plan?: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  profile_image?: string;
+}
+
+export interface AdminApiUser {
+  id: string;
+  email: string;
+  role: AdminApiRole;
+  profile?: AdminApiProfile | null;
+  company?: AdminApiCompany | null;
+  isActive?: boolean;
+  createdAt?: string;
+}
+
+export interface AdminCompanyRow {
+  user: AdminApiUser;
+  company: AdminApiCompany | null;
+}
+
+export interface AdminUserRow {
+  user: AdminApiUser;
+  profile: AdminApiProfile | null;
+}
+
+export interface AdminOrderPackageDimensions {
+  height: string;
+  width: string;
+  depth: string;
+  unit: string;
+}
+
+export interface AdminOrderPackage {
+  id: string;
+  name: string;
+  description: string;
+  weight: string;
+  dimensions: AdminOrderPackageDimensions;
+  fragile: boolean;
+  urgent: boolean;
+  category: string;
+}
+
+export interface AdminApiOrder {
+  id: string;
+  status: string;
+  pickup_direction: string;
+  delivery_direction: string;
+  distance: string;
+  created_at: string;
+  userId: string;
+  package: AdminOrderPackage;
+}
+
+export interface OrderDetailAdminViewProps {
+  orderId: string;
+  userId: string;
+}
+
+export interface AdminOrdersTableProps {
+  orders: AdminApiOrder[];
+}
+
+export interface OrderDetailPageProps {
+  params: Promise<{
+    id: string;
+    locale: string;
+  }>;
+  searchParams: Promise<{
+    userId?: string;
+  }>;
+}
+
+export interface AdminMetricCardProps {
+  title: string;
+  value: number;
+  description?: string;
+  icon: LucideIcon;
+  compact?: boolean;
+}
+
+export interface AdminUsersTableProps {
+  users: AdminUserRow[];
+}
+
+export interface AdminSystemDetailsProps {
+  details: DetailItem[];
+}
+
+export interface AdminCompaniesTableProps {
+  companies: AdminCompanyRow[];
+}
+
+export interface AdminDashboardStats {
+  totalCompanies: number;
+  activeCompanies: number;
+  openIncidents: number;
+  activePlans: number;
+}
+
+export interface AdminWelcomeCardProps {
+  adminName: string;
+}
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
+}
+
+export interface AdminIncident {
+  id: string;
+  title: string;
+  description: string;
+  type: 'system' | 'order' | 'user' | 'company' | 'security';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  created_at: string;
+}
+
+export interface AdminIncidentsTableProps {
+  incidents: AdminIncident[];
+}
+
+export interface AdminStatItemProps {
+  title: string;
+  value: number;
+  loading: boolean;
+}
+
+export interface InfoItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}
+
+export interface ServiceBadgeProps {
+  active?: boolean;
+  label: string;
+}
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
 }

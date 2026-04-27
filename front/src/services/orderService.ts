@@ -1,16 +1,17 @@
 /**
  * Envía una nueva orden de envío al backend de TrackiFly
- * @param orderData Datos provenientes del formulario de Formik
+ * @param orderData Datos provenientes del formulario de Formik + user_id
  * @returns La respuesta del servidor en formato JSON
  */
 export const createOrder = async (orderData: any) => {
-    try {
-    const response = await fetch("https://back-trackifly-production.up.railway.app/orders", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+  try {
+    const response = await fetch('https://back-trackifly-production.up.railway.app/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: orderData.userId,
         name: orderData.name,
         description: orderData.description,
         category_id: orderData.category_id,
@@ -26,19 +27,18 @@ export const createOrder = async (orderData: any) => {
         dangerous: orderData.dangerous,
         cooled: orderData.cooled,
         urgent: orderData.urgent,
-        // Si el backend espera la distancia calculada por Google Maps:
-        distance: orderData.distance,
-        }),
+        distance: Number(orderData.distance),
+      }),
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al crear la orden");
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al crear la orden');
     }
 
     return await response.json();
-    } catch (error) {
-    console.error("Error en createOrder service:", error);
+  } catch (error) {
+    console.error('Error en createOrder service:', error);
     throw error;
-    }
+  }
 };
