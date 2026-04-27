@@ -38,7 +38,7 @@ const OrderView = () => {
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
-  const [backendCategories, setBackendCategories] = useState([]);
+  const [backendCategories, setBackendCategories] = useState<any[]>([]);
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -49,6 +49,31 @@ const OrderView = () => {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries,
   });
+
+  // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS (Evita errores de scope)
+  const getCalculatedPrices = (values: any) => {
+    const factor = values.unit === 'cm' ? 0.01 : 0.0254;
+    const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
+    const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
+
+    let recargoPeso = 0;
+    const pesoNum = Number(values.weight) || 0;
+    if (pesoNum > 2) {
+      recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
+    }
+
+    let extraServicios = 0;
+    if (values.fragile) extraServicios += RECARGOS.FRAGIL;
+    if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
+    if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
+    if (values.urgent) extraServicios += RECARGOS.URGENTE;
+
+    const esEmpresa = userData?.user?.role?.name === 'company';
+    const precioFinal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+    const pConDesc = esEmpresa ? precioFinal * 0.9 : precioFinal;
+
+    return { precioFinal, pConDesc, volumenM3, pesoNum };
+  };
 
   const calcularRutaReal = useCallback(
     (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
@@ -79,7 +104,6 @@ const OrderView = () => {
     [mapRef],
   );
 
-  // FUNCIÓN PARA EL BOTÓN DEL OBELISCO
   const handleSwapObelisco = (setFieldValue: any) => {
     const nextState = !obeliscoIsOrigin;
     setObeliscoIsOrigin(nextState);
@@ -96,6 +120,7 @@ const OrderView = () => {
       setCoords({ origen: null, destino: OBELISCO_COORDS });
     }
   };
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -108,6 +133,7 @@ const OrderView = () => {
     };
     fetchCategories();
   }, []);
+
   const onPlaceChanged = (type: 'origen' | 'destino', setFieldValue: any) => {
     const autocomplete = type === 'origen' ? originRef.current : destinationRef.current;
     if (autocomplete) {
@@ -167,7 +193,7 @@ const OrderView = () => {
           distance: distance,
         };
 
-        const errors = validateShipment(shipmentValues);
+        const errors: any = validateShipment(shipmentValues);
 
         if (!values.description) {
           errors.description = 'Requerido';
@@ -193,7 +219,6 @@ const OrderView = () => {
         return errors;
       }}
       onSubmit={async (values, { setSubmitting }) => {
-        console.log('Datos del usuario en el form:', userData);
         if (distance === 0) {
           alert('Selecciona origen y destino válidos en el mapa para calcular la distancia.');
           setSubmitting(false);
@@ -205,9 +230,16 @@ const OrderView = () => {
           return;
         }
 
+        const { precioFinal, pConDesc } = getCalculatedPrices(values);
+
         try {
-          // Unimos los valores del formulario con la distancia calculada
-          const orderToSave = { ...values, distance, userId: userData.user.id };
+          const orderToSave = { 
+            ...values, 
+            distance, 
+            userId: userData.user.id,
+            price: precioFinal.toFixed(2), 
+            total_amount: pConDesc.toFixed(2), 
+          };
           const response = await createOrder(orderToSave);
 
           if (response) {
@@ -223,23 +255,7 @@ const OrderView = () => {
       }}
     >
       {({ values, setFieldValue, errors, touched, isSubmitting, submitCount }) => {
-        const factor = values.unit === 'cm' ? 0.01 : 0.0254;
-        const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
-        const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
-
-        let recargoPeso = 0;
-        const pesoNum = Number(values.weight) || 0;
-        if (pesoNum > 2) {
-          recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
-        }
-
-        let extraServicios = 0;
-        if (values.fragile) extraServicios += RECARGOS.FRAGIL;
-        if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
-        if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
-        if (values.urgent) extraServicios += RECARGOS.URGENTE;
-
-        const precioFinal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+        const { precioFinal, volumenM3, pesoNum } = getCalculatedPrices(values);
 
         return (
           <main className="min-h-screen bg-background px-4 py-10">
@@ -262,6 +278,7 @@ const OrderView = () => {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <Field as="select" name="category_id" className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? 'border-red-500' : ''}`}>
+                            <option value="">Selecciona una categoría</option>
                             {backendCategories.length > 0 ? (
                               backendCategories.map((c) => (
                                 <option key={c.id} value={c.id}>
