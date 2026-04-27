@@ -24,9 +24,6 @@ export const createOrder = async (orderData: any) => {
         urgent: orderData.urgent,
         distance: Number(orderData.distance),
         price: Number(orderData.price),
-        // Enviamos ambos para cubrir cualquier error de tipeo en el backend
-        total_amount: Number(orderData.total_amount), 
-        totalAmount: Number(orderData.total_amount), 
       }),
     });
 

@@ -67,12 +67,13 @@ const OrderView = () => {
     if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
     if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
     if (values.urgent) extraServicios += RECARGOS.URGENTE;
+    const esEmpresa = userData?.user?.role?.name === 'company' || userData?.user?.role?.name === 'operator';
 
-    const esEmpresa = userData?.user?.role?.name === 'company';
-    const precioFinal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
-    const pConDesc = esEmpresa ? precioFinal * 0.9 : precioFinal;
+    const subtotal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
 
-    return { precioFinal, pConDesc, volumenM3, pesoNum };
+    const precioFinal = esEmpresa ? subtotal * 0.8 : subtotal;
+    
+    return { precioFinal, volumenM3, pesoNum };
   };
 
   const calcularRutaReal = useCallback(
@@ -230,7 +231,7 @@ const OrderView = () => {
           return;
         }
 
-        const { precioFinal, pConDesc } = getCalculatedPrices(values);
+        const { precioFinal } = getCalculatedPrices(values);
 
         try {
           const orderToSave = { 
@@ -238,7 +239,6 @@ const OrderView = () => {
             distance, 
             userId: userData.user.id,
             price: precioFinal.toFixed(2), 
-            total_amount: pConDesc.toFixed(2), 
           };
           const response = await createOrder(orderToSave);
 

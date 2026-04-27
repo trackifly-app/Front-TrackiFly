@@ -68,6 +68,8 @@ export default function ActiveOrders({ orders: initialOrders }: ActiveOrdersProp
             <div>
               <h2 className="text-3xl font-black text-foreground uppercase italic tracking-tighter">Detalles del Envío</h2>
               <p className="text-muted font-mono">ID: {selectedOrder.id}</p>
+              <p className="text-muted font-mono">nombre: {pkg.name}</p>
+              <p className="text-muted font-mono">descripcion del producto: {pkg.description?.length > 15 ? `${pkg.description.substring(0, 15)}...` : pkg.description}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -93,13 +95,19 @@ export default function ActiveOrders({ orders: initialOrders }: ActiveOrdersProp
                 <h3 className="font-bold text-primary flex items-center gap-2">📦 Paquete</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <p className="text-xs text-muted uppercase">Precio del envio</p>
+                    <p className="font-medium">$ {selectedOrder.price}</p>
+                  </div>
+                  <div>
                     <p className="text-xs text-muted uppercase">Peso</p>
                     <p className="font-medium">{pkg.weight || "1.0"} {pkg.unit || "kg"}</p>
                   </div>
+                  
                   <div>
                     <p className="text-xs text-muted uppercase">Dimensiones</p>
                     <p className="font-medium">{dims.width || "0"}x{dims.height || "0"}x{dims.depth || "0"} cm</p>
                   </div>
+                  <br />
                   <div>
                     <p className="text-xs text-muted uppercase">Categoría</p>
                     <p className="font-medium">{pkg.category || "General"}</p>
