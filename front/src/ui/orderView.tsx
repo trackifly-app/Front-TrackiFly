@@ -250,7 +250,7 @@ const OrderView = () => {
                     <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">Detalles del Producto</h3>
                     <div className="grid gap-4">
                       <div>
-                        <Field name="name" placeholder="Nombre del producto" className={`${inputStyle} ${errors.name && (touched.name || submitCount > 0) ? 'border-red-500' : ''}`} />
+                        <Field name="name" placeholder="Nombre del producto" className={`${inputStyle} ${errors.name && (touched.name || submitCount > 0) ? 'border-red-500' :''}`} />
                         {errors.name && (touched.name || submitCount > 0) && <p className={errorLabel}>{errors.name}</p>}
                       </div>
 

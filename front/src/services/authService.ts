@@ -72,8 +72,8 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
       body: JSON.stringify(employeeData),
     });
     return response.ok;
-  } catch (error: any) {
-    handleError(error.message);
+  } catch (error: unknown) {
+    handleError(error instanceof Error ? error.message : 'Error en el registro');
     return false;
   }
 }
@@ -133,7 +133,7 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
   }
 }
 
-// Borra toda la información de seguridad del almacenamiento local
+// Cierra la sesion actual en el backend usando cookies.
 export const logout = async () => {
   await fetch(`${APIURL}/auth/logout`, {
     method: 'POST',

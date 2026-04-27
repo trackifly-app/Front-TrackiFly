@@ -5,17 +5,17 @@ import { LucideIcon } from 'lucide-react';
 
 export interface ShipmentValues {
   // Agregué campos que estaban en Errors pero faltaban aquí
-  name: string;
-  category_id: string;
-  description: string;
-  image: string;
+  name: string; // M cambio aqui
+  category_id: string; // M cambio aqui
+  description: string; // M cambio aqui
+  image: string; // M cambio aqui
   // ---
   pickup_direction: string;
   delivery_direction: string;
-  height: number;
-  width: number;
-  depth: number;
-  weight: number;
+  height: number|'';
+  width: number|'';
+  depth: number|'';
+  weight: number|'';
   fragile: boolean;
   cooled: boolean;
   dangerous: boolean;
@@ -110,9 +110,9 @@ export interface IRegisterProps {
   last_name: string;
   address: string;
   phone: string;
-  gender?: string;
-  birthdate?: string;
-  country: string;
+  gender?: string; // M cambio aqui
+  birthdate?: string; // M cambio aqui
+  country: string; // M cambio aqui
 }
 
 export interface IRegisterErrors {
@@ -122,9 +122,9 @@ export interface IRegisterErrors {
   last_name?: string;
   address?: string;
   phone?: string;
-  gender?: string;
-  birthdate?: string;
-  country?: string;
+  gender?: string; // M cambio aqui
+  birthdate?: string; // M cambio aqui
+  country?: string; // M cambio aqui
 }
 
 // --- EMPRESAS ---
@@ -208,9 +208,9 @@ export interface ICountryProps {
 
 // Interfaz para el catálogo de roles
 export interface RoleCatalogEntry {
-  seedOnBootstrap: boolean;
-  allowSelfSignUp: boolean;
-  requiresApproval: boolean;
+  seedOnBootstrap: boolean; // M cambio aqui
+  allowSelfSignUp: boolean; // M cambio aqui
+  requiresApproval: boolean; // M cambio aqui
 }
 
 export interface ILoginCompany {

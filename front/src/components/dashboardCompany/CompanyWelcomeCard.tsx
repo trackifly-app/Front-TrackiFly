@@ -51,7 +51,9 @@ export default function CompanyWelcomeCard({ company, moduleCount, onImageSelect
 
             <h1 className="text-3xl font-bold text-foreground md:text-4xl">Bienvenido, {company.company_name}</h1>
 
-            <p className="mt-2 max-w-2xl text-muted">Aquí puedes revisar la información de tu empresa y acceder a los módulos principales de gestión.</p>
+            <p className="mt-2 max-w-2xl text-muted">
+              Aquí puedes revisar la información de tu empresa y acceder a los módulos principales de gestión.
+            </p>
           </div>
         </div>
 
@@ -74,4 +76,4 @@ export default function CompanyWelcomeCard({ company, moduleCount, onImageSelect
       </div>
     </section>
   );
-}
+};
