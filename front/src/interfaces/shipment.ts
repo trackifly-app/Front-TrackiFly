@@ -6,9 +6,10 @@ import { LucideIcon } from 'lucide-react';
 export interface ShipmentValues {
   // Agregué campos que estaban en Errors pero faltaban aquí
   name: string; // M cambio aqui
-  category_id: string; // M cambio aqui
-  description: string; // M cambio aqui
-  image: string; // M cambio aqui
+  category_id: string; // cambio aqui
+  description: string; // cambio aqui
+  image: string; // cambio aqui
+  customerType: 'user'|'company';
   // ---
   pickup_direction: string;
   delivery_direction: string;

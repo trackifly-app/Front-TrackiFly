@@ -49,7 +49,7 @@ const OrderView = () => {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries,
   });
-
+  
   // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS (Evita errores de scope)
   const getCalculatedPrices = (values: any) => {
     const factor = values.unit === 'cm' ? 0.01 : 0.0254;
@@ -241,11 +241,21 @@ const OrderView = () => {
             total_amount: pConDesc.toFixed(2), 
           };
           const response = await createOrder(orderToSave);
-
-          if (response) {
-            alert('¡Pedido confirmado con éxito!');
-            router.push('/dashboard/user');
-          }
+          {/*========== REDIRECCION DE RUTA POR ROL LUEGO DEL PEDIDO EXITOSO======= */}
+          const roleName = userData?.user?.role?.name;
+          let redirectPath = '/dashboard/user';
+          
+            if(roleName=== 'company' || roleName ==='operator'){
+              redirectPath = '/dashboard/company';
+            }
+            else if (roleName === 'admin') {
+              redirectPath = '/dashboard/admin';
+            }
+            if (response) {
+              alert('¡Pedido confirmado con éxito!');
+              router.push(redirectPath);
+            }
+            {/*=============================================================== */}
         } catch (error: any) {
           console.error('Error al crear la orden:', error);
           alert(error.message || 'Hubo un problema al guardar tu pedido. Reintentá.');
