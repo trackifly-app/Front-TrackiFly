@@ -433,3 +433,10 @@ export interface ServiceBadgeProps {
 export interface AdminManagersTableProps {
   admins: AdminApiUser[];
 }
+
+export interface CompanyModule {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href?: string;
+}

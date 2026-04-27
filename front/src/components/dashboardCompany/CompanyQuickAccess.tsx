@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { Users, Truck, MapPin, PackageSearch, TriangleAlert } from 'lucide-react';
 import { CompanyQuickAccessProps } from '@/interfaces/shipment';
-
-
+import { ModuleItem } from '@/types/types';
 
 export default function CompanyQuickAccess({ modules }: CompanyQuickAccessProps) {
   return (
@@ -18,14 +17,15 @@ export default function CompanyQuickAccess({ modules }: CompanyQuickAccessProps)
         {modules.map((module) => {
           const Icon = module.icon;
 
-          if (module.title === 'Empleados') {
+          if (module.href) {
             return (
-              <Link key={module.title} href="/dashboard/company/employee" className="group rounded-2xl border border-border bg-surface-muted p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/10 active:scale-[0.985]">
+              <Link key={module.title} href={module.href} className="group rounded-2xl border border-border bg-surface-muted p-5 text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:bg-primary/10 active:scale-[0.985]">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-surface text-primary shadow-sm transition-all duration-300 group-hover:bg-primary group-hover:text-white">
                   <Icon size={24} />
                 </div>
 
                 <h3 className="text-lg font-bold text-foreground">{module.title}</h3>
+
                 <p className="mt-2 text-sm text-muted">{module.description}</p>
               </Link>
             );
@@ -38,6 +38,7 @@ export default function CompanyQuickAccess({ modules }: CompanyQuickAccessProps)
               </div>
 
               <h3 className="text-lg font-bold text-foreground">{module.title}</h3>
+
               <p className="mt-2 text-sm text-muted">{module.description}</p>
             </button>
           );
@@ -47,11 +48,12 @@ export default function CompanyQuickAccess({ modules }: CompanyQuickAccessProps)
   );
 }
 
-export const companyModules = [
+export const companyModules: ModuleItem[] = [
   {
     title: 'Empleados',
     description: 'Gestiona el personal administrativo y operativo.',
     icon: Users,
+    href: '/dashboard/company/employee',
   },
   {
     title: 'Conductores',
@@ -67,6 +69,7 @@ export const companyModules = [
     title: 'Monitoreo de pedidos',
     description: 'Haz seguimiento del estado y ruta de los envíos.',
     icon: PackageSearch,
+    href: '/dashboard/company/orders',
   },
   {
     title: 'Incidencias',

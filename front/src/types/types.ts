@@ -27,6 +27,7 @@ export type ModuleItem = {
   title: string;
   description: string;
   icon: React.ElementType;
+  href?: string;
 };
 
 export type ActiveOrder = {
