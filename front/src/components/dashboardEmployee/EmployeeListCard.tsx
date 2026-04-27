@@ -1,12 +1,12 @@
 'use client';
 
 export default function EmployeeListCard() {
-  // Datos de ejemplo - luego los reemplazarás con datos reales de tu API o estado
+  // Datos de ejemplo - luego los reemplazarÃ¡s con datos reales de tu API o estado
   const employees = [
-    { id: 1, name: 'Juan Pérez García', email: 'juan.perez@trackifly.com', phone: '+51 987 654 321', country: 'Perú', status: 'Activo' },
-    { id: 2, name: 'María López Sánchez', email: 'maria.lopez@trackifly.com', phone: '+51 912 345 678', country: 'Perú', status: 'Activo' },
-    { id: 3, name: 'Carlos Ramírez Torres', email: 'carlos.ramirez@trackifly.com', phone: '+51 956 789 012', country: 'Chile', status: 'Inactivo' },
-    // Agrega más según necesites
+    { id: 1, name: 'Juan PÃ©rez GarcÃ­a', email: 'juan.perez@trackifly.com', phone: '+51 987 654 321', country: 'PerÃº', status: 'Activo' },
+    { id: 2, name: 'MarÃ­a LÃ³pez SÃ¡nchez', email: 'maria.lopez@trackifly.com', phone: '+51 912 345 678', country: 'PerÃº', status: 'Activo' },
+    { id: 3, name: 'Carlos RamÃ­rez Torres', email: 'carlos.ramirez@trackifly.com', phone: '+51 956 789 012', country: 'Chile', status: 'Inactivo' },
+    // Agrega mÃ¡s segÃºn necesites
   ];
 
   return (
@@ -24,8 +24,8 @@ export default function EmployeeListCard() {
             <tr className="border-b border-border">
               <th className="text-left py-4 px-4 font-medium text-muted">Nombre</th>
               <th className="text-left py-4 px-4 font-medium text-muted">Email</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">Teléfono</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">País</th>
+              <th className="text-left py-4 px-4 font-medium text-muted">TelÃ©fono</th>
+              <th className="text-left py-4 px-4 font-medium text-muted">PaÃ­s</th>
               <th className="text-left py-4 px-4 font-medium text-muted">Estado</th>
               <th className="w-24"></th>
             </tr>
