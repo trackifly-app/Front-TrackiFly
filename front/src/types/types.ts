@@ -71,3 +71,10 @@ export type UserProfileCardProps = {
 export type AdminUserRole = 'company' | 'operator' | 'user';
 
 export type AdminRoleName = 'admin' | 'company' | 'operator' | 'user';
+
+export type DetailItem = {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  href: string;
+};

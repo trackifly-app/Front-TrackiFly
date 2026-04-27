@@ -1,4 +1,4 @@
-import { AdminRoleName, AdminUserRole, ModuleItem } from '@/types/types';
+import { AdminRoleName, AdminUserRole, DetailItem, ModuleItem } from '@/types/types';
 import { LucideIcon } from 'lucide-react';
 
 // --- ENVÍOS Y CALCULADORA ---
@@ -312,4 +312,122 @@ export interface AdminCompanyRow {
 export interface AdminUserRow {
   user: AdminApiUser;
   profile: AdminApiProfile | null;
+}
+
+export interface AdminOrderPackageDimensions {
+  height: string;
+  width: string;
+  depth: string;
+  unit: string;
+}
+
+export interface AdminOrderPackage {
+  id: string;
+  name: string;
+  description: string;
+  weight: string;
+  dimensions: AdminOrderPackageDimensions;
+  fragile: boolean;
+  urgent: boolean;
+  category: string;
+}
+
+export interface AdminApiOrder {
+  id: string;
+  status: string;
+  pickup_direction: string;
+  delivery_direction: string;
+  distance: string;
+  created_at: string;
+  userId: string;
+  package: AdminOrderPackage;
+}
+
+export interface OrderDetailAdminViewProps {
+  orderId: string;
+  userId: string;
+}
+
+export interface AdminOrdersTableProps {
+  orders: AdminApiOrder[];
+}
+
+export interface OrderDetailPageProps {
+  params: Promise<{
+    id: string;
+    locale: string;
+  }>;
+  searchParams: Promise<{
+    userId?: string;
+  }>;
+}
+
+export interface AdminMetricCardProps {
+  title: string;
+  value: number;
+  description?: string;
+  icon: LucideIcon;
+  compact?: boolean;
+}
+
+export interface AdminUsersTableProps {
+  users: AdminUserRow[];
+}
+
+export interface AdminSystemDetailsProps {
+  details: DetailItem[];
+}
+
+export interface AdminCompaniesTableProps {
+  companies: AdminCompanyRow[];
+}
+
+export interface AdminDashboardStats {
+  totalCompanies: number;
+  activeCompanies: number;
+  openIncidents: number;
+  activePlans: number;
+}
+
+export interface AdminWelcomeCardProps {
+  adminName: string;
+}
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
+}
+
+export interface AdminIncident {
+  id: string;
+  title: string;
+  description: string;
+  type: 'system' | 'order' | 'user' | 'company' | 'security';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  created_at: string;
+}
+
+export interface AdminIncidentsTableProps {
+  incidents: AdminIncident[];
+}
+
+export interface AdminStatItemProps {
+  title: string;
+  value: number;
+  loading: boolean;
+}
+
+export interface InfoItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}
+
+export interface ServiceBadgeProps {
+  active?: boolean;
+  label: string;
+}
+
+export interface AdminManagersTableProps {
+  admins: AdminApiUser[];
 }

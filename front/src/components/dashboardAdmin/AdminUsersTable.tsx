@@ -1,8 +1,4 @@
-import { AdminUserRow } from '@/interfaces/shipment';
-
-interface AdminUsersTableProps {
-  users: AdminUserRow[];
-}
+import { AdminUsersTableProps } from '@/interfaces/shipment';
 
 const roleLabels: Record<string, string> = {
   operator: 'Operador',

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Building2, CreditCard, TriangleAlert, BarChart3, User } from 'lucide-react';
 import { AdminModulesProps } from '@/interfaces/shipment';
+import { PackageSearch } from 'lucide-react';
 
 export default function AdminModules({ modules }: AdminModulesProps) {
   return (
@@ -44,6 +45,12 @@ export const adminModulesData = [
     description: 'Gestiona usuarios, roles, permisos y accesos del sistema.',
     icon: User,
     href: '/dashboard/admin/usuarios',
+  },
+  {
+    title: 'Órdenes',
+    description: 'Consulta todas las órdenes registradas en el sistema.',
+    icon: PackageSearch,
+    href: '/dashboard/admin/ordenes',
   },
   {
     title: 'Planes / Suscripciones',
