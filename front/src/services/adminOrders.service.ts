@@ -3,15 +3,6 @@ import { AdminApiOrder } from '@/interfaces/shipment';
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
-const handleError = (message: string) => {
-  Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: message,
-    confirmButtonColor: '#e76f51',
-  });
-};
-
 async function request<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${APIURL}${endpoint}`, {
     method: 'GET',
@@ -46,7 +37,56 @@ export async function getOrderById(orderId: string, userId: string): Promise<Adm
   try {
     return await request<AdminApiOrder>(`/orders/${orderId}?userId=${userId}`);
   } catch (error: any) {
-    handleError(error.message || 'Error al obtener la orden');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message || 'Error al obtener la orden',
+      confirmButtonColor: '#e76f51',
+    });
+
+    return null;
+  }
+}
+
+export async function updateOrderStatus(orderId: string, userId: string, status: string): Promise<AdminApiOrder | null> {
+  try {
+    const response = await fetch(`${APIURL}/orders/${orderId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        status,
+      }),
+    });
+
+    const contentType = response.headers.get('content-type');
+
+    const data = contentType?.includes('application/json') ? await response.json() : null;
+
+    if (!response.ok) {
+      throw new Error(data?.message || 'Error al actualizar el estado de la orden');
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Estado actualizado',
+      text: 'El estado de la orden fue actualizado correctamente.',
+      confirmButtonColor: '#e76f51',
+    });
+
+    return data;
+  } catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message || 'No se pudo actualizar el estado de la orden.',
+      confirmButtonColor: '#e76f51',
+    });
+
     return null;
   }
 }
