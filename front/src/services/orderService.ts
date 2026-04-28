@@ -27,10 +27,10 @@ export const createOrder = async (orderData: any) => {
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error al crear la orden');
-    }
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Error al crear la preferencia de pago');
+  }
 
     return await response.json();
   } catch (error) {
