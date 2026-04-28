@@ -6,41 +6,55 @@ import { ArrowLeft, Eye, PackageSearch, X } from 'lucide-react';
 
 import AdminMetricCard from '@/components/dashboardAdmin/AdminMetricCard';
 import { AdminApiOrder } from '@/interfaces/shipment';
-// Importamos el servicio
-import { getOrdersByCompanyEmployees } from '@/services/companyOrders.service'; 
+import { getOrdersByCompanyEmployees } from '@/services/companyOrders.service';
 import { useAuth } from '@/context/AuthContext';
 
 export default function OrdersCompanyView() {
   const { userData, loading: authLoading } = useAuth();
-  
+
   const [orders, setOrders] = useState<AdminApiOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<AdminApiOrder | null>(null);
 
   useEffect(() => {
     async function loadCompanyOrders() {
-      // 1. Si la auth está cargando, esperamos
       if (authLoading) return;
-
-      // 2. Obtenemos el ID de la empresa (priorizando parentCompany.id)
-      const companyId = userData?.user?.company?.id;
-
-      if (!companyId) {
-        setOrders([]);
-        setLoadingOrders(false);
-        return;
-      }
 
       try {
         setLoadingOrders(true);
-        
-        /**
-         * MODIFICACIÓN CLAVE: 
-         * Enviamos el companyId como argumento. 
-         * El servicio debe recibir este ID para filtrar en el backend.
-         */
+
+        const roleName = userData?.user?.role?.name;
+        let companyId = userData?.user?.id;
+
+        // Si entra un operador, resolvemos el ID del usuario empresa desde parentCompany.
+        if (roleName === 'operator') {
+          const userId = userData?.user?.id;
+
+          if (!userId) {
+            setOrders([]);
+            return;
+          }
+
+          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
+            credentials: 'include',
+            cache: 'no-store',
+          });
+
+          if (!userResponse.ok) {
+            throw new Error('Error al obtener la empresa del operador');
+          }
+
+          const employeeData = await userResponse.json();
+          companyId = employeeData?.parentCompany?.id;
+        }
+
+        if (!companyId) {
+          setOrders([]);
+          return;
+        }
+
         const allCompanyOrders = await getOrdersByCompanyEmployees(companyId);
-        
+
         setOrders(allCompanyOrders || []);
       } catch (error) {
         console.error('Error al cargar órdenes de la empresa:', error);
@@ -107,8 +121,6 @@ export default function OrdersCompanyView() {
     </>
   );
 }
-
-// --- Componentes Auxiliares (Tablas, Modales, Badges) ---
 
 function CompanyOrdersTable({ orders, onViewDetails }: { orders: AdminApiOrder[]; onViewDetails: (order: AdminApiOrder) => void }) {
   return (
