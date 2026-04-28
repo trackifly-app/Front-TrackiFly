@@ -19,14 +19,14 @@ export default function EmployeeListCard() {
       try {
         setLoadingEmployees(true);
 
-        const companyId = userData?.user.company?.id;
+        const companyId = userData?.user?.id;
 
         if (!companyId) {
           setEmployees([]);
           return;
         }
 
-        const response = await fetch(`${API_URL}/users`, {
+        const response = await fetch(`${API_URL}/users?page=1&limit=100`, {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',
@@ -38,8 +38,13 @@ export default function EmployeeListCard() {
           throw new Error(data.message || 'Error al obtener empleados');
         }
 
-        const companyEmployees = data.filter((user: Employee) => {
-          const roleName = user.role?.name?.toLowerCase();
+        const users: Employee[] = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : Array.isArray(data.users) ? data.users : [];
+
+        console.log('Usuarios recibidos:', users);
+        console.log('ID usuario empresa:', companyId);
+
+        const companyEmployees = users.filter((user: Employee) => {
+          const roleName = user.role?.name?.toLowerCase?.() || '';
 
           const isOperator = roleName === 'operator';
 
@@ -97,7 +102,6 @@ export default function EmployeeListCard() {
               {employees.map((employee) => {
                 const firstName = employee.profile?.first_name || '';
                 const lastName = employee.profile?.last_name || '';
-
                 const fullName = `${firstName} ${lastName}`.trim() || 'Sin nombre';
 
                 const isActive = employee.is_active === true;
