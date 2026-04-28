@@ -1,6 +1,6 @@
 'use client';
-
-import { CompanyPlan, validateFormRegisterCompany } from '@/lib/validates';
+import {  CompanyPlan } from '@/types/types';
+import {  validateFormRegisterCompany } from '@/lib/validates';
 import { registerCompany } from '@/services/authService';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';

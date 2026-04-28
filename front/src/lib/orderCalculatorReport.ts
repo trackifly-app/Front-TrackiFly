@@ -60,6 +60,7 @@ export const descargarReporte = async (
   volumen: number,
   precioBase: number,
   montoRecargo: number,
+  descuentoEmpresa: number,
   precioFinal: number,
   pesoNum: number,
 ) => {
@@ -145,7 +146,16 @@ export const descargarReporte = async (
     152,
   );
 
-  dibujarSeccion(doc, "Presupuesto", marginX, 165, contentWidth, 42);
+  dibujarSeccion(doc, "Presupuesto", marginX, 165, contentWidth, 50);
+  if (descuentoEmpresa > 0) {
+      escribirLinea(
+        doc,
+        "Descuento empresa",
+        `$${descuentoEmpresa.toLocaleString("es-AR")}`,
+        marginX + 7,
+        196,
+      );
+    }
   doc.setFontSize(10);
   escribirLinea(
     doc,
@@ -163,7 +173,7 @@ export const descargarReporte = async (
   );
 
   doc.setDrawColor(220, 224, 230);
-  doc.line(marginX + 7, 194, pageWidth - marginX - 7, 194);
+  doc.line(marginX + 7, 200, pageWidth - marginX - 7, 200);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);

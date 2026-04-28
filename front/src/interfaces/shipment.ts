@@ -6,16 +6,17 @@ import { LucideIcon } from 'lucide-react';
 export interface ShipmentValues {
   // Agregué campos que estaban en Errors pero faltaban aquí
   name: string; // M cambio aqui
-  category_id: string; // M cambio aqui
-  description: string; // M cambio aqui
-  image: string; // M cambio aqui
+  category_id: string; // cambio aqui
+  description: string; // cambio aqui
+  image: string; // cambio aqui
+  customerType: 'user'|'company';
   // ---
   pickup_direction: string;
   delivery_direction: string;
-  height: number|'';
-  width: number|'';
-  depth: number|'';
-  weight: number|'';
+  height: number | '';
+  width: number | '';
+  depth: number | '';
+  weight: number | '';
   fragile: boolean;
   cooled: boolean;
   dangerous: boolean;
@@ -193,7 +194,7 @@ export interface CompanyWelcomeCardProps {
     plan: string;
     image: string;
   };
-  moduleCount: number;
+  activeOrdersCount: number;
 }
 
 export interface EmployeeWelcomeCardProps {
@@ -329,6 +330,8 @@ export interface AdminOrderPackage {
   dimensions: AdminOrderPackageDimensions;
   fragile: boolean;
   urgent: boolean;
+  dangerous: boolean;
+  cooled: boolean;
   category: string;
 }
 
@@ -430,4 +433,81 @@ export interface ServiceBadgeProps {
 
 export interface AdminManagersTableProps {
   admins: AdminApiUser[];
+}
+
+export interface CompanyModule {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href?: string;
+}
+
+export interface CompanyEmployeeApiUser {
+  id: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  role: {
+    id: string;
+    name: string;
+  };
+  profile: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    birthdate: string;
+    gender: string;
+    phone: string;
+    address: string;
+    country: string;
+    profile_image: string;
+  };
+  company: null;
+  parentCompany: {
+    id: string;
+    email: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    role: {
+      id: string;
+      name: string;
+    };
+    status: string;
+  } | null;
+}
+
+export interface CompanyApiOrder {
+  id: string;
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+
+  price?: number | string;
+  distance?: number | string;
+
+  pickup_direction?: string;
+  delivery_direction?: string;
+
+  created_at?: string;
+  updated_at?: string;
+
+  package?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    image?: string;
+    weight?: number | string;
+    unit?: string;
+    category?: string;
+    fragile?: boolean;
+    urgent?: boolean;
+    cooled?: boolean;
+    dangerous?: boolean;
+    dimensions?: {
+      width?: number | string;
+      height?: number | string;
+      depth?: number | string;
+    };
+  };
 }

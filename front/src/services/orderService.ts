@@ -1,8 +1,3 @@
-/**
- * Envía una nueva orden de envío al backend de TrackiFly
- * @param orderData Datos provenientes del formulario de Formik + user_id
- * @returns La respuesta del servidor en formato JSON
- */
 export const createOrder = async (orderData: any) => {
   try {
     const response = await fetch('https://back-trackifly-production.up.railway.app/orders', {
@@ -28,6 +23,7 @@ export const createOrder = async (orderData: any) => {
         cooled: orderData.cooled,
         urgent: orderData.urgent,
         distance: Number(orderData.distance),
+        price: Number(orderData.price),
       }),
     });
 

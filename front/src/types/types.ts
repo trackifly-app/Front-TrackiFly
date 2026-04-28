@@ -1,3 +1,5 @@
+import { CompanyWelcomeCardProps } from '@/interfaces/shipment';
+
 export type CountryOption = {
   value: string;
   label: string;
@@ -27,6 +29,7 @@ export type ModuleItem = {
   title: string;
   description: string;
   icon: React.ElementType;
+  href?: string;
 };
 
 export type ActiveOrder = {
@@ -45,7 +48,7 @@ export type ActiveOrdersProps = {
 
 export type HistoryOrder = {
   id: string;
-  trackingCode: string;
+  tracking_code: string;
   deliveredDate: string;
   destination: string;
   status: string;
@@ -77,4 +80,59 @@ export type DetailItem = {
   description: string;
   icon: React.ElementType;
   href: string;
+};
+export const CompanyPlan = [
+  { id: 'free', name: 'Plan Free' },
+];
+
+export type Employee = {
+  id: string;
+  email: string;
+  is_active: boolean;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  role?: {
+    id: string;
+    name: string;
+  };
+  profile?: {
+    id?: string;
+    first_name?: string;
+    last_name?: string;
+    birthdate?: string;
+    gender?: string;
+    phone?: string;
+    address?: string;
+    country?: string;
+    profile_image?: string;
+  };
+  company?: null;
+  parentCompany?: {
+    id: string;
+    email?: string;
+    is_active?: boolean;
+    role?: {
+      id: string;
+      name: string;
+    };
+    status?: string;
+  };
+};
+
+export type Props = CompanyWelcomeCardProps & {
+  onImageSelected?: (file: File) => void;
+  uploadingImage?: boolean;
+};
+
+export type DashboardCompanyData = {
+  email: string;
+  company_name: string;
+  industry: string;
+  contact_name: string;
+  phone: string;
+  address: string;
+  country: string;
+  plan: string;
+  image: string;
 };

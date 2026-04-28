@@ -1,41 +1,40 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 const APIURL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function GoogleSessionSync() {
   const { data: session, status } = useSession();
-  const { setUserData } = useAuth();
+  const { checkSession } = useAuth();
+  const synced = useRef(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (status !== "authenticated" || !session?.user) return;
+    if (synced.current) return;
+    synced.current = true;
 
     const syncSession = async () => {
       try {
-        // La cookie ya fue seteada por el signIn callback de NextAuth
-        // Solo pedimos los datos del usuario
-        const res = await fetch(`${APIURL}/auth/me`, {
+        const googleRes = await fetch(`${APIURL}/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify({
+            email: session.user?.email,
+            name: session.user?.name,
+            googleId: session.user?.image,
+            picture: session.user?.image,
+          }),
         });
 
-        if (!res.ok) return;
+        if (!googleRes.ok) return;
 
-        const userData = (await res.json()) as { id: string; role: string };
-
-        setUserData({
-          user: {
-            id: userData.id,
-            email: session.user?.email || "",
-            first_name: session.user?.name?.split(" ")[0] || "",
-            last_name: session.user?.name?.split(" ").slice(1).join(" ") || "",
-            role: userData.role,
-            address: "",
-            phone: "",
-          },
-        });
+        await checkSession();
 
         if (!session.isNewGoogleUser) {
           Swal.fire({
@@ -46,7 +45,7 @@ export default function GoogleSessionSync() {
             timer: 2500,
             showConfirmButton: false,
           }).then(() => {
-            window.location.href = "/";
+            router.push("/");
           });
           return;
         }
@@ -59,7 +58,7 @@ export default function GoogleSessionSync() {
           timer: 3000,
           showConfirmButton: false,
         }).then(() => {
-          window.location.href = "/";
+          router.push("/");
         });
       } catch (err) {
         console.error("Error sincronizando sesión de Google:", err);
@@ -67,7 +66,7 @@ export default function GoogleSessionSync() {
     };
 
     void syncSession();
-  }, [status, session, setUserData]);
+  }, [status, session, router, checkSession]);
 
   return null;
 }

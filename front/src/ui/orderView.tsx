@@ -38,7 +38,7 @@ const OrderView = () => {
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
-  const [backendCategories, setBackendCategories] = useState([]);
+  const [backendCategories, setBackendCategories] = useState<any[]>([]);
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
@@ -49,6 +49,32 @@ const OrderView = () => {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries,
   });
+  
+  // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS (Evita errores de scope)
+  const getCalculatedPrices = (values: any) => {
+    const factor = values.unit === 'cm' ? 0.01 : 0.0254;
+    const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
+    const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
+
+    let recargoPeso = 0;
+    const pesoNum = Number(values.weight) || 0;
+    if (pesoNum > 2) {
+      recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
+    }
+
+    let extraServicios = 0;
+    if (values.fragile) extraServicios += RECARGOS.FRAGIL;
+    if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
+    if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
+    if (values.urgent) extraServicios += RECARGOS.URGENTE;
+    const esEmpresa = userData?.user?.role?.name === 'company' || userData?.user?.role?.name === 'operator';
+
+    const subtotal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+
+    const precioFinal = esEmpresa ? subtotal * 0.8 : subtotal;
+    
+    return { precioFinal, volumenM3, pesoNum };
+  };
 
   const calcularRutaReal = useCallback(
     (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
@@ -79,7 +105,6 @@ const OrderView = () => {
     [mapRef],
   );
 
-  // FUNCIÓN PARA EL BOTÓN DEL OBELISCO
   const handleSwapObelisco = (setFieldValue: any) => {
     const nextState = !obeliscoIsOrigin;
     setObeliscoIsOrigin(nextState);
@@ -96,6 +121,7 @@ const OrderView = () => {
       setCoords({ origen: null, destino: OBELISCO_COORDS });
     }
   };
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -108,6 +134,7 @@ const OrderView = () => {
     };
     fetchCategories();
   }, []);
+
   const onPlaceChanged = (type: 'origen' | 'destino', setFieldValue: any) => {
     const autocomplete = type === 'origen' ? originRef.current : destinationRef.current;
     if (autocomplete) {
@@ -167,7 +194,7 @@ const OrderView = () => {
           distance: distance,
         };
 
-        const errors = validateShipment(shipmentValues);
+        const errors: any = validateShipment(shipmentValues);
 
         if (!values.description) {
           errors.description = 'Requerido';
@@ -193,7 +220,6 @@ const OrderView = () => {
         return errors;
       }}
       onSubmit={async (values, { setSubmitting }) => {
-        console.log('Datos del usuario en el form:', userData);
         if (distance === 0) {
           alert('Selecciona origen y destino válidos en el mapa para calcular la distancia.');
           setSubmitting(false);
@@ -205,15 +231,31 @@ const OrderView = () => {
           return;
         }
 
-        try {
-          // Unimos los valores del formulario con la distancia calculada
-          const orderToSave = { ...values, distance, userId: userData.user.id };
-          const response = await createOrder(orderToSave);
+        const { precioFinal } = getCalculatedPrices(values);
 
-          if (response) {
-            alert('¡Pedido confirmado con éxito!');
-            router.push('/dashboard/user');
-          }
+        try {
+          const orderToSave = { 
+            ...values, 
+            distance, 
+            userId: userData.user.id,
+            price: precioFinal.toFixed(2), 
+          };
+          const response = await createOrder(orderToSave);
+          {/*========== REDIRECCION DE RUTA POR ROL LUEGO DEL PEDIDO EXITOSO ======= */}
+          const roleName = userData?.user?.role?.name;
+          let redirectPath = '/dashboard/user';
+          
+            if(roleName=== 'company' || roleName ==='operator'){
+              redirectPath = '/dashboard/company';
+            }
+            else if (roleName === 'admin') {
+              redirectPath = '/dashboard/admin';
+            }
+            if (response) {
+              alert('¡Pedido confirmado con éxito!');
+              router.push(redirectPath);
+            }
+            {/*=============================================================== */}
         } catch (error: any) {
           console.error('Error al crear la orden:', error);
           alert(error.message || 'Hubo un problema al guardar tu pedido. Reintentá.');
@@ -223,23 +265,7 @@ const OrderView = () => {
       }}
     >
       {({ values, setFieldValue, errors, touched, isSubmitting, submitCount }) => {
-        const factor = values.unit === 'cm' ? 0.01 : 0.0254;
-        const volumenM3 = Number(values.height) * factor * (Number(values.width) * factor) * (Number(values.depth) * factor) || 0;
-        const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
-
-        let recargoPeso = 0;
-        const pesoNum = Number(values.weight) || 0;
-        if (pesoNum > 2) {
-          recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
-        }
-
-        let extraServicios = 0;
-        if (values.fragile) extraServicios += RECARGOS.FRAGIL;
-        if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
-        if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
-        if (values.urgent) extraServicios += RECARGOS.URGENTE;
-
-        const precioFinal = precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+        const { precioFinal, volumenM3, pesoNum } = getCalculatedPrices(values);
 
         return (
           <main className="min-h-screen bg-background px-4 py-10">
@@ -262,6 +288,7 @@ const OrderView = () => {
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
                           <Field as="select" name="category_id" className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? 'border-red-500' : ''}`}>
+                            <option value="">Selecciona una categoría</option>
                             {backendCategories.length > 0 ? (
                               backendCategories.map((c) => (
                                 <option key={c.id} value={c.id}>
@@ -380,6 +407,16 @@ const OrderView = () => {
                           </label>
                         ))}
                       </div>
+                      {(userData?.user?.role?.name === 'company'||userData?.user?.role?.name === 'operator') && (
+  <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 rounded-r-md">
+    <p className="text-sm font-bold text-primary uppercase tracking-wider">
+      Beneficio Exclusivo: Empresa
+    </p>
+    <p className="text-xs text-muted-foreground">
+      Se esta aplicando un 20% de descuento automático a tu tarifa solo por ser parte de nuestra comunidad de empresas.
+    </p>
+  </div>
+)}
                       <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
                         <span className="font-black italic text-lg uppercase">Neto:</span>
                         <span className="font-black text-primary">
