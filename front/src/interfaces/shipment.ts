@@ -193,7 +193,7 @@ export interface CompanyWelcomeCardProps {
     plan: string;
     image: string;
   };
-  moduleCount: number;
+  activeOrdersCount: number;
 }
 
 export interface EmployeeWelcomeCardProps {
@@ -476,4 +476,37 @@ export interface CompanyEmployeeApiUser {
     };
     status: string;
   } | null;
+}
+
+export interface CompanyApiOrder {
+  id: string;
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+
+  price?: number | string;
+  distance?: number | string;
+
+  pickup_direction?: string;
+  delivery_direction?: string;
+
+  created_at?: string;
+  updated_at?: string;
+
+  package?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    image?: string;
+    weight?: number | string;
+    unit?: string;
+    category?: string;
+    fragile?: boolean;
+    urgent?: boolean;
+    cooled?: boolean;
+    dangerous?: boolean;
+    dimensions?: {
+      width?: number | string;
+      height?: number | string;
+      depth?: number | string;
+    };
+  };
 }

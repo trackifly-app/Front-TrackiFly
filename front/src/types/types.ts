@@ -1,3 +1,5 @@
+import { CompanyWelcomeCardProps } from '@/interfaces/shipment';
+
 export type CountryOption = {
   value: string;
   label: string;
@@ -113,4 +115,21 @@ export type Employee = {
     };
     status?: string;
   };
+};
+
+export type Props = CompanyWelcomeCardProps & {
+  onImageSelected?: (file: File) => void;
+  uploadingImage?: boolean;
+};
+
+export type DashboardCompanyData = {
+  email: string;
+  company_name: string;
+  industry: string;
+  contact_name: string;
+  phone: string;
+  address: string;
+  country: string;
+  plan: string;
+  image: string;
 };
