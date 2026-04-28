@@ -193,7 +193,7 @@ export interface CompanyWelcomeCardProps {
     plan: string;
     image: string;
   };
-  moduleCount: number;
+  activeOrdersCount: number;
 }
 
 export interface EmployeeWelcomeCardProps {
@@ -432,4 +432,81 @@ export interface ServiceBadgeProps {
 
 export interface AdminManagersTableProps {
   admins: AdminApiUser[];
+}
+
+export interface CompanyModule {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href?: string;
+}
+
+export interface CompanyEmployeeApiUser {
+  id: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  role: {
+    id: string;
+    name: string;
+  };
+  profile: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    birthdate: string;
+    gender: string;
+    phone: string;
+    address: string;
+    country: string;
+    profile_image: string;
+  };
+  company: null;
+  parentCompany: {
+    id: string;
+    email: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    role: {
+      id: string;
+      name: string;
+    };
+    status: string;
+  } | null;
+}
+
+export interface CompanyApiOrder {
+  id: string;
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+
+  price?: number | string;
+  distance?: number | string;
+
+  pickup_direction?: string;
+  delivery_direction?: string;
+
+  created_at?: string;
+  updated_at?: string;
+
+  package?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    image?: string;
+    weight?: number | string;
+    unit?: string;
+    category?: string;
+    fragile?: boolean;
+    urgent?: boolean;
+    cooled?: boolean;
+    dangerous?: boolean;
+    dimensions?: {
+      width?: number | string;
+      height?: number | string;
+      depth?: number | string;
+    };
+  };
 }

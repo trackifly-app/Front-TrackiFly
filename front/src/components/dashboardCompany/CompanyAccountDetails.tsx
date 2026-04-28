@@ -1,8 +1,6 @@
 import { CompanyAccountDetailsProps } from '@/interfaces/shipment';
 import { Settings, CreditCard } from 'lucide-react';
 
-
-
 export default function CompanyAccountDetails({ accountDetails }: CompanyAccountDetailsProps) {
   return (
     <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
@@ -38,12 +36,6 @@ export default function CompanyAccountDetails({ accountDetails }: CompanyAccount
 }
 
 export const companyAccountDetails = (plan: string) => [
-  {
-    title: 'Configuración de empresa',
-    description: 'Edita los datos generales de tu empresa.',
-    icon: Settings,
-    action: 'Administrar',
-  },
   {
     title: 'Plan / Suscripción',
     description: `Plan actual: ${plan}`,

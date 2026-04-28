@@ -2,18 +2,50 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Box, CalendarDays, MapPin, Package, Route, Scale, Tag, Truck } from 'lucide-react';
+import { ArrowLeft, Box, CalendarDays, ChevronDown, MapPin, Package, Route, Scale, Tag, Truck } from 'lucide-react';
+import { AdminApiOrder } from '@/interfaces/shipment';
+import { getOrderById, updateOrderStatus } from '@/services/adminOrders.service';
 
-import { AdminApiOrder, InfoItemProps, OrderDetailAdminViewProps, ServiceBadgeProps } from '@/interfaces/shipment';
-import { getOrderById } from '@/services/adminOrders.service';
+interface OrderDetailAdminViewProps {
+  orderId: string;
+  userId: string;
+}
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendiente',
-  in_progress: 'En proceso',
-  completed: 'Completada',
-  cancelled: 'Cancelada',
-  delivered: 'Entregada',
+  paid: 'Pagado',
+  processing: 'En proceso',
+  shipped: 'Enviado',
+  completed: 'Completado',
+  cancelled: 'Cancelado',
 };
+
+const orderStatusOptions = [
+  {
+    value: 'pending',
+    label: 'Pendiente',
+  },
+  {
+    value: 'paid',
+    label: 'Pagado',
+  },
+  {
+    value: 'processing',
+    label: 'En proceso',
+  },
+  {
+    value: 'shipped',
+    label: 'Enviado',
+  },
+  {
+    value: 'completed',
+    label: 'Completado',
+  },
+  {
+    value: 'cancelled',
+    label: 'Cancelado',
+  },
+];
 
 function formatDate(date?: string) {
   if (!date) return 'Sin fecha';
@@ -38,7 +70,19 @@ function getStatusClass(status: string) {
     return 'bg-yellow-500/10 text-yellow-400';
   }
 
-  if (status === 'completed' || status === 'delivered') {
+  if (status === 'paid') {
+    return 'bg-blue-500/10 text-blue-400';
+  }
+
+  if (status === 'processing') {
+    return 'bg-primary/10 text-primary';
+  }
+
+  if (status === 'shipped') {
+    return 'bg-indigo-500/10 text-indigo-400';
+  }
+
+  if (status === 'completed') {
     return 'bg-emerald-500/10 text-emerald-400';
   }
 
@@ -46,12 +90,14 @@ function getStatusClass(status: string) {
     return 'bg-red-500/10 text-red-400';
   }
 
-  return 'bg-primary/10 text-primary';
+  return 'bg-surface text-muted';
 }
 
 export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdminViewProps) {
   const [order, setOrder] = useState<AdminApiOrder | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
     async function loadOrder() {
@@ -67,6 +113,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
         const orderData = await getOrderById(orderId, userId);
 
         setOrder(orderData);
+        setSelectedStatus(orderData?.status || '');
       } catch (error) {
         console.error('Error al cargar detalle de orden:', error);
         setOrder(null);
@@ -77,6 +124,27 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
 
     loadOrder();
   }, [orderId, userId]);
+
+  async function handleUpdateStatus() {
+    if (!order) return;
+    if (!selectedStatus) return;
+    if (selectedStatus === order.status) return;
+
+    try {
+      setUpdatingStatus(true);
+
+      const updatedOrder = await updateOrderStatus(order.id, order.userId, selectedStatus);
+
+      if (updatedOrder) {
+        const refreshedOrder = await getOrderById(order.id, order.userId);
+
+        setOrder(refreshedOrder);
+        setSelectedStatus(refreshedOrder?.status || selectedStatus);
+      }
+    } finally {
+      setUpdatingStatus(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -108,7 +176,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
   }
 
   const packageData = order.package;
-  const status = order.status;
+  const status = order.status || 'pending';
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-0">
@@ -129,10 +197,44 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted md:text-base">Información completa del paquete, trayecto y estado actual del envío.</p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface-muted px-5 py-4 shadow-sm">
+          <div className="w-full rounded-2xl border border-border bg-surface-muted p-5 shadow-sm lg:w-[320px]">
             <p className="text-sm font-semibold text-muted">Estado actual</p>
 
             <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(status)}`}>{statusLabels[status] ?? status}</span>
+
+            <div className="mt-5 space-y-3">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wide text-muted">Actualizar estado</label>
+
+                <p className="mt-1 text-xs text-muted">Selecciona el nuevo estado del pedido.</p>
+              </div>
+
+              <div className="relative">
+                <select value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value)} className="h-12 w-full appearance-none rounded-xl border border-border bg-surface px-4 pr-11 text-sm font-semibold text-foreground shadow-sm outline-none transition-all duration-300 hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20">
+                  {orderStatusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-muted">
+                  <ChevronDown size={18} />
+                </div>
+              </div>
+
+              {selectedStatus !== order.status && (
+                <div className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-3">
+                  <p className="text-xs font-medium text-primary">
+                    Cambiarás el estado de <span className="font-bold">{statusLabels[order.status] ?? order.status}</span> a <span className="font-bold">{statusLabels[selectedStatus] ?? selectedStatus}</span>.
+                  </p>
+                </div>
+              )}
+
+              <button type="button" disabled={updatingStatus || selectedStatus === order.status} onClick={handleUpdateStatus} className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:bg-primary-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100">
+                {updatingStatus ? 'Actualizando...' : 'Guardar estado'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -147,6 +249,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
 
               <div>
                 <p className="text-sm text-muted">Paquete</p>
+
                 <h2 className="text-xl font-bold text-foreground">{packageData?.name || 'Paquete sin nombre'}</h2>
               </div>
             </div>
@@ -172,6 +275,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
 
               <div>
                 <p className="text-sm text-muted">Servicios</p>
+
                 <h2 className="text-xl font-bold text-foreground">Características</h2>
               </div>
             </div>
@@ -193,6 +297,7 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
 
             <div>
               <p className="text-sm text-muted">Trayecto</p>
+
               <h2 className="text-xl font-bold text-foreground">Ruta del envío</h2>
             </div>
           </div>
@@ -220,6 +325,12 @@ export default function OrderDetailAdminView({ orderId, userId }: OrderDetailAdm
   );
 }
 
+interface InfoItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}
+
 function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
   return (
     <div className="rounded-xl border border-border bg-surface px-4 py-3">
@@ -232,6 +343,11 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
       <p className="text-sm font-medium leading-relaxed text-foreground">{value}</p>
     </div>
   );
+}
+
+interface ServiceBadgeProps {
+  active?: boolean;
+  label: string;
 }
 
 function ServiceBadge({ active, label }: ServiceBadgeProps) {

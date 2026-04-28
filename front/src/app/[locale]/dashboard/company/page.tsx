@@ -6,23 +6,13 @@ import CompanyWelcomeCard from '@/components/dashboardCompany/CompanyWelcomeCard
 import CompanyProfileCard from '@/components/dashboardCompany/CompanyProfileCard';
 import CompanyQuickAccess, { companyModules } from '@/components/dashboardCompany/CompanyQuickAccess';
 import CompanyAccountDetails, { companyAccountDetails } from '@/components/dashboardCompany/CompanyAccountDetails';
-
-type DashboardCompanyData = {
-  email: string;
-  company_name: string;
-  industry: string;
-  contact_name: string;
-  phone: string;
-  address: string;
-  country: string;
-  plan: string;
-  image: string;
-};
+import { DashboardCompanyData } from '@/types/types';
 
 export default function DashboardCompanyPage() {
   const { userData, loading } = useAuth();
   const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
 
   useEffect(() => {
     const company = userData?.user?.company;
@@ -44,6 +34,40 @@ export default function DashboardCompanyPage() {
       image: company.profile_image || '',
     });
   }, [userData]);
+
+  useEffect(() => {
+    async function loadActiveOrdersCount() {
+      if (!userData?.user?.id) {
+        setActiveOrdersCount(0);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.message || 'Error al obtener órdenes');
+        }
+
+        const activeStatuses = ['pending', 'paid', 'processing', 'shipped'];
+
+        const activeOrders = data.filter((order: any) => activeStatuses.includes(order.status?.toLowerCase() || ''));
+
+        setActiveOrdersCount(activeOrders.length);
+      } catch (error) {
+        console.error('Error al cargar pedidos activos:', error);
+        setActiveOrdersCount(0);
+      }
+    }
+
+    loadActiveOrdersCount();
+  }, [userData?.user?.id]);
 
   const handleCompanyImageSelected = async (file: File) => {
     if (!userData?.user?.id) return;
@@ -128,7 +152,7 @@ export default function DashboardCompanyPage() {
             plan: companyData.plan,
             image: companyData.image,
           }}
-          moduleCount={companyModules.length}
+          activeOrdersCount={activeOrdersCount}
           uploadingImage={uploadingImage}
           onImageSelected={handleCompanyImageSelected}
         />

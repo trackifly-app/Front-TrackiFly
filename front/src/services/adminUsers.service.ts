@@ -13,7 +13,7 @@ const handleError = (message: string) => {
 };
 
 async function request<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${APIURL}${endpoint}`, {
+  const response = await fetch(`${APIURL}${endpoint}?page=1&limit=50`, {
     method: 'GET',
     credentials: 'include',
     cache: 'no-store',

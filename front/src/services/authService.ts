@@ -67,11 +67,32 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
   try {
     const response = await fetch(`${APIURL}/auth/register-operator`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       credentials: 'include',
       body: JSON.stringify(employeeData),
     });
-    return response.ok;
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Error al registrar empleado:', data);
+      throw new Error(
+        Array.isArray(data.message)
+          ? data.message.join(', ')
+          : data.message || 'Error al registrar empleado'
+      );
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Empleado registrado',
+      text: 'El empleado ha sido registrado correctamente.',
+      confirmButtonColor: '#2a9d8f',
+    });
+
+    return true;
   } catch (error: unknown) {
     handleError(error instanceof Error ? error.message : 'Error en el registro');
     return false;
