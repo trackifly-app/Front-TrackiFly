@@ -23,6 +23,7 @@ export interface ShipmentValues {
   urgent: boolean;
   unit: string;
   distance: number;
+  amount?: number;
 }
 
 export interface ShipmentErrors {
