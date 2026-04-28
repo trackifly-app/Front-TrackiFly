@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye, PackageSearch, X } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Eye, PackageSearch, X } from 'lucide-react';
 
 import AdminMetricCard from '@/components/dashboardAdmin/AdminMetricCard';
 
@@ -50,6 +51,13 @@ export default function OrdersCompanyView() {
     <>
       <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-0">
         <section className="rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
+          <div className="mb-8">
+            <Link href="/dashboard/company" className="inline-flex items-center gap-2 text-sm font-bold text-primary transition-all duration-300 hover:-translate-x-1 hover:underline">
+              <ArrowLeft size={18} />
+              Volver al dashboard empresa
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
             <div>
               <p className="mb-2 font-semibold text-primary">Gestión operativa</p>
@@ -102,8 +110,9 @@ function CompanyOrdersTable({ orders, onViewDetails }: { orders: AdminApiOrder[]
       <div>
         {orders.map((order) => {
           const pkg = order.package || {};
-          const createdAt = order.createdAt
-            ? new Date(order.createdAt).toLocaleDateString('es-PE', {
+
+          const createdAt = order.created_at
+            ? new Date(order.created_at).toLocaleDateString('es-PE', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
@@ -205,7 +214,7 @@ function OrderDetailsModal({ order, onClose }: { order: any; onClose: () => void
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs uppercase text-muted">Precio del envio</p>
+                    <p className="text-xs uppercase text-muted">Precio del envío</p>
 
                     <p className="font-medium">$ {order.price || '0.00'}</p>
                   </div>

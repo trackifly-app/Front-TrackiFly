@@ -440,3 +440,40 @@ export interface CompanyModule {
   icon: LucideIcon;
   href?: string;
 }
+
+export interface CompanyEmployeeApiUser {
+  id: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  role: {
+    id: string;
+    name: string;
+  };
+  profile: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    birthdate: string;
+    gender: string;
+    phone: string;
+    address: string;
+    country: string;
+    profile_image: string;
+  };
+  company: null;
+  parentCompany: {
+    id: string;
+    email: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    role: {
+      id: string;
+      name: string;
+    };
+    status: string;
+  } | null;
+}

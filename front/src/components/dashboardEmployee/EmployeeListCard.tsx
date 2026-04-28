@@ -1,53 +1,132 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { Employee } from '@/types/types';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function EmployeeListCard() {
-  // Datos de ejemplo - luego los reemplazarás con datos reales de tu API o estado
-  const employees = [
-    { id: 1, name: 'Juan Pérez García', email: 'juan.perez@trackifly.com', phone: '+51 987 654 321', country: 'Perú', status: 'Activo' },
-    { id: 2, name: 'María López Sánchez', email: 'maria.lopez@trackifly.com', phone: '+51 912 345 678', country: 'Perú', status: 'Activo' },
-    { id: 3, name: 'Carlos Ramírez Torres', email: 'carlos.ramirez@trackifly.com', phone: '+51 956 789 012', country: 'Chile', status: 'Inactivo' },
-    // Agrega más según necesites
-  ];
+  const { userData, loading: authLoading } = useAuth();
+
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
+
+  useEffect(() => {
+    async function loadEmployees() {
+      if (authLoading) return;
+
+      try {
+        setLoadingEmployees(true);
+
+        const companyId = userData?.user.company?.id;
+
+        if (!companyId) {
+          setEmployees([]);
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/users`, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Error al obtener empleados');
+        }
+
+        const companyEmployees = data.filter((user: Employee) => {
+          const roleName = user.role?.name?.toLowerCase();
+
+          const isOperator = roleName === 'operator';
+
+          const belongsToCompany = user.parentCompany?.id === companyId;
+
+          return isOperator && belongsToCompany;
+        });
+
+        setEmployees(companyEmployees);
+      } catch (error) {
+        console.error('Error al cargar empleados:', error);
+        setEmployees([]);
+      } finally {
+        setLoadingEmployees(false);
+      }
+    }
+
+    loadEmployees();
+  }, [userData, authLoading]);
+
+  const loading = authLoading || loadingEmployees;
 
   return (
-    <div className="rounded-3xl bg-surface border border-border p-8 shadow-sm">
-      <div className="flex items-center justify-between mb-8">
+    <div className="rounded-3xl border border-border bg-surface p-8 shadow-sm">
+      <div className="mb-8 flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Lista de Empleados</h2>
+
         <p className="text-sm text-muted">
-          Total: <span className="font-semibold text-foreground">{employees.length} empleados</span>
+          Total:{' '}
+          <span className="font-semibold text-foreground">
+            {employees.length} empleado{employees.length !== 1 ? 's' : ''}
+          </span>
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-4 px-4 font-medium text-muted">Nombre</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">Email</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">Teléfono</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">País</th>
-              <th className="text-left py-4 px-4 font-medium text-muted">Estado</th>
-              <th className="w-24"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {employees.map((employee) => (
-              <tr key={employee.id} className="hover:bg-surface-muted/60 transition-colors">
-                <td className="py-5 px-4 font-medium text-foreground">{employee.name}</td>
-                <td className="py-5 px-4 text-muted">{employee.email}</td>
-                <td className="py-5 px-4 text-muted">{employee.phone}</td>
-                <td className="py-5 px-4 text-muted">{employee.country}</td>
-                <td className="py-5 px-4">
-                  <span className={`inline-block px-4 py-1 text-xs font-medium rounded-full ${employee.status === 'Activo' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{employee.status}</span>
-                </td>
-                <td className="py-5 px-4 text-right">
-                  <button className="text-primary hover:text-primary-hover font-medium text-sm transition-colors">Ver</button>
-                </td>
+      {loading ? (
+        <div className="rounded-2xl border border-border bg-surface-muted p-6 text-sm text-muted">Cargando empleados...</div>
+      ) : employees.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-surface-muted p-10 text-center text-sm text-muted">No hay empleados registrados para esta empresa.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="px-4 py-4 text-left font-medium text-muted">Nombre</th>
+                <th className="px-4 py-4 text-left font-medium text-muted">Email</th>
+                <th className="px-4 py-4 text-left font-medium text-muted">Teléfono</th>
+                <th className="px-4 py-4 text-left font-medium text-muted">País</th>
+                <th className="px-4 py-4 text-left font-medium text-muted">Estado</th>
+                <th className="w-24" />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+
+            <tbody className="divide-y divide-border">
+              {employees.map((employee) => {
+                const firstName = employee.profile?.first_name || '';
+                const lastName = employee.profile?.last_name || '';
+
+                const fullName = `${firstName} ${lastName}`.trim() || 'Sin nombre';
+
+                const isActive = employee.is_active === true;
+                const statusLabel = isActive ? 'Activo' : 'Inactivo';
+
+                return (
+                  <tr key={employee.id} className="transition-colors hover:bg-surface-muted/60">
+                    <td className="px-4 py-5 font-medium text-foreground">{fullName}</td>
+
+                    <td className="px-4 py-5 text-muted">{employee.email || 'Sin email'}</td>
+
+                    <td className="px-4 py-5 text-muted">{employee.profile?.phone || 'Sin teléfono'}</td>
+
+                    <td className="px-4 py-5 text-muted">{employee.profile?.country || 'Sin país'}</td>
+
+                    <td className="px-4 py-5">
+                      <span className={`inline-block rounded-full px-4 py-1 text-xs font-medium ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{statusLabel}</span>
+                    </td>
+
+                    <td className="px-4 py-5 text-right">
+                      <button className="text-sm font-medium text-primary transition-colors hover:text-primary-hover">Ver</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
