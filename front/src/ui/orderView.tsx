@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -11,8 +11,11 @@ import {
 } from "@react-google-maps/api";
 
 import { validateShipment } from "@/lib/validates";
-import { createOrder } from "@/services/orderService";
+import { createOrder, createPayment } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
+
+import { useFeedback } from "@/context/feedback/useFeedback";
+import { CreateOrderResponse } from "@/types/backend";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
@@ -32,7 +35,12 @@ const RECARGOS = {
   URGENTE: 0.5,
 };
 const OrderView = () => {
+  const router = useRouter();
+  const { locale } = useParams();
+
   const { userData } = useAuth();
+  //error verde, success/rojo
+  const { showToast } = useFeedback();
   // ESTADO PARA EL BOTÓN DEL OBELISCO
   const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
 
@@ -248,14 +256,16 @@ const OrderView = () => {
       }}
       onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          alert(
+          // cambie los alerts por los showtoasts
+          showToast(
             "Selecciona origen y destino válidos en el mapa para calcular la distancia.",
+            "warning",
           );
           setSubmitting(false);
           return;
         }
         if (!userData?.user?.id) {
-          alert("Debes estar logueado para realizar un envío.");
+          showToast("Debes estar logueado para realizar un envío.", "error");
           setSubmitting(false);
           return;
         }
@@ -267,30 +277,41 @@ const OrderView = () => {
             ...values,
             distance,
             userId: userData.user.id,
-            price: precioFinal.toFixed(2),
+            price: Number(precioFinal.toFixed(2)),
           };
-          const response = await createOrder(orderToSave);
-          {
-            /*========== REDIRECCION DE RUTA POR ROL LUEGO DEL PEDIDO EXITOSO ======= */
-          }
-          const roleName = userData?.user?.role?.name;
-          let redirectPath = "/dashboard/user";
+          // se elimino el bloque que creaba la orden
+          // detectaba el rol, mostraba el alert y lo mandaba a
+          // dashboard. Ahora: orden + pago → redirección a MercadoPago, mercado pago necesita: window.location.href = paymentUrl;
+          const order = await createOrder(orderToSave);
 
-          if (roleName === "company" || roleName === "operator") {
-            redirectPath = "/dashboard/company";
-          } else if (roleName === "admin") {
-            redirectPath = "/dashboard/admin";
-          }
-          if (response) {
-            alert("¡Pedido confirmado con éxito!");
-            router.push(redirectPath);
-          }
-          {
-            /*=============================================================== */
-          }
+          const payment = await createPayment({
+            orderId: order.id,
+            userId: userData.user.id,
+          });
+
+          window.open(payment.checkout_url, "_blank");
+
+          // pequeño delay para no romper flujo
+          // redirije a dashboard despues del pago
+          setTimeout(() => {
+            const role = userData?.user?.role?.name;
+
+            let dashboardPath = "";
+
+            if (role === "admin") {
+              dashboardPath = `/${locale}/dashboard/admin`;
+            } else if (role === "company" || role === "operator") {
+              dashboardPath = `/${locale}/dashboard/company`;
+            } else {
+              dashboardPath = `/${locale}/dashboard/user`;
+            }
+
+            router.push(dashboardPath);
+          }, 1000);
         } catch (error: any) {
-          alert(
+          showToast(
             error.message || "Hubo un problema al procesar el pago. Reintentá.",
+            "error",
           );
         } finally {
           setSubmitting(false);
