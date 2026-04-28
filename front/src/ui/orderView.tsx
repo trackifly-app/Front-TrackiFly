@@ -241,7 +241,7 @@ const OrderView = () => {
             total_amount: pConDesc.toFixed(2), 
           };
           const response = await createOrder(orderToSave);
-          {/*========== REDIRECCION DE RUTA POR ROL LUEGO DEL PEDIDO EXITOSO======= */}
+          {/*========== REDIRECCION DE RUTA POR ROL LUEGO DEL PEDIDO EXITOSO ======= */}
           const roleName = userData?.user?.role?.name;
           let redirectPath = '/dashboard/user';
           
