@@ -397,6 +397,16 @@ const OrderView = () => {
                           </label>
                         ))}
                       </div>
+                      {(userData?.user?.role?.name === 'company'||userData?.user?.role?.name === 'operator') && (
+  <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 rounded-r-md">
+    <p className="text-sm font-bold text-primary uppercase tracking-wider">
+      Beneficio Exclusivo: Empresa
+    </p>
+    <p className="text-xs text-muted-foreground">
+      Se esta aplicando un 20% de descuento automático a tu tarifa solo por ser parte de nuestra comunidad de empresas.
+    </p>
+  </div>
+)}
                       <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
                         <span className="font-black italic text-lg uppercase">Neto:</span>
                         <span className="font-black text-primary">

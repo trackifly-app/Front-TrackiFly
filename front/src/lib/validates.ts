@@ -7,11 +7,7 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 const PHONE_REGEX = /^[0-9]{7,15}$/;
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
 
-export const CompanyPlan = [
-  { id: 'free', name: 'Plan Free' },
-  { id: 'basic', name: 'Plan Basic' },
-  { id: 'pro', name: 'Plan Pro' },
-];
+
 
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
