@@ -321,15 +321,12 @@ const OrderView = () => {
                             name="category_id"
                             className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? "border-red-500" : ""}`}
                           >
-                            {backendCategories.length > 0 ? (
-                              backendCategories.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                  {c.name}
-                                </option>
-                              ))
-                            ) : (
-                              <option disabled>Cargando...</option>
-                            )}
+                            <option value="">Seleccioná una categoría</option>
+                            {backendCategories.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
                           </Field>
                           {errors.category_id &&
                             (touched.category_id || submitCount > 0) && (
