@@ -23,27 +23,43 @@ export async function getOrdersByCompanyUserId(userId: string): Promise<CompanyA
 }
 
 /**
- * Lógica "Fan-out": Obtiene los empleados de la empresa y 
- * luego consulta los pedidos de cada uno en paralelo.
+ * Obtiene los pedidos de la cuenta empresa y de todos sus empleados.
  */
-export async function getOrdersByCompanyEmployees(): Promise<CompanyApiOrder[]> {
+export async function getOrdersByCompanyEmployees(companyId: string): Promise<CompanyApiOrder[]> {
   try {
-    // 1. Llamada sin argumentos (según tu definición del servicio)
+    // Traemos también los pedidos creados por la propia cuenta empresa.
+    const companyOrdersPromise = getOrdersByCompanyUserId(companyId).catch(() => []);
+
+    // Obtenemos todos los empleados/usuarios disponibles.
     const employees = await getCompanyEmployees();
 
-    if (!employees || employees.length === 0) return [];
+    if (!employees || employees.length === 0) {
+      return await companyOrdersPromise;
+    }
 
-    // 2. Opcional: Filtrar solo por el rol 'operator' si el backend devuelve otros roles
-    const operators = employees.filter(emp => emp.role?.name === 'operator');
+    // Filtramos solo los operadores que pertenezcan a la empresa indicada.
+    const operators = employees.filter((emp) => {
+      const roleName = emp.role?.name?.toLowerCase?.() || '';
+      const belongsToCompany = emp.parentCompany?.id === companyId;
 
-    // 3. Consultar pedidos en paralelo
-    const ordersPromises = operators.map((op) => 
-      getOrdersByCompanyUserId(op.id).catch(() => [])
+      return roleName === 'operator' && belongsToCompany;
+    });
+
+    if (operators.length === 0) {
+      return await companyOrdersPromise;
+    }
+
+    // Consultamos los pedidos de los empleados en paralelo.
+    const employeeOrdersPromise = Promise.all(
+      operators.map((op) => getOrdersByCompanyUserId(op.id).catch(() => [])),
     );
 
-    const results = await Promise.all(ordersPromises);
-    return results.flat();
-    
+    const [companyOrders, employeeOrders] = await Promise.all([
+      companyOrdersPromise,
+      employeeOrdersPromise,
+    ]);
+
+    return [...companyOrders, ...employeeOrders.flat()];
   } catch (error) {
     console.error('Error al unificar pedidos:', error);
     return [];
