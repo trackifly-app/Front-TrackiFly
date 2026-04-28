@@ -38,6 +38,7 @@ export default function CalcularEnvioPage() {
     dangerous: false,
     cooled: false,
     urgent: false,
+    customerType: 'user',
   };
 
   return (
@@ -66,10 +67,13 @@ export default function CalcularEnvioPage() {
         if (values.dangerous) porcentajeExtra += RECARGOS.PELIGROSO;
         if (values.cooled) porcentajeExtra += RECARGOS.REFRIGERADO;
         if (values.urgent) porcentajeExtra += RECARGOS.URGENTE;
-
+        //============ calculo total presupuesto===============
         const montoRecargo = precioBase * porcentajeExtra;
         const precioFinal = precioBase + montoRecargo;
-
+        const subtotal=precioBase+montoRecargo;
+        const descuentoEmpresa = values.customerType === 'company' ? subtotal * 0.2 : 0;
+        const totalFinal = subtotal - descuentoEmpresa;
+        //===========================================================================
         return (
           <Form className="bg-surface border border-border rounded-2xl p-3 shadow-sm w-full">
             <h2 className="text-2xl font-semibold text-foreground mb-2">Calculadora de Envío</h2>
@@ -112,34 +116,50 @@ export default function CalcularEnvioPage() {
                   <Field name="depth" type="number" placeholder={`Profundidad (${values.unit})`} className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                   <Field name="weight" type="number" placeholder="Peso (kg)" className="w-full rounded-lg border border-border bg-surface-muted text-foreground placeholder-muted px-2 py-1.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30" />
                 </div>
-
+                {/*======== Check List calculadora ======== */}
                 <hr className="border-border" />
+                <div className="grid grid-cols-2 gap-3">
+                    <fieldset className="space-y-1">
+                      <legend className="text-sm font-semibold text-foreground">Soy:</legend>
 
-                <fieldset className="space-y-1">
-                  <legend className="text-sm font-semibold text-foreground">Extras:</legend>
+                      <div className="space-y-1 text-xs text-muted">
+                        <label className="flex items-center gap-2">
+                          <Field type="radio" name="customerType" value="user" />
+                          Usuario
+                        </label>
 
-                  <div className="space-y-1 text-xs text-muted">
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="fragile" />
-                      Frágil
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="dangerous" />
-                      Peligroso
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="cooled" />
-                      Refrigerado
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <Field type="checkbox" name="urgent" />
-                      Urgente
-                    </label>
-                  </div>
-                </fieldset>
+                        <label className="flex items-center gap-2">
+                          <Field type="radio" name="customerType" value="company" />
+                          Empresa
+                        </label>
+                      </div>
+                    </fieldset>
+                  <fieldset className="space-y-1">
+                    <legend className="text-sm font-semibold text-foreground">Extras:</legend>
+                    <div className="space-y-1 text-xs text-muted">
+                      <label className="flex items-center gap-2">
+                        <Field type="checkbox" name="fragile" />
+                        Frágil
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <Field type="checkbox" name="dangerous" />
+                        Peligroso
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <Field type="checkbox" name="cooled" />
+                        Refrigerado
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <Field type="checkbox" name="urgent" />
+                        Urgente
+                      </label>
+                    </div>
+                  </fieldset>
+                 </div> 
+                 {/*==================================== */}
               </div>
             </div>
-
+            {/*============= SECCION PRESUPUESTO DE LA CALCULADORA ================*/}          
             <div className="mt-3 border-t border-border pt-3 grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
               <section className="md:col-span-2 bg-surface-muted border border-border rounded-xl p-3 space-y-1 min-h-22.5">
                 <h3 className="text-base font-semibold text-foreground">Presupuesto</h3>
@@ -154,11 +174,11 @@ export default function CalcularEnvioPage() {
                 </p>
 
                 {porcentajeExtra > 0 && <p className="text-xs text-primary">Recargos: +${montoRecargo.toLocaleString('es-AR')}</p>}
-
-                <h2 className="text-xl font-bold text-foreground">Total: ${precioFinal.toLocaleString('es-AR')}</h2>
+                {values.customerType === 'company' && (<p className="text-xs text-primary">Aplica descuento del 20%</p>)} 
+                <h2 className="text-xl font-bold text-foreground">Total: ${totalFinal.toLocaleString('es-AR')}</h2>
               </section>
-
-              {/*======= BOTONES PRINCIPALES ================*/}
+              {/*====================================================================*/}
+              {/*============= REPORTE PDF ================*/}
               <div className="flex flex-col md:flex-row md:justify-center md:items-center gap-2 h-full">
                 
                 <button
@@ -169,8 +189,9 @@ export default function CalcularEnvioPage() {
                       volumen,
                       precioBase,
                       montoRecargo,
-                      precioFinal,
-                      pesoNum
+                      descuentoEmpresa,
+                      totalFinal,
+                      pesoNum,
                     )
                   }
                   className="border border-border bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full md:w-auto"
@@ -178,7 +199,7 @@ export default function CalcularEnvioPage() {
                   Descargar cotización
                 </button>
               </div>
-              {/*======= FIN BOTONES PRINCIPALES ================*/}
+              {/*======================================*/}
             </div>
           </Form>
         );
