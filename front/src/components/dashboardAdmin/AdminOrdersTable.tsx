@@ -62,7 +62,7 @@ export default function AdminOrdersTable({ orders }: AdminOrdersTableProps) {
                   <td className="px-5 py-4">
                     <p className="font-semibold text-foreground">{order.package?.name || 'Paquete sin nombre'}</p>
 
-                    <p className="mt-1 line-clamp-1 text-xs text-muted">ID: {order.id}</p>
+                    <p className="mt-1 line-clamp-1 text-xs text-muted">Código de Seguiminento: {order.tracking_code}</p>
                   </td>
 
                   <td className="px-5 py-4">

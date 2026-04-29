@@ -142,7 +142,7 @@ function CompanyOrdersTable({ orders, onViewDetails }: { orders: AdminApiOrder[]
             <div key={order.id} className="grid grid-cols-[1.6fr_0.7fr_0.8fr_0.7fr] items-center border-b border-border px-5 py-4 last:border-b-0">
               <div>
                 <p className="font-bold text-foreground">{pkg.name || 'Sin nombre'}</p>
-                <p className="mt-1 text-xs text-muted">ID: {order.id}</p>
+                <p className="mt-1 text-xs text-muted">Código de Seguiminento: {order.tracking_code}</p>
               </div>
 
               <div>
