@@ -343,6 +343,7 @@ export interface AdminOrderPackage {
 
 export interface AdminApiOrder {
   id: string;
+  tracking_code: string;
   status: string;
   pickup_direction: string;
   delivery_direction: string;
