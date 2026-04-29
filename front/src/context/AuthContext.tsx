@@ -1,12 +1,21 @@
-'use client';
-import { IAuthContextProps, IUserSession } from '@/interfaces/shipment';
-import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { logout as logoutService } from '@/services/authService';
-import { signOut } from 'next-auth/react';
+"use client";
+import { IAuthContextProps, IUserSession } from "@/interfaces/shipment";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from "react";
+import { logout as logoutService } from "@/services/authService";
+import { signOut } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const AuthContext = createContext<IAuthContextProps & { loading: boolean; checkSession: () => Promise<void> }>({
+export const AuthContext = createContext<
+  IAuthContextProps & { loading: boolean; checkSession: () => Promise<void> }
+>({
   userData: null,
   loading: true,
   setUserData: () => {},
@@ -23,8 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
 
       const res = await fetch(`${API_URL}/auth/me`, {
-        credentials: 'include',
-        cache: 'no-store',
+        credentials: "include",
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -36,30 +45,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (basicData?.id) {
         const userRes = await fetch(`${API_URL}/users/${basicData.id}`, {
-          credentials: 'include',
-          cache: 'no-store',
+          credentials: "include",
+          cache: "no-store",
         });
 
         const fullData = userRes.ok ? await userRes.json() : basicData;
 
-        setUserData({
+        const userSession = {
           user: {
             id: fullData.id,
             email: fullData.email,
             role: {
-              id: fullData.role?.id || '',
-              name: fullData.role?.name || 'user',
+              id: fullData.role?.id || "",
+              name: fullData.role?.name || "user",
             },
             profile: {
-              id: fullData.profile?.id || '',
-              first_name: fullData.profile?.first_name || '',
-              last_name: fullData.profile?.last_name || '',
-              birthdate: fullData.profile?.birthdate || '',
-              gender: fullData.profile?.gender || '',
-              phone: fullData.profile?.phone || '',
-              address: fullData.profile?.address || '',
-              country: fullData.profile?.country || '',
-              profile_image: fullData.profile?.profile_image || '',
+              id: fullData.profile?.id || "",
+              first_name: fullData.profile?.first_name || "",
+              last_name: fullData.profile?.last_name || "",
+              birthdate: fullData.profile?.birthdate || "",
+              gender: fullData.profile?.gender || "",
+              phone: fullData.profile?.phone || "",
+              address: fullData.profile?.address || "",
+              country: fullData.profile?.country || "",
+              profile_image: fullData.profile?.profile_image || "",
             },
             // Mapeo limpio de company
             company: fullData.company
@@ -76,10 +85,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 }
               : undefined,
           },
-        } as IUserSession);
+        } as IUserSession;
+
+        setUserData(userSession);
+
+        // salva el rol para uso inmediato
+        if (userSession.user.role.name) {
+          localStorage.setItem("userRole", userSession.user.role.name);
+          localStorage.setItem("userId", userSession.user.id);
+        }
       }
     } catch (error) {
-      console.error('Error al recuperar la sesión:', error);
+      console.error("Error al recuperar la sesión:", error);
       setUserData(null);
     } finally {
       setLoading(false);
@@ -87,17 +104,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSession();
   }, [fetchSession]);
 
   const handleLogout = async () => {
     try {
+      localStorage.setItem("manualLogout", "true");
       await logoutService();
       setUserData(null);
-      await signOut({ redirect: false });
-      window.location.href = '/';
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userId");
+      // ← limpiar todas las claves de google_synced
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith("google_synced_")) {
+          localStorage.removeItem(key);
+        }
+      });
+      await signOut({ callbackUrl: "/" });
     } catch (error) {
-      console.error('Error en Logout:', error);
+      console.error("Error en Logout:", error);
     }
   };
 

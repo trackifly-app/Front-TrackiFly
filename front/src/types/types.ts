@@ -134,3 +134,10 @@ export type DashboardCompanyData = {
   plan: string;
   image: string;
 };
+
+export type NavLink = {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  mobileIcon: React.ReactNode;
+};

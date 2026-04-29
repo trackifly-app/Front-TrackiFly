@@ -15,14 +15,18 @@ export default function GoogleSessionSync() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (localStorage.getItem("manualLogout")) {
+      localStorage.removeItem("manualLogout");
+      synced.current = false;
+      return;
+    }
     if (status !== "authenticated" || !session?.user) return;
     if (synced.current) return;
 
     const sessionKey = `google_synced_${session.user.email}`;
-    if (sessionStorage.getItem(sessionKey)) return;
-
+    if (localStorage.getItem(sessionKey)) return;
     synced.current = true;
-    sessionStorage.setItem(sessionKey, "true");
+    localStorage.setItem(sessionKey, "true");
 
     // ← leer desde dónde vino: login o register
     const googleMode = searchParams.get("googleMode") || "login";
@@ -46,9 +50,15 @@ export default function GoogleSessionSync() {
 
         await checkSession();
 
+        // Save user role to localStorage after session check
+        const roleFromContext = userData?.user?.role?.name;
+        if (roleFromContext) {
+          localStorage.setItem("userRole", roleFromContext);
+        }
+
         // Vino desde register pero ya tenía cuenta
         if (googleMode === "register" && !isNew) {
-          sessionStorage.removeItem(sessionKey);
+          localStorage.removeItem(sessionKey);
           synced.current = false;
 
           Swal.fire({
@@ -58,7 +68,9 @@ export default function GoogleSessionSync() {
             confirmButtonColor: "#e76f51",
             timer: 3000,
             showConfirmButton: false,
-          }).then(() => router.push("/"));
+          }).then(() => {
+            window.location.href = "/";
+          });
           return;
         }
 
@@ -79,13 +91,15 @@ export default function GoogleSessionSync() {
             cancelButtonColor: "#6b7280",
           }).then((result) => {
             if (result.isConfirmed) {
-              localStorage.setItem(
-                `profile_discount_${userData?.user?.id}`,
-                "true",
-              );
-              router.push(`/es/dashboard/user`);
+              // ← leer el id del localStorage o esperar al contexto
+              const userId =
+                userData?.user?.id || localStorage.getItem("userId");
+              if (userId) {
+                localStorage.setItem(`profile_discount_${userId}`, "true");
+              }
+              window.location.href = `/es/dashboard/user`;
             } else {
-              router.push("/");
+              window.location.href = "/";
             }
           });
           return;
@@ -100,7 +114,9 @@ export default function GoogleSessionSync() {
             confirmButtonColor: "#e76f51",
             timer: 3000,
             showConfirmButton: false,
-          }).then(() => router.push("/"));
+          }).then(() => {
+            window.location.href = "/";
+          });
           return;
         }
 
@@ -112,14 +128,24 @@ export default function GoogleSessionSync() {
           confirmButtonColor: "#e76f51",
           timer: 2500,
           showConfirmButton: false,
-        }).then(() => router.push("/"));
+        }).then(() => {
+          window.location.href = "/";
+        });
       } catch (err) {
         console.error("Error sincronizando sesión de Google:", err);
       }
     };
 
     void syncSession();
-  }, [status, session, router, checkSession, searchParams, userData?.user?.id]);
+  }, [
+    status,
+    session,
+    router,
+    checkSession,
+    searchParams,
+    userData?.user?.id,
+    userData?.user?.role?.name,
+  ]);
 
   return null;
 }

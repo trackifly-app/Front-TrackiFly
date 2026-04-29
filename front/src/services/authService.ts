@@ -141,6 +141,11 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
     // Log para verificar que el login devolvió los datos correctamente
     console.log('Login exitoso. Datos recibidos:', data);
 
+    // Save user role to localStorage for immediate availability
+    if (data?.user?.role?.name) {
+      localStorage.setItem('userRole', data.user.role.name);
+    }
+
     return data;
   } catch (error: any) {
     console.error('Error en el servicio de login:', error.message);

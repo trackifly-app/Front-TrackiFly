@@ -517,3 +517,9 @@ export interface CompanyApiOrder {
     };
   };
 }
+type NavLink = {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  mobileIcon: React.ReactNode;
+};
