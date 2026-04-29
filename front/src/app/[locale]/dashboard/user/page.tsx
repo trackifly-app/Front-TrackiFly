@@ -1,42 +1,36 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import UserProfileCard from "@/components/dashboardUser/UserProfileCard";
-import ActiveOrders from "@/components/dashboardUser/ActiveOrders";
-import OrderHistory from "@/components/dashboardUser/OrderHistory";
-import { useAuth } from "@/context/AuthContext";
-import type { ActiveOrder, UserProfileCardProps } from "@/types/types";
-import {
-  FINAL_ORDER_STATUSES,
-  ACTIVE_ORDER_STATUSES,
-} from "@/constants/orderStatus";
+import { useEffect, useState } from 'react';
+import UserProfileCard from '@/components/dashboardUser/UserProfileCard';
+import ActiveOrders from '@/components/dashboardUser/ActiveOrders';
+import OrderHistory from '@/components/dashboardUser/OrderHistory';
+import { useAuth } from '@/context/AuthContext';
+import type { ActiveOrder, UserProfileCardProps } from '@/types/types';
+import { FINAL_ORDER_STATUSES, ACTIVE_ORDER_STATUSES, type OrderStatus } from '@/constants/orderStatus';
 
-type User = UserProfileCardProps["user"];
+type ActiveOrderStatus = (typeof ACTIVE_ORDER_STATUSES)[number];
+type FinalOrderStatus = (typeof FINAL_ORDER_STATUSES)[number];
+
+type User = UserProfileCardProps['user'];
 
 // Mapeo unificado para que ambos componentes tengan toda la info necesaria
 const mapToOrder = (order: any): ActiveOrder => ({
   ...order,
   id: String(order.id),
-  tracking_code:
-    order.tracking_code ||
-    `TRK-${String(order.id).substring(0, 8).toUpperCase()}`,
+  tracking_code: order.tracking_code || `TRK-${String(order.id).substring(0, 8).toUpperCase()}`,
   status: order.status,
-  pickup_direction: order.pickup_direction || "No disponible",
-  delivery_direction: order.delivery_direction || "No disponible",
+  pickup_direction: order.pickup_direction || 'No disponible',
+  delivery_direction: order.delivery_direction || 'No disponible',
 });
 
-const mapSessionUserToCard = (
-  userData: NonNullable<ReturnType<typeof useAuth>["userData"]>,
-): User => ({
-  email: userData.user.email || "No disponible",
-  name:
-    `${userData.user.profile?.first_name || ""} ${userData.user.profile?.last_name || ""}`.trim() ||
-    "Usuario",
-  address: userData.user.profile?.address || "No disponible",
-  phone: userData.user.profile?.phone || "No disponible",
-  birthDate: userData.user.profile?.birthdate || "No disponible",
-  gender: userData.user.profile?.gender || "No disponible",
-  country: userData.user.profile?.country || "No disponible",
+const mapSessionUserToCard = (userData: NonNullable<ReturnType<typeof useAuth>['userData']>): User => ({
+  email: userData.user.email || 'No disponible',
+  name: `${userData.user.profile?.first_name || ''} ${userData.user.profile?.last_name || ''}`.trim() || 'Usuario',
+  address: userData.user.profile?.address || 'No disponible',
+  phone: userData.user.profile?.phone || 'No disponible',
+  birthDate: userData.user.profile?.birthdate || 'No disponible',
+  gender: userData.user.profile?.gender || 'No disponible',
+  country: userData.user.profile?.country || 'No disponible',
   image: userData.user.profile?.profile_image || undefined,
 });
 
@@ -54,7 +48,7 @@ export default function DashboardUserPage() {
       if (sessionLoading) return;
 
       if (!userData?.user?.id) {
-        setSessionError("No hay sesión activa");
+        setSessionError('No hay sesión activa');
         setLoadingOrders(false);
         return;
       }
@@ -65,33 +59,32 @@ export default function DashboardUserPage() {
         setOrdersError(null);
         setUser(mapSessionUserToCard(userData));
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`,
-          {
-            credentials: "include",
-          },
-        );
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`, {
+          credentials: 'include',
+        });
 
-        if (!response.ok) throw new Error("Error al obtener las órdenes");
+        if (!response.ok) throw new Error('Error al obtener las órdenes');
 
         const rawOrders: any[] = await response.json();
         const allMapped = rawOrders.map(mapToOrder);
 
         // Filtrado corregido
         setActiveOrders(
-          allMapped.filter((o) =>
-            ACTIVE_ORDER_STATUSES.includes(o.status?.toLowerCase() || ""),
-          ),
+          allMapped.filter((o) => {
+            const status = o.status?.toLowerCase();
+            return status ? ACTIVE_ORDER_STATUSES.includes(status as ActiveOrderStatus) : false;
+          }),
         );
 
         setOrderHistory(
-          allMapped.filter((o) =>
-            FINAL_ORDER_STATUSES.includes(o.status?.toLowerCase() || ""),
-          ),
+          allMapped.filter((o) => {
+            const status = o.status?.toLowerCase();
+            return status ? FINAL_ORDER_STATUSES.includes(status as FinalOrderStatus) : false;
+          }),
         );
       } catch (err) {
-        console.error("Error en Dashboard:", err);
-        setOrdersError("No se pudieron cargar los pedidos del usuario");
+        console.error('Error en Dashboard:', err);
+        setOrdersError('No se pudieron cargar los pedidos del usuario');
       } finally {
         setLoadingOrders(false);
       }
@@ -127,24 +120,16 @@ export default function DashboardUserPage() {
         <section className="bg-surface rounded-3xl shadow-sm border border-border p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <p className="text-primary font-semibold mb-2">
-                Dashboard de usuario
-              </p>
+              <p className="text-primary font-semibold mb-2">Dashboard de usuario</p>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                Bienvenido, {userData?.user.profile?.first_name || "Usuario"}{" "}
-                {userData?.user.profile?.last_name || "Usuario"}
+                Bienvenido, {userData?.user.profile?.first_name || 'Usuario'} {userData?.user.profile?.last_name || 'Usuario'}
               </h1>
-              <p className="text-muted mt-2">
-                Aquí puedes revisar tu información, tus pedidos en camino y tu
-                historial.
-              </p>
+              <p className="text-muted mt-2">Aquí puedes revisar tu información, tus pedidos en camino y tu historial.</p>
             </div>
 
             <div className="bg-primary/10 border border-primary/30 rounded-2xl px-5 py-4">
               <p className="text-sm text-muted">Pedidos activos</p>
-              <p className="text-3xl font-bold text-primary">
-                {activeOrders.length}
-              </p>
+              <p className="text-3xl font-bold text-primary">{activeOrders.length}</p>
             </div>
           </div>
         </section>
@@ -156,7 +141,7 @@ export default function DashboardUserPage() {
         )}
 
         {/* Componentes de información */}
-        {user && <UserProfileCard user={user} />}
+        {user && <UserProfileCard />}
 
         {/* Listados */}
         <ActiveOrders orders={activeOrders} />

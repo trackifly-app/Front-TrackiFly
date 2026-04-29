@@ -24,6 +24,7 @@ export default function UserProfileCard() {
         ...userData.user,
         profile: {
           ...userData.user.profile,
+          id: userData.user.profile?.id || '',
           ...profileWithoutAuxFields,
         },
       },
@@ -56,6 +57,7 @@ export default function UserProfileCard() {
         ...userData.user,
         profile: {
           ...userData.user.profile,
+          id: userData.user.profile?.id || '',
           profile_image: previewUrl,
         },
       },
@@ -94,6 +96,7 @@ export default function UserProfileCard() {
           ...userData.user,
           profile: {
             ...userData.user.profile,
+            id: userData.user.profile?.id || '',
             profile_image: newImageUrl ? `${newImageUrl}?t=${Date.now()}` : previewUrl,
           },
         },

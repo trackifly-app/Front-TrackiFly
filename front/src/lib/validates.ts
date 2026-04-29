@@ -7,8 +7,6 @@ const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 const PHONE_REGEX = /^[0-9]{7,15}$/;
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
 
-
-
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
 
@@ -28,9 +26,9 @@ export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
     errors.pickup_direction = 'La dirección de retiro es obligatoria';
   }
 
-  if (values.height <= 0) errors.height = 'Debe ser mayor a 0';
-  if (values.width <= 0) errors.width = 'Debe ser mayor a 0';
-  if (values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
+  if (typeof values.height === 'number' && values.height <= 0) errors.height = 'Debe ser mayor a 0';
+  if (typeof values.width === 'number' && values.width <= 0) errors.width = 'Debe ser mayor a 0';
+  if (typeof values.depth === 'number' && values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
 
   return errors;
 };

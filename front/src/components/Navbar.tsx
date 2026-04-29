@@ -76,30 +76,6 @@ const Navbar = () => {
       default:
         return [];
     }
-
-    // Dashboard Empresa / Operaciones
-    if (userRole === Role.Company || userRole === Role.Operator) {
-      const isOp = userRole === Role.Operator;
-      links.push({
-        href: '/dashboard/company',
-        label: isOp ? 'Operaciones' : `Empresa ${userData?.user?.company?.company_name}`,
-        icon: isOp ? <LayoutDashboard size={30} /> : <Building2 size={30} />,
-        mobileIcon: isOp ? <LayoutDashboard size={24} /> : <Building2 size={24} />,
-      });
-    }
-
-    // === PERFIL - Visible para TODOS los roles EXCEPTO Company ===
-    if (userRole !== Role.Company) {
-      links.push({
-        href: '/dashboard/user',
-        label: `Perfil de ${userData?.user?.profile?.first_name}`,
-        icon: <UserCircle size={30} />,
-        mobileIcon: <UserCircle size={24} />,
-      });
-
-    }
-
-    return links;
   };
 
   const roleLinks = getRoleLinks();
