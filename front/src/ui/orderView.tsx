@@ -15,7 +15,6 @@ import { createOrder, createPayment } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
 
 import { useFeedback } from "@/context/feedback/useFeedback";
-import { CreateOrderResponse } from "@/types/backend";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
@@ -41,6 +40,15 @@ const OrderView = () => {
   const { userData } = useAuth();
   //error verde, success/rojo
   const { showToast } = useFeedback();
+
+  const esEmpresa =
+    userData?.user?.role?.name === "company" ||
+    userData?.user?.role?.name === "operator";
+
+  const tieneDescuentoPerfil =
+    typeof window !== "undefined" &&
+    !!localStorage.getItem(`profile_discount_${userData?.user?.id}`) &&
+    !!(userData?.user?.profile?.phone && userData?.user?.profile?.address);
   // ESTADO PARA EL BOTÓN DEL OBELISCO
   const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
 
@@ -84,14 +92,15 @@ const OrderView = () => {
     if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
     if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
     if (values.urgent) extraServicios += RECARGOS.URGENTE;
-    const esEmpresa =
-      userData?.user?.role?.name === "company" ||
-      userData?.user?.role?.name === "operator";
 
     const subtotal =
       precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
 
-    const precioFinal = esEmpresa ? subtotal * 0.8 : subtotal;
+    const precioFinal = esEmpresa
+      ? subtotal * 0.8
+      : tieneDescuentoPerfil
+        ? subtotal * 0.95
+        : subtotal;
 
     return { precioFinal, volumenM3, pesoNum };
   };
@@ -225,6 +234,10 @@ const OrderView = () => {
           depth: Number(values.depth) || 0,
           weight: Number(values.weight) || 0,
           distance: distance,
+          customerType: (userData?.user?.role?.name === "company" ||
+          userData?.user?.role?.name === "operator"
+            ? "company"
+            : "user") as "company" | "user",
         };
 
         const errors: any = validateShipment(shipmentValues);
@@ -655,6 +668,15 @@ const OrderView = () => {
                           </p>
                         </div>
                       )}
+
+                      {/* descuento para usuario por primera vez registrado con google */}
+                      {tieneDescuentoPerfil && !esEmpresa && (
+                        <div className="flex justify-between text-sm text-green-600 font-semibold">
+                          <span>🎁 Descuento perfil completo:</span>
+                          <span>-5%</span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
                         <span className="font-black italic text-lg uppercase">
                           Neto:
