@@ -32,6 +32,32 @@ export default function GoogleSessionSync() {
     const googleMode = searchParams.get("googleMode") || "login";
     const isNew = session.isNewGoogleUser;
 
+    const redirectWithLoading = (url: string) => {
+      document.body.innerHTML = `
+    <div style="
+      position: fixed; inset: 0; 
+      background: white; 
+      display: flex; 
+      flex-direction: column;
+      align-items: center; 
+      justify-content: center;
+      z-index: 9999;
+      gap: 16px;
+    ">
+      <img src="/logo-trackifly.png" style="width: 180px; object-fit: contain;" />
+      <div style="
+        width: 40px; height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #e76f51;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      "></div>
+      <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    </div>
+  `;
+      window.location.href = url;
+    };
+
     const syncSession = async () => {
       try {
         const googleRes = await fetch(`${APIURL}/auth/google`, {
@@ -69,7 +95,7 @@ export default function GoogleSessionSync() {
             timer: 3000,
             showConfirmButton: false,
           }).then(() => {
-            window.location.href = "/";
+            redirectWithLoading("/");
           });
           return;
         }
@@ -97,9 +123,10 @@ export default function GoogleSessionSync() {
               if (userId) {
                 localStorage.setItem(`profile_discount_${userId}`, "true");
               }
-              window.location.href = `/es/dashboard/user`;
+
+              redirectWithLoading(`/${locale}/dashboard/user`);
             } else {
-              window.location.href = "/";
+              redirectWithLoading("/");
             }
           });
           return;
@@ -115,7 +142,7 @@ export default function GoogleSessionSync() {
             timer: 3000,
             showConfirmButton: false,
           }).then(() => {
-            window.location.href = "/";
+            redirectWithLoading("/");
           });
           return;
         }
@@ -129,7 +156,7 @@ export default function GoogleSessionSync() {
           timer: 2500,
           showConfirmButton: false,
         }).then(() => {
-          window.location.href = "/";
+          redirectWithLoading("/");
         });
       } catch (err) {
         console.error("Error sincronizando sesión de Google:", err);
