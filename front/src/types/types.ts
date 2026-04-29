@@ -79,11 +79,9 @@ export type DetailItem = {
   title: string;
   description: string;
   icon: React.ElementType;
-  href: string;
+  href?: string;
 };
-export const CompanyPlan = [
-  { id: 'free', name: 'Plan Free' },
-];
+export const CompanyPlan = [{ id: 'free', name: 'Plan Free' }];
 
 export type Employee = {
   id: string;

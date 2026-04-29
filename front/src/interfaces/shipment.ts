@@ -255,7 +255,7 @@ export interface AdminModule {
   title: string;
   description: string;
   icon: LucideIcon;
-  href: string;
+  href?: string;
 }
 
 export interface AdminUser {
@@ -394,9 +394,8 @@ export interface AdminCompaniesTableProps {
 
 export interface AdminDashboardStats {
   totalCompanies: number;
-  activeCompanies: number;
+  totalUsers: number;
   openIncidents: number;
-  activePlans: number;
 }
 
 export interface AdminWelcomeCardProps {

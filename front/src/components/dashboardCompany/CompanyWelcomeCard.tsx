@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { Camera } from 'lucide-react';
 import { Props } from '@/types/types';
 
-export default function CompanyWelcomeCard({ company, activeOrdersCount, onImageSelected, uploadingImage = false }: Props) {
+export default function CompanyWelcomeCard({ company, onImageSelected, uploadingImage = false }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleImageClick = () => {
@@ -47,26 +47,6 @@ export default function CompanyWelcomeCard({ company, activeOrdersCount, onImage
             <h1 className="text-3xl font-bold text-foreground md:text-4xl">Bienvenido, {company.company_name}</h1>
 
             <p className="mt-2 max-w-2xl text-muted">Aquí puedes revisar la información de tu empresa y acceder a los módulos principales de gestión.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-primary/30 bg-primary/10 px-5 py-4 text-center">
-            <p className="text-sm text-muted">Pedidos activos</p>
-
-            <p className="text-3xl font-bold text-primary">{activeOrdersCount}</p>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface-muted px-5 py-4 text-center">
-            <p className="text-sm text-muted">País</p>
-
-            <p className="text-2xl font-bold text-foreground">{company.country || '-'}</p>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-surface-muted px-5 py-4 text-center">
-            <p className="text-sm text-muted">Plan</p>
-
-            <p className="text-lg font-bold text-foreground">{company.plan || '-'}</p>
           </div>
         </div>
       </div>
