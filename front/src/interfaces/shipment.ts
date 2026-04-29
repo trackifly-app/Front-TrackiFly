@@ -9,7 +9,7 @@ export interface ShipmentValues {
   category_id: string; // cambio aqui
   description: string; // cambio aqui
   image: string; // cambio aqui
-  customerType: 'user'|'company';
+  customerType: 'user' | 'company';
   // ---
   pickup_direction: string;
   delivery_direction: string;
@@ -302,8 +302,14 @@ export interface AdminApiUser {
   role: AdminApiRole;
   profile?: AdminApiProfile | null;
   company?: AdminApiCompany | null;
+  parentCompany?: {
+    id: string;
+    email: string;
+  };
   isActive?: boolean;
   createdAt?: string;
+  updatedAt?: string;
+  status?: string;
 }
 
 export interface AdminCompanyRow {

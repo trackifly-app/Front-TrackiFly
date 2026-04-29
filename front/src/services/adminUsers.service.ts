@@ -65,3 +65,16 @@ export async function getCompanyByUserId(userId: string): Promise<AdminApiCompan
     return null;
   }
 }
+
+export async function getCompanies(): Promise<AdminApiUser[]> {
+  try {
+    const users = await getUsers();
+
+    return users.filter((user) => {
+      return user.role?.name?.toLowerCase() === 'company';
+    });
+  } catch (error: any) {
+    handleError(error.message || 'Error al obtener empresas');
+    return [];
+  }
+}
