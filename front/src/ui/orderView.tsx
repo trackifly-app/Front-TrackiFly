@@ -13,14 +13,12 @@ import {
 import { validateShipment } from "@/lib/validates";
 import { createOrder, createPayment } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
-
 import { useFeedback } from "@/context/feedback/useFeedback";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
 const centerDefault = { lat: -34.5997, lng: -58.3819 };
 
-// COORDENADAS Y DIRECCIÓN DEL OBELISCO
 const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
 const OBELISCO_ADDRESS =
   "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
@@ -33,12 +31,11 @@ const RECARGOS = {
   REFRIGERADO: 0.2,
   URGENTE: 0.5,
 };
+
 const OrderView = () => {
   const router = useRouter();
   const { locale } = useParams();
-
   const { userData } = useAuth();
-  //error verde, success/rojo
   const { showToast } = useFeedback();
 
   const esEmpresa =
@@ -49,13 +46,12 @@ const OrderView = () => {
     typeof window !== "undefined" &&
     !!localStorage.getItem(`profile_discount_${userData?.user?.id}`) &&
     !!(userData?.user?.profile?.phone && userData?.user?.profile?.address);
-  // ESTADO PARA EL BOTÓN DEL OBELISCO
-  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
 
+  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
   const [coords, setCoords] = useState<{
     origen: google.maps.LatLngLiteral | null;
     destino: google.maps.LatLngLiteral | null;
-  }>({ origen: OBELISCO_COORDS, destino: null }); // Iniciamos con Obelisco en origen
+  }>({ origen: OBELISCO_COORDS, destino: null });
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
@@ -71,7 +67,7 @@ const OrderView = () => {
     libraries,
   });
 
-  // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS (Evita errores de scope)
+  // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS CON LA NUEVA LÓGICA DE PESO
   const getCalculatedPrices = (values: any) => {
     const factor = values.unit === "cm" ? 0.01 : 0.0254;
     const volumenM3 =
@@ -79,13 +75,17 @@ const OrderView = () => {
         factor *
         (Number(values.width) * factor) *
         (Number(values.depth) * factor) || 0;
+    
     const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
 
-    let recargoPeso = 0;
+    // --- NUEVA LÓGICA DE RECARGO POR PESO ---
     const pesoNum = Number(values.weight) || 0;
+    let recargoPeso = 0;
     if (pesoNum > 2) {
-      recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
+      const bloquesExtras = Math.floor((pesoNum - 2) / 2);
+      recargoPeso = bloquesExtras * 0.05;
     }
+    // ----------------------------------------
 
     let extraServicios = 0;
     if (values.fragile) extraServicios += RECARGOS.FRAGIL;
@@ -269,7 +269,6 @@ const OrderView = () => {
       }}
       onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          // cambie los alerts por los showtoasts
           showToast(
             "Selecciona origen y destino válidos en el mapa para calcular la distancia.",
             "warning",
@@ -292,9 +291,7 @@ const OrderView = () => {
             userId: userData.user.id,
             price: Number(precioFinal.toFixed(2)),
           };
-          // se elimino el bloque que creaba la orden
-          // detectaba el rol, mostraba el alert y lo mandaba a
-          // dashboard. Ahora: orden + pago → redirección a MercadoPago, mercado pago necesita: window.location.href = paymentUrl;
+          
           const order = await createOrder(orderToSave);
 
           const payment = await createPayment({
@@ -655,8 +652,7 @@ const OrderView = () => {
                           ),
                         )}
                       </div>
-                      {(userData?.user?.role?.name === "company" ||
-                        userData?.user?.role?.name === "operator") && (
+                      {esEmpresa && (
                         <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 rounded-r-md">
                           <p className="text-sm font-bold text-primary uppercase tracking-wider">
                             Beneficio Exclusivo: Empresa
@@ -669,7 +665,6 @@ const OrderView = () => {
                         </div>
                       )}
 
-                      {/* descuento para usuario por primera vez registrado con google */}
                       {tieneDescuentoPerfil && !esEmpresa && (
                         <div className="flex justify-between text-sm text-green-600 font-semibold">
                           <span>🎁 Descuento perfil completo:</span>
