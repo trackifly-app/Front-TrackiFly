@@ -29,21 +29,6 @@ const statusIcons: Record<string, typeof Clock> = {
   cancelled: XCircle,
 };
 
-function maskAddress(address?: string) {
-  if (!address) return 'No disponible';
-
-  const parts = address
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (parts.length >= 2) {
-    return parts.slice(-2).join(', ');
-  }
-
-  return address;
-}
-
 function formatDate(date?: string) {
   if (!date) return 'No disponible';
 
@@ -81,8 +66,8 @@ export default function TrackingResultView({ code }: Props) {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-10 md:px-8">
-        <section className="mx-auto max-w-5xl rounded-3xl border border-border bg-surface p-8 shadow-sm">
+      <main className="min-h-screen bg-background px-4 py-6 md:px-8 md:py-10">
+        <section className="mx-auto max-w-7xl rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
           <p className="text-sm text-muted">Cargando información del envío...</p>
         </section>
       </main>
@@ -91,14 +76,14 @@ export default function TrackingResultView({ code }: Props) {
 
   if (!order) {
     return (
-      <main className="min-h-screen bg-background px-4 py-10 md:px-8">
-        <section className="mx-auto max-w-5xl rounded-3xl border border-border bg-surface p-8 shadow-sm">
+      <main className="min-h-screen bg-background px-4 py-6 md:px-8 md:py-10">
+        <section className="mx-auto max-w-5xl rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
           <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-primary transition hover:-translate-x-1 hover:underline">
             <ArrowLeft size={18} />
             Volver al inicio
           </Link>
 
-          <div className="rounded-2xl border border-border bg-surface-muted p-8 text-center">
+          <div className="rounded-2xl border border-border bg-surface-muted p-6 text-center md:p-8">
             <XCircle className="mx-auto mb-4 text-primary" size={44} />
 
             <h1 className="text-2xl font-bold text-foreground">No encontramos ese envío</h1>
@@ -115,77 +100,74 @@ export default function TrackingResultView({ code }: Props) {
 
   const status = order.status?.toLowerCase() || 'pending';
   const StatusIcon = statusIcons[status] || Clock;
-
   const lastUpdate = order.updated_at || order.created_at;
 
+  const dimensions = dims.width || dims.height || dims.depth ? `${dims.width || '0'} × ${dims.height || '0'} × ${dims.depth || '0'} cm` : 'No disponible';
+
   return (
-    <main className="min-h-screen bg-background px-4 py-10 md:px-8">
-      <section className="mx-auto max-w-6xl rounded-3xl border border-border bg-surface p-6 shadow-sm md:p-8">
-        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-primary transition hover:-translate-x-1 hover:underline">
+    <main className="min-h-screen bg-background px-4 py-6 md:px-8 md:py-10">
+      <section className="mx-auto max-w-7xl rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6 md:p-8">
+        <Link href="/" className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-primary transition hover:-translate-x-1 hover:underline md:mb-10">
           <ArrowLeft size={18} />
           Volver al inicio
         </Link>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr] lg:items-center">
-          <div className="space-y-5 self-center">
-            <div className="flex aspect-square items-center justify-center overflow-hidden rounded-3xl border border-border bg-surface-muted p-3">
-              <img src={pkg.image || '/default-package.png'} alt={pkg.name || 'Paquete'} className="max-h-full max-w-full object-contain" />
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)]">
+          <div className="hidden lg:block" />
+
+          <header className="text-center lg:text-left">
+            <p className="mb-2 font-semibold text-primary">Seguimiento de envío</p>
+
+            <h1 className="break-words text-3xl font-black uppercase italic tracking-tight text-foreground sm:text-4xl md:text-5xl">{pkg.name || 'Envío registrado'}</h1>
+
+            <div className="mt-3 space-y-1 text-sm text-muted sm:text-base">
+              <p className="break-all font-mono">Código de seguimiento: {code}</p>
+              <p>Última actualización: {formatDate(lastUpdate)}</p>
             </div>
+          </header>
 
-            <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5 text-center">
-              <p className="text-sm text-muted">Estado actual</p>
-
-              <div className="mt-2 flex items-center justify-center gap-2 text-primary">
-                <StatusIcon size={22} />
-
-                <p className="text-xl font-bold uppercase tracking-widest">{statusLabels[status] || order.status}</p>
+          <aside className="mx-auto w-full max-w-md space-y-5 lg:max-w-none">
+            <div className="overflow-hidden rounded-3xl border border-border bg-surface-muted p-4">
+              <div className="overflow-hidden rounded-2xl">
+                <img src={pkg.image || '/default-package.png'} alt={pkg.name || 'Paquete'} className="h-70 w-full object-cover sm:h-85 lg:h-105 xl:h-115" />
               </div>
             </div>
-          </div>
 
-          <div className="space-y-6">
-            <div>
-              <p className="mb-2 font-semibold text-primary">Seguimiento de envío</p>
+            <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5 text-center">
+              <p className="text-sm text-muted">Estado actual</p>
 
-              <h1 className="text-3xl font-black uppercase italic tracking-tight text-foreground md:text-4xl">{pkg.name || 'Envío registrado'}</h1>
+              <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-primary">
+                <StatusIcon size={22} />
 
-              <p className="mt-2 break-all font-mono text-sm text-muted">Código de seguimiento: {code}</p>
-
-              <p className="mt-1 text-sm text-muted">Última actualización: {formatDate(lastUpdate)}</p>
+                <p className="text-lg font-bold uppercase tracking-widest sm:text-xl">{statusLabels[status] || order.status}</p>
+              </div>
             </div>
+          </aside>
 
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              <DetailCard title="Trayecto">
-                <DetailItem label="Origen aproximado" value={maskAddress(order.pickup_direction)} />
+          <section className="min-w-0 space-y-6">
+            <div className="rounded-2xl border border-border bg-surface-muted p-5 sm:p-6">
+              <h3 className="mb-5 font-bold text-primary">Paquete</h3>
 
-                <DetailItem label="Destino aproximado" value={maskAddress(order.delivery_direction)} />
-
-                <DetailItem label="Distancia estimada" value={order.distance ? `${order.distance} km` : 'No disponible'} />
-              </DetailCard>
-
-              <DetailCard title="Paquete">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <DetailItem label="Producto" value={pkg.name || 'Paquete registrado'} />
-
                 <DetailItem label="Categoría" value={pkg.category || 'General'} />
-
                 <DetailItem label="Peso" value={pkg.weight ? `${pkg.weight} ${pkg.unit || 'kg'}` : 'No disponible'} />
-
-                <DetailItem label="Dimensiones" value={dims.width || dims.height || dims.depth ? `${dims.width || '0'}x${dims.height || '0'}x${dims.depth || '0'} cm` : 'No disponible'} />
-              </DetailCard>
+                <DetailItem label="Dimensiones" value={dimensions} />
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-border bg-surface-muted p-5">
-              <h3 className="mb-4 font-bold text-primary">Progreso del envío</h3>
+            <div className="rounded-2xl border border-border bg-surface-muted p-5 sm:p-6">
+              <h3 className="mb-5 font-bold text-primary">Progreso del envío</h3>
 
               <TrackingSteps currentStatus={status} />
             </div>
 
-            <div className="rounded-2xl border border-border bg-surface-muted p-5">
+            <div className="rounded-2xl border border-border bg-surface-muted p-5 sm:p-6">
               <h3 className="mb-2 font-bold text-primary">Información protegida</h3>
 
-              <p className="text-sm leading-relaxed text-muted">Por seguridad, esta vista pública solo muestra información logística general. Las direcciones completas, datos personales, datos del conductor, precio e información interna no se muestran sin iniciar sesión.</p>
+              <p className="text-sm leading-relaxed text-muted sm:text-base">Por seguridad, esta vista pública solo muestra información logística general. Las direcciones completas, datos personales, datos del conductor, precio e información interna solo se muestran en los paneles de control correspondientes.</p>
             </div>
-          </div>
+          </section>
         </div>
       </section>
     </main>
@@ -204,14 +186,14 @@ function TrackingSteps({ currentStatus }: { currentStatus: string }) {
   const currentIndex = steps.findIndex((step) => step.key === currentStatus);
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
       {steps.map((step, index) => {
         const isDone = currentIndex >= index;
         const isCurrent = currentIndex === index;
 
         return (
-          <div key={step.key} className={`rounded-2xl border p-4 text-center ${isDone ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-surface text-muted'}`}>
-            <div className={`mx-auto mb-2 h-3 w-3 rounded-full ${isCurrent || isDone ? 'bg-primary' : 'bg-border'}`} />
+          <div key={step.key} className={`flex min-h-20 items-center justify-between gap-3 rounded-2xl border p-4 text-left transition sm:flex-col sm:justify-center sm:text-center ${isDone ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-surface text-muted'}`}>
+            <div className={`h-3 w-3 shrink-0 rounded-full sm:mx-auto ${isCurrent || isDone ? 'bg-primary' : 'bg-border'}`} />
 
             <p className="text-xs font-bold uppercase tracking-wide">{step.label}</p>
           </div>
@@ -221,22 +203,11 @@ function TrackingSteps({ currentStatus }: { currentStatus: string }) {
   );
 }
 
-function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface-muted p-5">
-      <h3 className="mb-4 font-bold text-primary">{title}</h3>
-
-      <div className="space-y-3">{children}</div>
-    </div>
-  );
-}
-
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-
-      <p className="wrap-break-words font-medium text-foreground">{value}</p>
+    <div className="rounded-xl border border-border/70 bg-surface/40 p-4">
+      <p className="mb-1 text-xs uppercase tracking-wide text-muted">{label}</p>
+      <p className="wrap-break-words text-base font-semibold text-foreground">{value}</p>
     </div>
   );
 }
