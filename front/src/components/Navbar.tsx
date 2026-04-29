@@ -55,12 +55,6 @@ const Navbar = () => {
             icon: <Building2 size={30} />,
             mobileIcon: <Building2 size={24} />,
           },
-          {
-            href: '/dashboard/user',
-            label: `Perfil de ${userData?.user?.profile?.first_name ?? ''}`,
-            icon: <UserCircle size={30} />,
-            mobileIcon: <UserCircle size={24} />,
-          },
         ];
 
       case Role.User:
@@ -96,7 +90,6 @@ const Navbar = () => {
         icon: <UserCircle size={30} />,
         mobileIcon: <UserCircle size={24} />,
       });
-
     }
 
     return links;
