@@ -78,11 +78,7 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
 
     if (!response.ok) {
       console.error('Error al registrar empleado:', data);
-      throw new Error(
-        Array.isArray(data.message)
-          ? data.message.join(', ')
-          : data.message || 'Error al registrar empleado'
-      );
+      throw new Error(Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Error al registrar empleado');
     }
 
     Swal.fire({
@@ -109,7 +105,7 @@ export async function registerEmployee(employeeData: any): Promise<boolean> {
 export async function login(userData: ILoginProps): Promise<IUserSession | null> {
   try {
     // Es fundamental usar la URL que apunta a tu Proxy (/api/proxy/...)
-    const response = await fetch(`${APIURL}/auth/signin`, {
+    const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -156,7 +152,7 @@ export async function login(userData: ILoginProps): Promise<IUserSession | null>
 
 // Cierra la sesion actual en el backend usando cookies.
 export const logout = async () => {
-  await fetch(`${APIURL}/auth/logout`, {
+  await fetch('/api/auth/logout', {
     method: 'POST',
     credentials: 'include',
   });
