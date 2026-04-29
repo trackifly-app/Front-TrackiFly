@@ -83,7 +83,7 @@ export default function UsersAdminView() {
 function AdminUsersTable({ users, onViewDetails }: { users: AdminApiUser[]; onViewDetails: (user: AdminApiUser) => void }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-muted">
-      <div className="grid grid-cols-[1.4fr_1.5fr_0.7fr_0.7fr_0.7fr] border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted">
+      <div className="hidden border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted md:grid md:grid-cols-[1.4fr_1.5fr_0.7fr_0.7fr_0.7fr]">
         <div>Usuario</div>
         <div>Email</div>
         <div>Rol</div>
@@ -96,13 +96,12 @@ function AdminUsersTable({ users, onViewDetails }: { users: AdminApiUser[]; onVi
           const firstName = user.profile?.first_name || '';
           const lastName = user.profile?.last_name || '';
           const fullName = `${firstName} ${lastName}`.trim() || 'Sin nombre';
-
           const roleName = user.role?.name || 'user';
 
           const isActive = user.isActive !== false && user.status?.toLowerCase() !== 'inactive';
 
           return (
-            <div key={user.id} className="grid grid-cols-[1.4fr_1.5fr_0.7fr_0.7fr_0.7fr] items-center border-b border-border px-5 py-4 last:border-b-0">
+            <div key={user.id} className="grid grid-cols-1 gap-4 border-b border-border px-5 py-5 last:border-b-0 md:grid-cols-[1.4fr_1.5fr_0.7fr_0.7fr_0.7fr] md:items-center md:gap-0 md:py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface">
                   <img src={user.profile?.profile_image || '/default-avatar.png'} alt={fullName} className="h-full w-full object-cover object-center" />
@@ -115,18 +114,26 @@ function AdminUsersTable({ users, onViewDetails }: { users: AdminApiUser[]; onVi
                 </div>
               </div>
 
-              <div className="text-sm text-muted">{user.email || 'Sin email'}</div>
+              <div className="text-sm text-muted">
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">Email</span>
+
+                <span className="break-all">{user.email || 'Sin email'}</span>
+              </div>
 
               <div>
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">Rol</span>
+
                 <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold capitalize text-primary">{roleName}</span>
               </div>
 
               <div>
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">Estado</span>
+
                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{isActive ? 'Activo' : 'Inactivo'}</span>
               </div>
 
-              <div className="flex justify-end">
-                <button type="button" onClick={() => onViewDetails(user)} className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/40 hover:text-primary">
+              <div className="flex justify-start md:justify-end">
+                <button type="button" onClick={() => onViewDetails(user)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/40 hover:text-primary md:w-auto">
                   <Eye size={16} />
                   Ver detalles
                 </button>
@@ -143,7 +150,6 @@ function UserDetailsModal({ user, onClose }: { user: AdminApiUser; onClose: () =
   const firstName = user.profile?.first_name || '';
   const lastName = user.profile?.last_name || '';
   const fullName = `${firstName} ${lastName}`.trim() || 'Sin nombre';
-
   const roleName = user.role?.name || 'user';
 
   const isActive = user.isActive !== false && user.status?.toLowerCase() !== 'inactive';
@@ -236,7 +242,6 @@ function DetailCard({ title, children }: { title: string; children: React.ReactN
   return (
     <div className="rounded-2xl border border-border bg-surface-muted p-5">
       <h3 className="mb-4 font-bold text-primary">{title}</h3>
-
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -246,7 +251,6 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-
       <p className="wrap-break-words font-medium text-foreground">{value}</p>
     </div>
   );

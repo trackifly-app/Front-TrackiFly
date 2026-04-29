@@ -89,7 +89,7 @@ export default function CompaniesAdminView() {
 function AdminCompaniesTable({ companies, onViewDetails }: { companies: AdminApiUser[]; onViewDetails: (company: AdminApiUser) => void }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-muted">
-      <div className="grid grid-cols-[1.5fr_1.4fr_0.8fr_0.8fr_0.8fr] border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted">
+      <div className="hidden border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted md:grid md:grid-cols-[1.5fr_1.4fr_0.8fr_0.8fr_0.8fr]">
         <div>Empresa</div>
         <div>Email</div>
         <div>País</div>
@@ -103,10 +103,10 @@ function AdminCompaniesTable({ companies, onViewDetails }: { companies: AdminApi
           const companyName = company?.company_name || 'Sin nombre';
           const image = company?.profile_image || '/default-company.png';
 
-          const isActive = user.is_active !== false && user.status?.toLowerCase() !== 'inactive';
+          const isActive = user.isActive !== false && user.status?.toLowerCase() !== 'inactive';
 
           return (
-            <div key={user.id} className="grid grid-cols-[1.5fr_1.4fr_0.8fr_0.8fr_0.8fr] items-center border-b border-border px-5 py-4 last:border-b-0">
+            <div key={user.id} className="grid grid-cols-1 gap-4 border-b border-border px-5 py-5 last:border-b-0 md:grid-cols-[1.5fr_1.4fr_0.8fr_0.8fr_0.8fr] md:items-center md:gap-0 md:py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface">
                   <img src={image} alt={companyName} className="h-full w-full object-cover object-center" />
@@ -119,16 +119,26 @@ function AdminCompaniesTable({ companies, onViewDetails }: { companies: AdminApi
                 </div>
               </div>
 
-              <div className="text-sm text-muted">{user.email || 'Sin email'}</div>
+              <div className="text-sm text-muted">
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">Email</span>
 
-              <div className="text-sm text-muted">{company?.country || 'Sin país'}</div>
+                <span className="break-all">{user.email || 'Sin email'}</span>
+              </div>
+
+              <div className="text-sm text-muted">
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">País</span>
+
+                {company?.country || 'Sin país'}
+              </div>
 
               <div>
+                <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-muted md:hidden">Estado</span>
+
                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{isActive ? 'Activa' : 'Inactiva'}</span>
               </div>
 
-              <div className="flex justify-end">
-                <button type="button" onClick={() => onViewDetails(user)} className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/40 hover:text-primary">
+              <div className="flex justify-start md:justify-end">
+                <button type="button" onClick={() => onViewDetails(user)} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/40 hover:text-primary md:w-auto">
                   <Eye size={16} />
                   Ver detalles
                 </button>
@@ -143,22 +153,21 @@ function AdminCompaniesTable({ companies, onViewDetails }: { companies: AdminApi
 
 function CompanyDetailsModal({ company, onClose }: { company: AdminApiUser; onClose: () => void }) {
   const companyData = company.company;
-
   const companyName = companyData?.company_name || 'Sin nombre';
   const image = companyData?.profile_image || '/default-company.png';
 
-  const isActive = company.is_active !== false && company.status?.toLowerCase() !== 'inactive';
+  const isActive = company.isActive !== false && company.status?.toLowerCase() !== 'inactive';
 
-  const createdAt = company.created_at
-    ? new Date(company.created_at).toLocaleDateString('es-PE', {
+  const createdAt = company.createdAt
+    ? new Date(company.createdAt).toLocaleDateString('es-PE', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
       })
     : 'Sin fecha';
 
-  const updatedAt = company.updated_at
-    ? new Date(company.updated_at).toLocaleDateString('es-PE', {
+  const updatedAt = company.updatedAt
+    ? new Date(company.updatedAt).toLocaleDateString('es-PE', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -247,7 +256,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-      <p className="break-words font-medium text-foreground">{value}</p>
+      <p className="wrap-break-words font-medium text-foreground">{value}</p>
     </div>
   );
 }
