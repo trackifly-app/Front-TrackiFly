@@ -15,6 +15,12 @@ export default function GoogleSessionSync() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (localStorage.getItem("manualLogout")) {
+      localStorage.removeItem("manualLogout");
+      synced.current = false;
+      return;
+    }
+
     if (status !== "authenticated" || !session?.user) return;
     if (synced.current) return;
 
