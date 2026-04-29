@@ -161,7 +161,7 @@ export interface AccountDetailItem {
   title: string;
   description: string;
   icon: React.ElementType;
-  action: string;
+  action?: string;
 }
 
 export interface CompanyAccountDetailsProps {
@@ -195,7 +195,6 @@ export interface CompanyWelcomeCardProps {
     plan: string;
     image: string;
   };
-  activeOrdersCount: number;
 }
 
 export interface EmployeeWelcomeCardProps {

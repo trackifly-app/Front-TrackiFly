@@ -7,13 +7,12 @@ import CompanyProfileCard from '@/components/dashboardCompany/CompanyProfileCard
 import CompanyQuickAccess, { companyModules } from '@/components/dashboardCompany/CompanyQuickAccess';
 import CompanyAccountDetails, { companyAccountDetails } from '@/components/dashboardCompany/CompanyAccountDetails';
 import { DashboardCompanyData } from '@/types/types';
-import { ACTIVE_ORDER_STATUSES } from '@/constants/orderStatus';
 
 export default function DashboardCompanyPage() {
   const { userData, loading } = useAuth();
+
   const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
   const [companyDataLoading, setCompanyDataLoading] = useState(true);
 
   const roleName = userData?.user?.role?.name;
@@ -21,6 +20,7 @@ export default function DashboardCompanyPage() {
   const isOperator = roleName === 'operator';
 
   const visibleModules = isOperator ? companyModules.filter((module) => ['Ubicaciones / Sedes', 'Monitoreo de pedidos', 'Incidencias'].includes(module.title)) : companyModules;
+
   useEffect(() => {
     const loadCompanyData = async () => {
       if (!userData?.user?.id) {
@@ -29,11 +29,6 @@ export default function DashboardCompanyPage() {
         return;
       }
 
-      // ========================================
-      // restriccion del empleado
-      // ========================================
-      // si la cuenta ya trae company la usamos directo; si es employee
-      // hacemos una segunda peticion para traer la empresa del parentCompany.
       const directCompany = userData.user.company;
 
       if (directCompany) {
@@ -48,6 +43,7 @@ export default function DashboardCompanyPage() {
           plan: directCompany.plan || '',
           image: directCompany.profile_image || '',
         });
+
         setCompanyDataLoading(false);
         return;
       }
@@ -106,6 +102,7 @@ export default function DashboardCompanyPage() {
         } finally {
           setCompanyDataLoading(false);
         }
+
         return;
       }
 
@@ -115,38 +112,6 @@ export default function DashboardCompanyPage() {
 
     loadCompanyData();
   }, [userData, isOperator]);
-
-  useEffect(() => {
-    async function loadActiveOrdersCount() {
-      if (!userData?.user?.id) {
-        setActiveOrdersCount(0);
-        return;
-      }
-
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`, {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || 'Error al obtener órdenes');
-        }
-
-        const activeOrders = data.filter((order: any) => ACTIVE_ORDER_STATUSES.includes(order.status?.toLowerCase()));
-
-        setActiveOrdersCount(activeOrders.length);
-      } catch (error) {
-        console.error('Error al cargar pedidos activos:', error);
-        setActiveOrdersCount(0);
-      }
-    }
-
-    loadActiveOrdersCount();
-  }, [userData?.user?.id]);
 
   const handleCompanyImageSelected = async (file: File) => {
     if (!userData?.user?.id) return;
@@ -231,11 +196,10 @@ export default function DashboardCompanyPage() {
             plan: companyData.plan,
             image: companyData.image,
           }}
-          activeOrdersCount={activeOrdersCount}
-          moduleCount={visibleModules.length}
           uploadingImage={uploadingImage}
           onImageSelected={handleCompanyImageSelected}
         />
+
         <CompanyProfileCard
           company={{
             email: companyData.email,
@@ -260,8 +224,10 @@ export default function DashboardCompanyPage() {
             }))
           }
         />
-        <CompanyQuickAccess modules={visibleModules} /> {/* CAMBIO AQUI: enviamos la lista filtrada para que el employee solo vea los tres accesos permitidos. */}
-        {isCompany && <CompanyAccountDetails accountDetails={companyAccountDetails(companyData.plan)} />} {/* CAMBIO AQUI: ocultamos detalles de cuenta al employee y los mantenemos solo para empresa. */}
+
+        <CompanyQuickAccess modules={visibleModules} />
+
+        {isCompany && <CompanyAccountDetails accountDetails={companyAccountDetails(companyData.plan)} />}
       </div>
     </main>
   );
