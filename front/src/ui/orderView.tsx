@@ -289,25 +289,25 @@ const OrderView = () => {
             userId: userData.user.id,
           });
 
+          const role = userData?.user?.role?.name;
+
+          let dashboardPath = `/${locale}/dashboard/user`;
+          if (role === "admin") {
+            dashboardPath = `/${locale}/dashboard/admin`;
+          } else if (role === "company" || role === "operator") {
+            dashboardPath = `/${locale}/dashboard/company`;
+          }
+
           window.open(payment.checkout_url, "_blank");
 
-          // pequeño delay para no romper flujo
-          // redirije a dashboard despues del pago
+          showToast(
+            "¡Pedido creado! Completá el pago en la ventana que se abrió.",
+            "success",
+          );
+
           setTimeout(() => {
-            const role = userData?.user?.role?.name;
-
-            let dashboardPath = "";
-
-            if (role === "admin") {
-              dashboardPath = `/${locale}/dashboard/admin`;
-            } else if (role === "company" || role === "operator") {
-              dashboardPath = `/${locale}/dashboard/company`;
-            } else {
-              dashboardPath = `/${locale}/dashboard/user`;
-            }
-
             router.push(dashboardPath);
-          }, 1000);
+          }, 3000);
         } catch (error: any) {
           showToast(
             error.message || "Hubo un problema al procesar el pago. Reintentá.",
