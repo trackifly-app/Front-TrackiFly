@@ -9,7 +9,7 @@ export interface ShipmentValues {
   category_id: string; // cambio aqui
   description: string; // cambio aqui
   image: string; // cambio aqui
-  customerType: 'user'|'company';
+  customerType: 'user' | 'company';
   // ---
   pickup_direction: string;
   delivery_direction: string;
@@ -161,7 +161,7 @@ export interface AccountDetailItem {
   title: string;
   description: string;
   icon: React.ElementType;
-  action: string;
+  action?: string;
 }
 
 export interface CompanyAccountDetailsProps {
@@ -195,7 +195,6 @@ export interface CompanyWelcomeCardProps {
     plan: string;
     image: string;
   };
-  activeOrdersCount: number;
 }
 
 export interface EmployeeWelcomeCardProps {
@@ -255,7 +254,7 @@ export interface AdminModule {
   title: string;
   description: string;
   icon: LucideIcon;
-  href: string;
+  href?: string;
 }
 
 export interface AdminUser {
@@ -302,8 +301,14 @@ export interface AdminApiUser {
   role: AdminApiRole;
   profile?: AdminApiProfile | null;
   company?: AdminApiCompany | null;
+  parentCompany?: {
+    id: string;
+    email: string;
+  };
   isActive?: boolean;
   createdAt?: string;
+  updatedAt?: string;
+  status?: string;
 }
 
 export interface AdminCompanyRow {
@@ -388,9 +393,8 @@ export interface AdminCompaniesTableProps {
 
 export interface AdminDashboardStats {
   totalCompanies: number;
-  activeCompanies: number;
+  totalUsers: number;
   openIncidents: number;
-  activePlans: number;
 }
 
 export interface AdminWelcomeCardProps {

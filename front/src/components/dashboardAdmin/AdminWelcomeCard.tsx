@@ -6,9 +6,8 @@ import { AdminDashboardStats, AdminStatItemProps, AdminWelcomeCardProps } from '
 
 const initialStats: AdminDashboardStats = {
   totalCompanies: 0,
-  activeCompanies: 0,
+  totalUsers: 0,
   openIncidents: 0,
-  activePlans: 0,
 };
 
 export default function AdminWelcomeCard({ adminName }: AdminWelcomeCardProps) {
@@ -46,14 +45,12 @@ export default function AdminWelcomeCard({ adminName }: AdminWelcomeCardProps) {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <AdminStatItem title="Empresas registradas" value={stats.totalCompanies} loading={loading} />
 
-        <AdminStatItem title="Empresas activas" value={stats.activeCompanies} loading={loading} />
+        <AdminStatItem title="Usuarios registrados" value={stats.totalUsers} loading={loading} />
 
         <AdminStatItem title="Incidencias abiertas" value={stats.openIncidents} loading={loading} />
-
-        <AdminStatItem title="Planes activos" value={stats.activePlans} loading={loading} />
       </div>
     </section>
   );

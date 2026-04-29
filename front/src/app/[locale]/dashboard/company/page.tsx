@@ -1,38 +1,26 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
-import CompanyWelcomeCard from "@/components/dashboardCompany/CompanyWelcomeCard";
-import CompanyProfileCard from "@/components/dashboardCompany/CompanyProfileCard";
-import CompanyQuickAccess, {
-  companyModules,
-} from "@/components/dashboardCompany/CompanyQuickAccess";
-import CompanyAccountDetails, {
-  companyAccountDetails,
-} from "@/components/dashboardCompany/CompanyAccountDetails";
-import { DashboardCompanyData } from "@/types/types";
-import { ACTIVE_ORDER_STATUSES } from "@/constants/orderStatus";
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import CompanyWelcomeCard from '@/components/dashboardCompany/CompanyWelcomeCard';
+import CompanyProfileCard from '@/components/dashboardCompany/CompanyProfileCard';
+import CompanyQuickAccess, { companyModules } from '@/components/dashboardCompany/CompanyQuickAccess';
+import CompanyAccountDetails, { companyAccountDetails } from '@/components/dashboardCompany/CompanyAccountDetails';
+import { DashboardCompanyData } from '@/types/types';
 
 export default function DashboardCompanyPage() {
   const { userData, loading } = useAuth();
-  const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(
-    null,
-  );
+
+  const [companyData, setCompanyData] = useState<DashboardCompanyData | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
   const [companyDataLoading, setCompanyDataLoading] = useState(true);
 
   const roleName = userData?.user?.role?.name;
-  const isCompany = roleName === "company";
-  const isOperator = roleName === "operator";
+  const isCompany = roleName === 'company';
+  const isOperator = roleName === 'operator';
 
-  const visibleModules = isOperator
-    ? companyModules.filter((module) =>
-        ["Ubicaciones / Sedes", "Monitoreo de pedidos", "Incidencias"].includes(
-          module.title,
-        ),
-      )
-    : companyModules;
+  const visibleModules = isOperator ? companyModules.filter((module) => ['Ubicaciones / Sedes', 'Monitoreo de pedidos', 'Incidencias'].includes(module.title)) : companyModules;
+
   useEffect(() => {
     const loadCompanyData = async () => {
       if (!userData?.user?.id) {
@@ -41,25 +29,21 @@ export default function DashboardCompanyPage() {
         return;
       }
 
-      // ========================================
-      // restriccion del empleado
-      // ========================================
-      // si la cuenta ya trae company la usamos directo; si es employee
-      // hacemos una segunda peticion para traer la empresa del parentCompany.
       const directCompany = userData.user.company;
 
       if (directCompany) {
         setCompanyData({
-          email: userData.user.email || "",
-          company_name: directCompany.company_name || "",
-          industry: directCompany.industry || "",
-          contact_name: directCompany.contact_name || "",
-          phone: directCompany.phone || "",
-          address: directCompany.address || "",
-          country: directCompany.country || "",
-          plan: directCompany.plan || "",
-          image: directCompany.profile_image || "",
+          email: userData.user.email || '',
+          company_name: directCompany.company_name || '',
+          industry: directCompany.industry || '',
+          contact_name: directCompany.contact_name || '',
+          phone: directCompany.phone || '',
+          address: directCompany.address || '',
+          country: directCompany.country || '',
+          plan: directCompany.plan || '',
+          image: directCompany.profile_image || '',
         });
+
         setCompanyDataLoading(false);
         return;
       }
@@ -68,13 +52,10 @@ export default function DashboardCompanyPage() {
         try {
           setCompanyDataLoading(true);
 
-          const userResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/users/${userData.user.id}`,
-            {
-              credentials: "include",
-              cache: "no-store",
-            },
-          );
+          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userData.user.id}`, {
+            credentials: 'include',
+            cache: 'no-store',
+          });
 
           if (!userResponse.ok) {
             setCompanyData(null);
@@ -91,13 +72,10 @@ export default function DashboardCompanyPage() {
             return;
           }
 
-          const companyResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/companies/user/${parentCompanyId}`,
-            {
-              credentials: "include",
-              cache: "no-store",
-            },
-          );
+          const companyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/user/${parentCompanyId}`, {
+            credentials: 'include',
+            cache: 'no-store',
+          });
 
           if (!companyResponse.ok) {
             setCompanyData(null);
@@ -108,22 +86,23 @@ export default function DashboardCompanyPage() {
           const parentCompanyData = await companyResponse.json();
 
           setCompanyData({
-            email: userData.user.email || "",
-            company_name: parentCompanyData.company_name || "",
-            industry: parentCompanyData.industry || "",
-            contact_name: parentCompanyData.contact_name || "",
-            phone: parentCompanyData.phone || "",
-            address: parentCompanyData.address || "",
-            country: parentCompanyData.country || "",
-            plan: parentCompanyData.plan || "",
-            image: parentCompanyData.profile_image || "",
+            email: userData.user.email || '',
+            company_name: parentCompanyData.company_name || '',
+            industry: parentCompanyData.industry || '',
+            contact_name: parentCompanyData.contact_name || '',
+            phone: parentCompanyData.phone || '',
+            address: parentCompanyData.address || '',
+            country: parentCompanyData.country || '',
+            plan: parentCompanyData.plan || '',
+            image: parentCompanyData.profile_image || '',
           });
         } catch (error) {
-          console.error("Error al cargar la empresa del empleado:", error);
+          console.error('Error al cargar la empresa del empleado:', error);
           setCompanyData(null);
         } finally {
           setCompanyDataLoading(false);
         }
+
         return;
       }
 
@@ -133,43 +112,6 @@ export default function DashboardCompanyPage() {
 
     loadCompanyData();
   }, [userData, isOperator]);
-
-  useEffect(() => {
-    async function loadActiveOrdersCount() {
-      if (!userData?.user?.id) {
-        setActiveOrdersCount(0);
-        return;
-      }
-
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`,
-          {
-            method: "GET",
-            credentials: "include",
-            cache: "no-store",
-          },
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.message || "Error al obtener órdenes");
-        }
-
-        const activeOrders = data.filter((order: any) =>
-          ACTIVE_ORDER_STATUSES.includes(order.status?.toLowerCase()),
-        );
-
-        setActiveOrdersCount(activeOrders.length);
-      } catch (error) {
-        console.error("Error al cargar pedidos activos:", error);
-        setActiveOrdersCount(0);
-      }
-    }
-
-    loadActiveOrdersCount();
-  }, [userData?.user?.id]);
 
   const handleCompanyImageSelected = async (file: File) => {
     if (!userData?.user?.id) return;
@@ -189,27 +131,24 @@ export default function DashboardCompanyPage() {
       setUploadingImage(true);
 
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append('image', file);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/companies/user/${userData.user.id}/image`,
-        {
-          method: "PUT",
-          credentials: "include",
-          body: formData,
-        },
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/companies/user/${userData.user.id}/image`, {
+        method: 'PUT',
+        credentials: 'include',
+        body: formData,
+      });
 
       let data: any;
 
       try {
         data = await res.json();
       } catch {
-        throw new Error("Respuesta inválida del servidor");
+        throw new Error('Respuesta inválida del servidor');
       }
 
       if (!res.ok) {
-        throw new Error(data?.message || "Error al actualizar la imagen");
+        throw new Error(data?.message || 'Error al actualizar la imagen');
       }
 
       const updatedCompany = data?.company ?? data?.user?.company ?? data;
@@ -219,15 +158,13 @@ export default function DashboardCompanyPage() {
         prev
           ? {
               ...prev,
-              image: newImageUrl
-                ? `${newImageUrl}?t=${Date.now()}`
-                : previewUrl,
+              image: newImageUrl ? `${newImageUrl}?t=${Date.now()}` : previewUrl,
             }
           : prev,
       );
     } catch (error: any) {
       console.error(error);
-      alert(error?.message || "Ocurrió un error al subir la imagen");
+      alert(error?.message || 'Ocurrió un error al subir la imagen');
     } finally {
       setUploadingImage(false);
     }
@@ -259,11 +196,10 @@ export default function DashboardCompanyPage() {
             plan: companyData.plan,
             image: companyData.image,
           }}
-          activeOrdersCount={activeOrdersCount}
-          moduleCount={visibleModules.length}
           uploadingImage={uploadingImage}
           onImageSelected={handleCompanyImageSelected}
         />
+
         <CompanyProfileCard
           company={{
             email: companyData.email,
@@ -276,32 +212,22 @@ export default function DashboardCompanyPage() {
           }}
           onCompanyUpdated={(updatedCompany: any) =>
             setCompanyData((prev) => ({
-              email: updatedCompany?.email ?? prev?.email ?? "",
-              company_name:
-                updatedCompany?.company_name ?? prev?.company_name ?? "",
-              industry: updatedCompany?.industry ?? prev?.industry ?? "",
-              contact_name:
-                updatedCompany?.contact_name ?? prev?.contact_name ?? "",
-              phone: updatedCompany?.phone ?? prev?.phone ?? "",
-              address: updatedCompany?.address ?? prev?.address ?? "",
-              country: updatedCompany?.country ?? prev?.country ?? "",
-              plan: updatedCompany?.plan ?? prev?.plan ?? "",
-              image:
-                updatedCompany?.image ??
-                updatedCompany?.profile_image ??
-                prev?.image ??
-                "",
+              email: updatedCompany?.email ?? prev?.email ?? '',
+              company_name: updatedCompany?.company_name ?? prev?.company_name ?? '',
+              industry: updatedCompany?.industry ?? prev?.industry ?? '',
+              contact_name: updatedCompany?.contact_name ?? prev?.contact_name ?? '',
+              phone: updatedCompany?.phone ?? prev?.phone ?? '',
+              address: updatedCompany?.address ?? prev?.address ?? '',
+              country: updatedCompany?.country ?? prev?.country ?? '',
+              plan: updatedCompany?.plan ?? prev?.plan ?? '',
+              image: updatedCompany?.image ?? updatedCompany?.profile_image ?? prev?.image ?? '',
             }))
           }
         />
-        <CompanyQuickAccess modules={visibleModules} />{" "}
-        {/* CAMBIO AQUI: enviamos la lista filtrada para que el employee solo vea los tres accesos permitidos. */}
-        {isCompany && (
-          <CompanyAccountDetails
-            accountDetails={companyAccountDetails(companyData.plan)}
-          />
-        )}{" "}
-        {/* CAMBIO AQUI: ocultamos detalles de cuenta al employee y los mantenemos solo para empresa. */}
+
+        <CompanyQuickAccess modules={visibleModules} />
+
+        {isCompany && <CompanyAccountDetails accountDetails={companyAccountDetails(companyData.plan)} />}
       </div>
     </main>
   );
