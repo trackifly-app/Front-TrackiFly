@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_URL = process.env.API_URL;
 
 export async function POST(request: NextRequest) {
+  console.log('API_URL:', process.env.API_URL);
   try {
     const body = await request.json();
+    console.log('Body recibido:', body); 
 
     const backendResponse = await fetch(`${API_URL}/auth/google`, {
       method: 'POST',
