@@ -9,14 +9,14 @@ export const ORDER_STATUS = {
 
 export type OrderStatus = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
 
-export const ACTIVE_ORDER_STATUSES = [
+export const ACTIVE_ORDER_STATUSES: readonly string[] = [
   ORDER_STATUS.PENDING,
   ORDER_STATUS.PAID,
   ORDER_STATUS.PROCESSING,
   ORDER_STATUS.SHIPPED,
 ];
 
-export const FINAL_ORDER_STATUSES = [
+export const FINAL_ORDER_STATUSES: readonly string[] = [
   ORDER_STATUS.COMPLETED,
   ORDER_STATUS.CANCELLED,
 ];

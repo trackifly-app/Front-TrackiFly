@@ -487,6 +487,8 @@ export interface CompanyEmployeeApiUser {
 
 export interface CompanyApiOrder {
   id: string;
+  tracking_code?: string;
+  userId?: string;
   status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled';
 
   price?: number | string;
