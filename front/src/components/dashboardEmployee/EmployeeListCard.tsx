@@ -145,16 +145,16 @@ export default function EmployeeListCard() {
                   <X size={18} />
                 </button>
 
-                <div className="mt-2 flex flex-col gap-4 pr-12 md:mt-0 md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-start gap-4">
+                <div className="mt-2 flex min-w-0 flex-col gap-4 pr-12 md:mt-0 md:flex-row md:items-center md:justify-between">
+                  <div className="flex min-w-0 items-start gap-4">
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-md md:h-20 md:w-20 md:text-2xl">{`${selectedEmployee.profile?.first_name?.[0] || ''}${selectedEmployee.profile?.last_name?.[0] || ''}`.toUpperCase() || 'E'}</div>
 
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase tracking-wide text-primary md:text-sm">Detalle del empleado</p>
 
-                      <h3 className="mt-1 text-xl font-bold text-foreground md:text-3xl">{`${selectedEmployee.profile?.first_name || ''} ${selectedEmployee.profile?.last_name || ''}`.trim() || 'Empleado sin nombre'}</h3>
+                      <h3 className="mt-1 wrap-break-words text-xl font-bold text-foreground [overflow-wrap:anywhere] md:text-3xl">{`${selectedEmployee.profile?.first_name || ''} ${selectedEmployee.profile?.last_name || ''}`.trim() || 'Empleado sin nombre'}</h3>
 
-                      <p className="mt-1 text-sm text-muted">{selectedEmployee.email || 'Sin email'}</p>
+                      <p className="mt-1 wrap-break-words text-sm text-muted [overflow-wrap:anywhere]">{selectedEmployee.email || 'Sin email'}</p>
 
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Badge soft>{selectedEmployee.role?.name || 'Sin rol'}</Badge>
@@ -227,10 +227,10 @@ export default function EmployeeListCard() {
 
 function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl border border-border bg-surface-muted/50 p-4 md:p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface text-primary">{icon}</div>
-        <h4 className="text-base font-bold text-foreground">{title}</h4>
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-border bg-surface-muted/50 p-4 md:p-5">
+      <div className="mb-4 flex min-w-0 items-center gap-2">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface text-primary">{icon}</div>
+        <h4 className="min-w-0 wrap-break-words text-base font-bold text-foreground [overflow-wrap:anywhere]">{title}</h4>
       </div>
 
       <div className="space-y-3">{children}</div>
@@ -240,19 +240,19 @@ function SectionCard({ title, icon, children }: { title: string; icon: React.Rea
 
 function QuickInfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string | number | null }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-muted p-4">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface-muted p-4">
       <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface text-primary">{icon}</div>
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 wrap-break-words text-sm font-semibold text-foreground">{value || 'No disponible'}</p>
+      <p className="mt-1 wrap-break-words text-sm font-semibold text-foreground [overflow-wrap:anywhere]">{value || 'No disponible'}</p>
     </div>
   );
 }
 
 function DetailRow({ label, value }: { label: string; value?: string | number | null }) {
   return (
-    <div className="rounded-2xl bg-surface px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 wrap-break-words text-sm font-medium text-foreground">{value || 'No disponible'}</p>
+    <div className="min-w-0 overflow-hidden rounded-2xl bg-surface px-4 py-3">
+      <p className="wrap-break-words text-xs font-semibold uppercase tracking-wide text-muted wrap:anywhere">{label}</p>
+      <p className="mt-1 wrap-break-words text-sm font-medium text-foreground [overflow-wrap:anywhere]">{value || 'No disponible'}</p>
     </div>
   );
 }
@@ -260,7 +260,7 @@ function DetailRow({ label, value }: { label: string; value?: string | number | 
 function Badge({ children, success = false, soft = false }: { children: React.ReactNode; success?: boolean; soft?: boolean }) {
   const classes = success ? 'bg-green-100 text-green-700' : soft ? 'bg-primary/10 text-primary' : 'bg-surface-muted text-foreground';
 
-  return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${classes}`}>{children}</span>;
+  return <span className={`min-w-0 wrap-break-words rounded-full px-3 py-1 text-xs font-semibold [overflow-wrap:anywhere] ${classes}`}>{children}</span>;
 }
 
 function formatDate(date?: string | null) {

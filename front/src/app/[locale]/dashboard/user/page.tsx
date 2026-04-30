@@ -115,11 +115,6 @@ export default function DashboardUserPage() {
                 </h1>
                 <p className="text-muted mt-2">Aquí puedes revisar tu información, tus pedidos en camino y tu historial.</p>
               </div>
-
-              <div className="bg-primary/10 border border-primary/30 rounded-2xl px-5 py-4">
-                <p className="text-sm text-muted">Pedidos activos</p>
-                <p className="text-3xl font-bold text-primary">{activeOrders.length}</p>
-              </div>
             </div>
           </section>
 
