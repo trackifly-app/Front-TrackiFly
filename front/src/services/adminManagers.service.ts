@@ -2,8 +2,6 @@ import Swal from 'sweetalert2';
 import { AdminApiUser } from '@/interfaces/shipment';
 import { getUsers } from '@/services/adminUsers.service';
 
-const APIURL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function getAdminUsers(): Promise<AdminApiUser[]> {
   const users = await getUsers();
 
@@ -18,18 +16,17 @@ export async function getPromotableUsers(): Promise<AdminApiUser[]> {
 
 export async function promoteUserToAdmin(userId: string): Promise<boolean> {
   try {
-    const response = await fetch(`${APIURL}/users/${userId}`, {
+    const response = await fetch(`/api/proxy/users/${userId}/role-admin`, {
       method: 'PUT',
       credentials: 'include',
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        roleName: 'admin',
-      }),
     });
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type');
+    const data = contentType?.includes('application/json') ? await response.json() : null;
 
     if (!response.ok) {
       throw new Error(data?.message || 'Error al convertir usuario en administrador');
@@ -43,11 +40,11 @@ export async function promoteUserToAdmin(userId: string): Promise<boolean> {
     });
 
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.message || 'No se pudo convertir el usuario en administrador.',
+      text: error instanceof Error ? error.message : 'No se pudo convertir el usuario en administrador.',
       confirmButtonColor: '#e76f51',
     });
 
