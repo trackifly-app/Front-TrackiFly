@@ -3,12 +3,17 @@
 import { useState } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { Eye, EyeOff } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { validateFormRegister } from '@/lib/validates';
 import CountrySelect from '@/components/CountrySelect';
 import { registerEmployee } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 
 export default function EmployeeRegisterCard() {
   const [showPassword, setShowPassword] = useState(false);
+  const { userData } = useAuth();
+
+  const companyId = userData?.user?.id;
 
   return (
     <div className="rounded-3xl bg-surface border border-border p-8 shadow-sm">
@@ -30,18 +35,35 @@ export default function EmployeeRegisterCard() {
           password: '',
         }}
         validate={validateFormRegister}
-        onSubmit={async (values, { resetForm, setFieldValue }) => {
-          const dataToSubmit = {
-            ...values,
-            country: values.country.slice(0, 2).toUpperCase(),
-          };
+        onSubmit={async (values, { resetForm, setFieldValue, setSubmitting }) => {
+          try {
+            if (!companyId) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se encontró el ID del usuario empresa en la sesión.',
+                confirmButtonColor: '#e76f51',
+              });
+              return;
+            }
 
-          const success = await registerEmployee(dataToSubmit);
+            const dataToSubmit = {
+              ...values,
+              country: values.country.slice(0, 2).toUpperCase(),
+              companyId,
+            };
 
-          if (success) {
-            resetForm();
-            setFieldValue('country', '');
-            setShowPassword(false);
+            console.log('Payload enviado al backend:', dataToSubmit);
+
+            const success = await registerEmployee(dataToSubmit);
+
+            if (success) {
+              resetForm();
+              setFieldValue('country', '');
+              setShowPassword(false);
+            }
+          } finally {
+            setSubmitting(false);
           }
         }}
       >
@@ -144,7 +166,7 @@ export default function EmployeeRegisterCard() {
               </div>
             </div>
 
-            <button type="submit" disabled={!formikProps.isValid || formikProps.isSubmitting} className="mt-9 w-full rounded-2xl bg-primary py-4 text-base font-semibold text-white disabled:bg-surface-muted">
+            <button type="submit" disabled={!formikProps.isValid || formikProps.isSubmitting || !companyId} className="mt-9 w-full rounded-2xl bg-primary py-4 text-base font-semibold text-white disabled:bg-surface-muted">
               {formikProps.isSubmitting ? 'Registrando...' : 'Registrar Empleado'}
             </button>
           </Form>

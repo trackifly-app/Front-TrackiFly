@@ -1,7 +1,16 @@
 "use client";
 import { signIn } from "next-auth/react";
 
-export default function GoogleAuthButton() {
+interface GoogleAuthButtonProps {
+  mode?: "login" | "register";
+}
+
+export default function GoogleAuthButton({
+  mode = "login",
+}: GoogleAuthButtonProps) {
+  const label =
+    mode === "register" ? "Registrarse con Google" : "Continuar con Google";
+
   return (
     <>
       <div className="flex items-center gap-3 my-4">
@@ -12,7 +21,9 @@ export default function GoogleAuthButton() {
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/" })}
+        onClick={() =>
+          signIn("google", { callbackUrl: `/?googleMode=${mode}` })
+        }
         className="w-full flex items-center justify-center gap-3 rounded-2xl border border-border bg-surface py-3 px-5 text-foreground hover:bg-surface-muted transition-all"
       >
         <svg width="20" height="20" viewBox="0 0 48 48">
@@ -33,7 +44,7 @@ export default function GoogleAuthButton() {
             d="M24 47c5.4 0 10-1.8 13.3-4.8l-7.4-5.7c-1.8 1.2-4.1 1.9-5.9 1.9-6.2 0-11.5-4.2-13.3-9.9l-7 5.4C7 41.3 14.8 47 24 47z"
           />
         </svg>
-        Continuar con Google
+        {label}
       </button>
     </>
   );

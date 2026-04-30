@@ -33,24 +33,14 @@ const Footer = () => {
 
         <div className="flex flex-col gap-4 col-span-2 md:col-span-1">
           <h3 className="text-white font-semibold">Contacto</h3>
-          <p className="text-sm text-slate-400">Av. del libertador 1234, Buenos Aires, Argentina</p>
+          <p className="text-sm text-slate-400">Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires</p>
           <p className="text-sm text-slate-400">08000-333-8356</p>
           <p className="text-sm text-slate-400">trackifly@gmail.com.ar</p>
-
-          <div className="flex flex-col gap-2 mt-2">
-            <label htmlFor="" className="text-sm text-slate-400">
-              Rastrear mi envío
-            </label>
-            <div className="flex">
-              <input type="text" placeholder="VLZ-2024-XXXXXX" className="flex-1 bg-[#111827] text-sm text-slate-200 placeholder-slate-500 px-3 py-2 rounded-l outline-none border border-slate-700" />
-              <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-r text-sm font-medium transition-colors">Ir</button>
-            </div>
-          </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-3 px-8 py-4 border-t border-slate-800 text-sm text-slate-400">
-        <p>© 2024 Trackifly. Todos los derechos reservados.</p>
+        <p>© 2026 Trackifly. Todos los derechos reservados.</p>
         <div className="flex gap-3 md:gap-6 items-center">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>

@@ -1,73 +1,148 @@
 "use client";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 
 export default function GoogleSessionSync() {
   const { data: session, status } = useSession();
-  const { setUserData } = useAuth();
+  const { checkSession, userData } = useAuth();
+  const synced = useRef(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (status !== "authenticated" || !session?.backendToken) return;
+    console.log("1. status:", status);
 
-    if (
-      session.isNewGoogleUser === undefined ||
-      session.isNewGoogleUser === null
-    )
-      return;
+    console.log("3. session:", session?.user?.email);
+    if (status !== "authenticated" || !session?.user) return;
 
-    const alreadyShown = localStorage.getItem("googleToastShown");
-    if (alreadyShown === session.backendToken) return;
+    console.log("4. synced.current:", synced.current);
+    if (synced.current) return;
 
-    localStorage.setItem("googleToastShown", session.backendToken);
+    const sessionKey = `google_synced_${session.user.email}`;
+    console.log("5. sessionKey:", sessionStorage.getItem(sessionKey));
+    if (sessionStorage.getItem(sessionKey)) return;
 
-    const stored = localStorage.getItem("userSession");
-    if (!stored) {
-      const googleSession = {
-        token: session.backendToken,
-        user: {
-          id: session.user?.id || "",
-          email: session.user?.email || "",
-          first_name: session.user?.name?.split(" ")[0] || "",
-          last_name: session.user?.name?.split(" ").slice(1).join(" ") || "",
-          role: "user",
-          address: "",
-          phone: "",
-        },
-      };
-      localStorage.setItem("userSession", JSON.stringify(googleSession));
-      localStorage.setItem("userToken", session.backendToken);
-      setUserData(googleSession);
-    }
+    console.log("6. llegamos al syncSession");
 
-    const esNuevo = session.isNewGoogleUser;
+    synced.current = true;
+    sessionStorage.setItem(sessionKey, "true");
 
-    if (!esNuevo) {
-      Swal.fire({
-        icon: "success",
-        title: "Hola denuevo",
-        text: "Sesión iniciada con Google.",
-        confirmButtonColor: "#e76f51",
-        timer: 2500,
-        showConfirmButton: false,
-      }).then(() => {
-        window.location.href = "/";
-      });
-      return;
-    }
+    // ← leer desde dónde vino: login o register
+    const googleMode = searchParams.get("googleMode") || "login";
+    const isNew = session.isNewGoogleUser;
 
-    Swal.fire({
-      icon: "success",
-      title: "¡Bienvenido a TrackiFly!",
-      text: "Tu cuenta fue creada con Google.",
-      confirmButtonColor: "#e76f51",
-      timer: 3000,
-      showConfirmButton: false,
-    }).then(() => {
-      window.location.href = "/";
-    });
-  }, [status, session, setUserData]);
+    const syncSession = async () => {
+      try {
+        const googleRes = await fetch(`/api/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: session.user?.email,
+            name: session.user?.name,
+            googleId: session.user?.image,
+            picture: session.user?.image,
+          }),
+        });
+
+        if (!googleRes.ok) return;
+
+        let sessionLoaded = false;
+        let retries = 3;
+
+        while (retries > 0 && !sessionLoaded) {
+          await checkSession();
+          const meRes = await fetch(`/api/auth/me`, { credentials: "include" });
+          if (meRes.ok) {
+            sessionLoaded = true;
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            retries--;
+          }
+        }
+
+        if (!sessionLoaded) {
+          console.error("No se pudo cargar la sesión de Google");
+          return;
+        }
+
+        // Vino desde register pero ya tenía cuenta
+        if (googleMode === "register" && !isNew) {
+          sessionStorage.removeItem(sessionKey);
+          synced.current = false;
+
+          Swal.fire({
+            icon: "info",
+            title: "Ya tenés cuenta",
+            text: "Tu cuenta de Google ya está registrada. Iniciando sesión...",
+            confirmButtonColor: "#e76f51",
+            timer: 3000,
+            showConfirmButton: false,
+          }).then(() => router.push("/"));
+          return;
+        }
+
+        // Vino desde register y ES NUEVO → incentivo de perfil
+        if (googleMode === "register" && isNew) {
+          Swal.fire({
+            icon: "success",
+            title: "¡Bienvenido a TrackiFly!",
+            html: `
+      <p>Tu cuenta fue creada con Google.</p>
+      <br/>
+      <p>🎁 <strong>Completá tu perfil ahora</strong> y obtené un <strong style="color:#e76f51">5% de descuento</strong> en tu primer envío.</p>
+    `,
+            confirmButtonText: "Completar perfil",
+            cancelButtonText: "Ahora no",
+            showCancelButton: true,
+            confirmButtonColor: "#e76f51",
+            cancelButtonColor: "#6b7280",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              localStorage.setItem(
+                `profile_discount_${userData?.user?.id}`,
+                "true",
+              );
+              router.push(`/es/dashboard/user`);
+            } else {
+              router.push("/");
+            }
+          });
+          return;
+        }
+
+        // Vino desde login y es nuevo (se registró sin querer)
+        if (googleMode === "login" && isNew) {
+          Swal.fire({
+            icon: "success",
+            title: "¡Bienvenido a TrackiFly!",
+            text: "No tenías cuenta, la creamos automáticamente con Google.",
+            confirmButtonColor: "#e76f51",
+            timer: 3000,
+            showConfirmButton: false,
+          }).then(() => router.push("/"));
+          return;
+        }
+
+        // Vino desde login y ya tenía cuenta
+        Swal.fire({
+          icon: "success",
+          title: "Hola de nuevo",
+          text: "Sesión iniciada con Google.",
+          confirmButtonColor: "#e76f51",
+          timer: 2500,
+          showConfirmButton: false,
+        }).then(() => router.push("/"));
+      } catch (err) {
+        console.error("Error sincronizando sesión de Google:", err);
+      }
+    };
+
+    void syncSession();
+  }, [status, session, router, checkSession, searchParams, userData?.user?.id]);
 
   return null;
 }

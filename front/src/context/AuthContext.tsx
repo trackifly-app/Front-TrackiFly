@@ -1,66 +1,135 @@
 "use client";
 import { IAuthContextProps, IUserSession } from "@/interfaces/shipment";
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from "react";
 import { logout as logoutService } from "@/services/authService";
 import { signOut } from "next-auth/react";
 
-export const AuthContext = createContext<IAuthContextProps>({
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export const AuthContext = createContext<
+  IAuthContextProps & { loading: boolean; checkSession: () => Promise<void> }
+>({
   userData: null,
+  loading: true,
   setUserData: () => {},
   handleLogout: () => {},
+  checkSession: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Iniciamos el estado buscando si ya hay una sesión guardada en el navegador
-  const [userData, setUserData] = useState<IUserSession | null>(() => {
-    if (typeof window !== "undefined") {
-      const storedData = localStorage.getItem("userSession");
+  const [userData, setUserData] = useState<IUserSession | null>(null);
+  const [loading, setLoading] = useState(true);
 
-      if (storedData) {
-        try {
-          // Si existe la sesión, la transformamos de texto a objeto
-          return JSON.parse(storedData);
-        } catch (error) {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
+  const fetchSession = useCallback(async () => {
+    try {
+      setLoading(true);
 
-  // Función para cerrar la sesión por completo
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      try {
-        // 1. Limpiamos el localStorage y cookies usando el servicio central de auth
-        logoutService();
+      const res = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
 
-        // 2. Reseteamos el estado global de la app a null
+      if (!res.ok) {
         setUserData(null);
-        signOut({ redirect: false });
-
-        // 3. Avisamos al usuario y lo mandamos al inicio
-        alert("Su sesión fue cerrada exitosamente.");
-        window.location.href = "/";
-      } catch (error) {
-        // Si algo falla aquí, es un error crítico de la aplicación
-        console.error("Error al cerrar sesión:", error);
+        return;
       }
+
+      const basicData = await res.json();
+
+      if (basicData?.id) {
+        const userRes = await fetch(`${API_URL}/users/${basicData.id}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        const fullData = userRes.ok ? await userRes.json() : basicData;
+
+        setUserData({
+          user: {
+            id: fullData.id,
+            email: fullData.email,
+            role: {
+              id: fullData.role?.id || "",
+              name: fullData.role?.name || "user",
+            },
+            profile: {
+              id: fullData.profile?.id || "",
+              first_name: fullData.profile?.first_name || "",
+              last_name: fullData.profile?.last_name || "",
+              birthdate: fullData.profile?.birthdate || "",
+              gender: fullData.profile?.gender || "",
+              phone: fullData.profile?.phone || "",
+              address: fullData.profile?.address || "",
+              country: fullData.profile?.country || "",
+              profile_image: fullData.profile?.profile_image || "",
+            },
+            // Mapeo limpio de company
+            company: fullData.company
+              ? {
+                  id: fullData.company.id,
+                  company_name: fullData.company.company_name,
+                  industry: fullData.company.industry,
+                  contact_name: fullData.company.contact_name,
+                  plan: fullData.company.plan,
+                  phone: fullData.company.phone,
+                  address: fullData.company.address,
+                  country: fullData.company.country,
+                  profile_image: fullData.company.profile_image,
+                }
+              : undefined,
+          },
+        } as IUserSession);
+      }
+    } catch (error) {
+      console.error("Error al recuperar la sesión:", error);
+      setUserData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSession();
+  }, [fetchSession]);
+
+  const handleLogout = async () => {
+    try {
+      await logoutService();
+      setUserData(null);
+      await signOut({ redirect: false });
+      // limpiar google sync keys
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith("google_synced_")) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      console.error("Error en Logout:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ userData, setUserData, handleLogout }}>
+    <AuthContext.Provider
+      value={{
+        userData,
+        setUserData,
+        handleLogout,
+        loading,
+        checkSession: fetchSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook personalizado para usar el contexto de forma más simple en los componentes
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);

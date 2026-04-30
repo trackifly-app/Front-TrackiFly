@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Formik, Form, Field } from "formik";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -10,12 +10,20 @@ import {
   Autocomplete,
 } from "@react-google-maps/api";
 
-import { CATEGORIES } from "@/lib/categories";
 import { validateShipment } from "@/lib/validates";
+import { createOrder, createPayment } from "@/services/orderService";
+import { useAuth } from "@/context/AuthContext";
+
+import { useFeedback } from "@/context/feedback/useFeedback";
 
 const libraries: "places"[] = ["places"];
 const mapContainerStyle = { width: "100%", height: "100%" };
 const centerDefault = { lat: -34.5997, lng: -58.3819 };
+
+// COORDENADAS Y DIRECCIÓN DEL OBELISCO
+const OBELISCO_COORDS = { lat: -34.6037, lng: -58.3816 };
+const OBELISCO_ADDRESS =
+  "Obelisco, Av. 9 de Julio s/n, C1043 Ciudad Autónoma de Buenos Aires";
 
 const COSTO_M3 = 500;
 const COSTO_KM = 120;
@@ -25,40 +33,78 @@ const RECARGOS = {
   REFRIGERADO: 0.2,
   URGENTE: 0.5,
 };
-
-// ========================================
-// COMPONENTE PRINCIPAL: OrderView
-// Gestiona el formulario de creación de órdenes con mapa interactivo
-// ========================================
 const OrderView = () => {
-  // Estado para almacenar coordenadas de origen y destino
   const router = useRouter();
+  const { locale } = useParams();
+
+  const { userData } = useAuth();
+  //error verde, success/rojo
+  const { showToast } = useFeedback();
+
+  const esEmpresa =
+    userData?.user?.role?.name === "company" ||
+    userData?.user?.role?.name === "operator";
+
+  const tieneDescuentoPerfil =
+    typeof window !== "undefined" &&
+    !!localStorage.getItem(`profile_discount_${userData?.user?.id}`) &&
+    !!(userData?.user?.profile?.phone && userData?.user?.profile?.address);
+  // ESTADO PARA EL BOTÓN DEL OBELISCO
+  const [obeliscoIsOrigin, setObeliscoIsOrigin] = useState(true);
+
   const [coords, setCoords] = useState<{
     origen: google.maps.LatLngLiteral | null;
     destino: google.maps.LatLngLiteral | null;
-  }>({ origen: null, destino: null });
+  }>({ origen: OBELISCO_COORDS, destino: null }); // Iniciamos con Obelisco en origen
 
   const [routePath, setRoutePath] = useState<google.maps.LatLngLiteral[]>([]);
   const [distance, setDistance] = useState(0);
-
-  // Referencia al mapa para controlar el zoom y encuadre manualmente
+  const [backendCategories, setBackendCategories] = useState<any[]>([]);
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
 
-  // Referencias para los inputs de autocompletado de Google Maps
   const originRef = useRef<google.maps.places.Autocomplete | null>(null);
   const destinationRef = useRef<google.maps.places.Autocomplete | null>(null);
 
-  // Cargador de la API de Google Maps
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries,
   });
 
-  // ========================================
-  // FUNCIÓN: calcularRutaReal
-  // Calcula la ruta real entre origen y destino usando Google Directions Service
-  // ========================================
+  // FUNCIÓN AUXILIAR PARA CALCULAR PRECIOS (Evita errores de scope)
+  const getCalculatedPrices = (values: any) => {
+    const factor = values.unit === "cm" ? 0.01 : 0.0254;
+    const volumenM3 =
+      Number(values.height) *
+        factor *
+        (Number(values.width) * factor) *
+        (Number(values.depth) * factor) || 0;
+    const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
+
+    let recargoPeso = 0;
+    const pesoNum = Number(values.weight) || 0;
+    if (pesoNum > 2) {
+      recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
+    }
+
+    let extraServicios = 0;
+    if (values.fragile) extraServicios += RECARGOS.FRAGIL;
+    if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
+    if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
+    if (values.urgent) extraServicios += RECARGOS.URGENTE;
+
+    const subtotal =
+      precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
+
+    const precioFinal = esEmpresa
+      ? subtotal * 0.8
+      : tieneDescuentoPerfil
+        ? subtotal * 0.95
+        : subtotal;
+
+    return { precioFinal, volumenM3, pesoNum };
+  };
+
   const calcularRutaReal = useCallback(
     (origen: google.maps.LatLngLiteral, destino: google.maps.LatLngLiteral) => {
       const directionsService = new google.maps.DirectionsService();
@@ -79,7 +125,6 @@ const OrderView = () => {
             }));
             setRoutePath(path);
 
-            // Ajuste automático del mapa para mostrar toda la ruta
             if (mapRef && result.routes[0].bounds) {
               mapRef.fitBounds(result.routes[0].bounds);
             }
@@ -90,11 +135,38 @@ const OrderView = () => {
     [mapRef],
   );
 
-  // ========================================
-  // FUNCIÓN: onPlaceChanged
-  // Maneja el cambio de ubicación en los inputs de autocompletado
-  // Actualiza coordenadas y calcula la ruta cuando ambas se seleccionan
-  // ========================================
+  const handleSwapObelisco = (setFieldValue: any) => {
+    const nextState = !obeliscoIsOrigin;
+    setObeliscoIsOrigin(nextState);
+    setDistance(0);
+    setRoutePath([]);
+
+    if (nextState) {
+      setFieldValue("pickup_direction", OBELISCO_ADDRESS);
+      setFieldValue("delivery_direction", "");
+      setCoords({ origen: OBELISCO_COORDS, destino: null });
+    } else {
+      setFieldValue("pickup_direction", "");
+      setFieldValue("delivery_direction", OBELISCO_ADDRESS);
+      setCoords({ origen: null, destino: OBELISCO_COORDS });
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://back-trackifly-production.up.railway.app/categories",
+        );
+        const data = await response.json();
+        setBackendCategories(data);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const onPlaceChanged = (type: "origen" | "destino", setFieldValue: any) => {
     const autocomplete =
       type === "origen" ? originRef.current : destinationRef.current;
@@ -121,11 +193,10 @@ const OrderView = () => {
     }
   };
 
-  // ========================================
-  // ESTILOS REUTILIZABLES (actualizados al sistema de variables)
-  // ========================================
   const inputStyle =
     "w-full rounded-xl border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all";
+  const readOnlyStyle =
+    "w-full rounded-xl border border-border bg-muted/10 px-4 py-3 text-muted-foreground cursor-not-allowed outline-none italic";
   const errorLabel =
     "text-red-500 text-[10px] mt-1 font-bold uppercase ml-2 text-left";
 
@@ -136,10 +207,6 @@ const OrderView = () => {
       </div>
     );
 
-  // ========================================
-  // FORMULARIO PRINCIPAL: Formik
-  // Maneja validación, estado y envío del formulario de orden de envío
-  // ========================================
   return (
     <Formik
       initialValues={{
@@ -147,7 +214,7 @@ const OrderView = () => {
         description: "",
         category_id: "",
         image: "",
-        pickup_direction: "",
+        pickup_direction: OBELISCO_ADDRESS,
         delivery_direction: "",
         weight: "",
         height: "",
@@ -159,9 +226,6 @@ const OrderView = () => {
         cooled: false,
         urgent: false,
       }}
-      // ========================================
-      // VALIDACIÓN DE FORMULARIO
-      // ========================================
       validate={(values) => {
         const shipmentValues = {
           ...values,
@@ -170,9 +234,13 @@ const OrderView = () => {
           depth: Number(values.depth) || 0,
           weight: Number(values.weight) || 0,
           distance: distance,
+          customerType: (userData?.user?.role?.name === "company" ||
+          userData?.user?.role?.name === "operator"
+            ? "company"
+            : "user") as "company" | "user",
         };
 
-        const errors = validateShipment(shipmentValues);
+        const errors: any = validateShipment(shipmentValues);
 
         if (!values.description) {
           errors.description = "Requerido";
@@ -199,16 +267,68 @@ const OrderView = () => {
 
         return errors;
       }}
-      // ========================================
-      // MANEJADOR DE ENVÍO DEL FORMULARIO
-      // ========================================
-      onSubmit={async (values) => {
+      onSubmit={async (values, { setSubmitting }) => {
         if (distance === 0) {
-          alert("Selecciona origen y destino válidos en el mapa.");
+          // cambie los alerts por los showtoasts
+          showToast(
+            "Selecciona origen y destino válidos en el mapa para calcular la distancia.",
+            "warning",
+          );
+          setSubmitting(false);
           return;
         }
-        console.log("Enviando a TrackiFly:", values);
-        router.push("/dashboard/user");
+        if (!userData?.user?.id) {
+          showToast("Debes estar logueado para realizar un envío.", "error");
+          setSubmitting(false);
+          return;
+        }
+
+        const { precioFinal } = getCalculatedPrices(values);
+
+        try {
+          const orderToSave = {
+            ...values,
+            distance,
+            userId: userData.user.id,
+            price: Number(precioFinal.toFixed(2)),
+          };
+          // se elimino el bloque que creaba la orden
+          // detectaba el rol, mostraba el alert y lo mandaba a
+          // dashboard. Ahora: orden + pago → redirección a MercadoPago, mercado pago necesita: window.location.href = paymentUrl;
+          const order = await createOrder(orderToSave);
+
+          const payment = await createPayment({
+            orderId: order.id,
+            userId: userData.user.id,
+          });
+
+          const role = userData?.user?.role?.name;
+
+          let dashboardPath = `/${locale}/dashboard/user`;
+          if (role === "admin") {
+            dashboardPath = `/${locale}/dashboard/admin`;
+          } else if (role === "company" || role === "operator") {
+            dashboardPath = `/${locale}/dashboard/company`;
+          }
+
+          window.open(payment.checkout_url, "_blank");
+
+          showToast(
+            "¡Pedido creado! Completá el pago en la ventana que se abrió.",
+            "success",
+          );
+
+          setTimeout(() => {
+            router.push(dashboardPath);
+          }, 3000);
+        } catch (error: any) {
+          showToast(
+            error.message || "Hubo un problema al procesar el pago. Reintentá.",
+            "error",
+          );
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
       {({
@@ -219,41 +339,12 @@ const OrderView = () => {
         isSubmitting,
         submitCount,
       }) => {
-        // ========================================
-        // CÁLCULOS DE PRESUPUESTO
-        // Calcula volumen, precio base, recargos por peso y servicios adicionales
-        // ========================================
-        const factor = values.unit === "cm" ? 0.01 : 0.0254;
-        const volumenM3 =
-          Number(values.height) *
-            factor *
-            (Number(values.width) * factor) *
-            (Number(values.depth) * factor) || 0;
-        const precioBase = volumenM3 * COSTO_M3 + distance * COSTO_KM;
+        const { precioFinal, volumenM3, pesoNum } = getCalculatedPrices(values);
 
-        let recargoPeso = 0;
-        const pesoNum = Number(values.weight) || 0;
-        if (pesoNum > 2) {
-          recargoPeso = Math.floor((pesoNum - 2) / 2) * 0.05;
-        }
-
-        let extraServicios = 0;
-        if (values.fragile) extraServicios += RECARGOS.FRAGIL;
-        if (values.dangerous) extraServicios += RECARGOS.PELIGROSO;
-        if (values.cooled) extraServicios += RECARGOS.REFRIGERADO;
-        if (values.urgent) extraServicios += RECARGOS.URGENTE;
-
-        const precioFinal =
-          precioBase > 0 ? precioBase * (1 + extraServicios + recargoPeso) : 0;
-
-        // ========================================
-        // RENDERIZADO DEL COMPONENTE
-        // ========================================
         return (
           <main className="min-h-screen bg-background px-4 py-10">
             <div className="mx-auto max-w-7xl">
               <Form className="flex flex-col lg:flex-row gap-8 lg:gap-10">
-                {/* ====================== COLUMNA IZQUIERDA ====================== */}
                 <div className="flex-1 space-y-8">
                   <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
                     <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">
@@ -291,12 +382,16 @@ const OrderView = () => {
                             name="category_id"
                             className={`${inputStyle} ${errors.category_id && (touched.category_id || submitCount > 0) ? "border-red-500" : ""}`}
                           >
-                            <option value="">Categoría...</option>
-                            {CATEGORIES.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name}
-                              </option>
-                            ))}
+                            <option value="">Selecciona una categoría</option>
+                            {backendCategories.length > 0 ? (
+                              backendCategories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.name}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>Cargando...</option>
+                            )}
                           </Field>
                           {errors.category_id &&
                             (touched.category_id || submitCount > 0) && (
@@ -379,23 +474,41 @@ const OrderView = () => {
                   </div>
 
                   <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-                    <h3 className="mb-4 text-lg font-bold border-b border-border pb-2 uppercase text-foreground">
-                      Trayecto
-                    </h3>
+                    <div className="flex justify-between items-center mb-4 border-b border-border pb-2">
+                      <h3 className="text-lg font-bold uppercase text-foreground">
+                        Trayecto
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => handleSwapObelisco(setFieldValue)}
+                        className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-lg border border-primary/20 hover:bg-primary hover:text-white font-bold transition-all uppercase"
+                      >
+                        ⇅ Intercambiar de lugar Obelisco
+                      </button>
+                    </div>
+
                     <div className="grid gap-4 md:grid-cols-2 mb-4">
                       <div>
-                        <Autocomplete
-                          onLoad={(ref) => (originRef.current = ref)}
-                          onPlaceChanged={() =>
-                            onPlaceChanged("origen", setFieldValue)
-                          }
-                        >
+                        {obeliscoIsOrigin ? (
                           <input
-                            type="text"
-                            placeholder="Origen"
-                            className={inputStyle}
+                            readOnly
+                            value={OBELISCO_ADDRESS}
+                            className={readOnlyStyle}
                           />
-                        </Autocomplete>
+                        ) : (
+                          <Autocomplete
+                            onLoad={(ref) => (originRef.current = ref)}
+                            onPlaceChanged={() =>
+                              onPlaceChanged("origen", setFieldValue)
+                            }
+                          >
+                            <input
+                              type="text"
+                              placeholder="Origen"
+                              className={inputStyle}
+                            />
+                          </Autocomplete>
+                        )}
                         {errors.pickup_direction && submitCount > 0 && (
                           <p className={errorLabel}>
                             {errors.pickup_direction}
@@ -403,18 +516,26 @@ const OrderView = () => {
                         )}
                       </div>
                       <div>
-                        <Autocomplete
-                          onLoad={(ref) => (destinationRef.current = ref)}
-                          onPlaceChanged={() =>
-                            onPlaceChanged("destino", setFieldValue)
-                          }
-                        >
+                        {!obeliscoIsOrigin ? (
                           <input
-                            type="text"
-                            placeholder="Destino"
-                            className={inputStyle}
+                            readOnly
+                            value={OBELISCO_ADDRESS}
+                            className={readOnlyStyle}
                           />
-                        </Autocomplete>
+                        ) : (
+                          <Autocomplete
+                            onLoad={(ref) => (destinationRef.current = ref)}
+                            onPlaceChanged={() =>
+                              onPlaceChanged("destino", setFieldValue)
+                            }
+                          >
+                            <input
+                              type="text"
+                              placeholder="Destino"
+                              className={inputStyle}
+                            />
+                          </Autocomplete>
+                        )}
                         {errors.delivery_direction && submitCount > 0 && (
                           <p className={errorLabel}>
                             {errors.delivery_direction}
@@ -450,10 +571,7 @@ const OrderView = () => {
                         mapContainerStyle={mapContainerStyle}
                         center={coords.origen || centerDefault}
                         zoom={12}
-                        options={{
-                          disableDefaultUI: true,
-                          zoomControl: false,
-                        }}
+                        options={{ disableDefaultUI: true, zoomControl: false }}
                       >
                         {coords.origen && (
                           <Marker
@@ -490,7 +608,6 @@ const OrderView = () => {
                   </div>
                 </div>
 
-                {/* ====================== COLUMNA DERECHA - PRESUPUESTO ====================== */}
                 <div className="lg:w-96 shrink-0">
                   <div className="rounded-2xl bg-surface p-8 shadow-xl text-foreground border border-border h-fit">
                     <h2 className="text-xl font-black mb-6 border-b border-border pb-2 uppercase">
@@ -538,6 +655,28 @@ const OrderView = () => {
                           ),
                         )}
                       </div>
+                      {(userData?.user?.role?.name === "company" ||
+                        userData?.user?.role?.name === "operator") && (
+                        <div className="bg-primary/10 border-l-4 border-primary p-4 mb-4 rounded-r-md">
+                          <p className="text-sm font-bold text-primary uppercase tracking-wider">
+                            Beneficio Exclusivo: Empresa
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Se esta aplicando un 20% de descuento automático a
+                            tu tarifa solo por ser parte de nuestra comunidad de
+                            empresas.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* descuento para usuario por primera vez registrado con google */}
+                      {tieneDescuentoPerfil && !esEmpresa && (
+                        <div className="flex justify-between text-sm text-green-600 font-semibold">
+                          <span>🎁 Descuento perfil completo:</span>
+                          <span>-5%</span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between items-baseline text-3xl border-t border-border pt-6 mt-6">
                         <span className="font-black italic text-lg uppercase">
                           Neto:

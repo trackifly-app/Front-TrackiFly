@@ -239,7 +239,7 @@ const RegisterView = () => {
                   {isSubmitting ? "Procesando..." : "Crear cuenta"}
                 </button>
                 {/* Botón de google */}
-                <GoogleAuthButton />
+                <GoogleAuthButton mode="register" />
               </Form>
             )}
           </Formik>

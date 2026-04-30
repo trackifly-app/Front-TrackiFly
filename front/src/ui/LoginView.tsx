@@ -5,19 +5,20 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import { login } from '@/services/authService'; // Asegúrate de que se llame login o loginUser según tu servicio
-import { useAuth } from '@/context/AuthContext'; // Para guardar el usuario globalmente
+import { login } from '@/services/authService'; 
+import { useAuth } from '@/context/AuthContext'; 
 import { useRouter } from 'next/navigation';
 import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 
 const LoginView = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { setUserData } = useAuth(); // Traemos la función para guardar la sesión
+  // Extraemos checkSession para actualizar el perfil completo tras el login
+  const { checkSession } = useAuth(); 
   const router = useRouter();
 
   return (
     <div className="flex min-h-[calc(100vh-140px)]">
-      {/* LEFT (se mantiene tal cual) */}
+      {/* LEFT */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between bg-[#1f2a37] dark:bg-slate-900 p-12 text-white">
         <div className="flex flex-1 items-center">
           <div>
@@ -52,28 +53,41 @@ const LoginView = () => {
             initialValues={{ email: '', password: '' }}
             validate={validateFormLogin}
             onSubmit={async (values, { setSubmitting }) => {
-              // Llamamos a la función de servicio que definimos antes
+              // 1. Ejecutamos el login (esto guarda la cookie en el navegador)
               const response = await login(values);
 
               if (response) {
-                // Si el login es exitoso, actualizamos el contexto global
-                setUserData(response);
-
-                // Redirigimos al dashboard
-                router.push('/');
+                try {
+                  // 2. Ejecutamos checkSession del AuthContext. 
+                  // Esto hace el fetch a /auth/me y /users/:id para traer el fullData
+                  // con tu imagen de perfil, nombre real y roles.
+                  await checkSession();
+                  
+                  // 3. Una vez que el contexto tiene toda la info, redirigimos.
+                  // Para este punto, el Navbar ya se habrá actualizado solo.
+                  router.push('/');
+                } catch (error) {
+                  console.error("Error al sincronizar la sesión:", error);
+                  router.push('/'); // Redirigimos igual, aunque falle el perfil
+                }
               }
 
               setSubmitting(false);
             }}
           >
-            {({ errors, isSubmitting }) => (
+            {({ isSubmitting }) => (
               <Form className="mt-6 space-y-5">
                 {/* Email */}
                 <div>
                   <label className="text-sm text-muted">Email</label>
                   <div className="relative mt-1">
                     <Mail className="absolute left-3 top-3 h-5 w-5 text-muted" />
-                    <Field type="email" name="email" placeholder="ejemplo@gmail.com" className="w-full rounded-xl border border-border bg-surface-muted text-foreground placeholder-muted py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <Field 
+                      type="email" 
+                      name="email" 
+                      placeholder="ejemplo@gmail.com" 
+                      className="w-full rounded-xl border border-border bg-surface-muted text-foreground placeholder-muted py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" 
+                    />
                   </div>
                   <ErrorMessage name="email" component="div" className="text-xs text-primary mt-1" />
                 </div>
@@ -83,20 +97,33 @@ const LoginView = () => {
                   <label className="text-sm text-muted">Contraseña</label>
                   <div className="relative mt-1">
                     <Lock className="absolute left-3 top-3 h-5 w-5 text-muted" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-muted hover:text-foreground">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="absolute right-3 top-3 text-muted hover:text-foreground"
+                    >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
-                    <Field type={showPassword ? 'text' : 'password'} name="password" placeholder="••••••••" className="w-full rounded-xl border border-border bg-surface-muted text-foreground py-2.5 pl-10 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <Field 
+                      type={showPassword ? 'text' : 'password'} 
+                      name="password" 
+                      placeholder="••••••••" 
+                      className="w-full rounded-xl border border-border bg-surface-muted text-foreground py-2.5 pl-10 pr-10 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30" 
+                    />
                   </div>
                   <ErrorMessage name="password" component="div" className="text-xs text-primary mt-1" />
                 </div>
 
-                {/* Button */}
-                <button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed">
+                {/* Submit Button */}
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
                   {isSubmitting ? 'Cargando...' : 'Ingresar'}
                 </button>
 
-                {/* botón de google */}
+                {/* Botón de Google */}
                 <GoogleAuthButton />
               </Form>
             )}
