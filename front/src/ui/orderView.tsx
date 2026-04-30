@@ -9,7 +9,7 @@ import {
   Polyline,
   Autocomplete,
 } from "@react-google-maps/api";
-
+import emailjs from '@emailjs/browser';
 import { validateShipment } from "@/lib/validates";
 import { createOrder, createPayment } from "@/services/orderService";
 import { useAuth } from "@/context/AuthContext";
@@ -296,6 +296,22 @@ const OrderView = () => {
           // detectaba el rol, mostraba el alert y lo mandaba a
           // dashboard. Ahora: orden + pago → redirección a MercadoPago, mercado pago necesita: window.location.href = paymentUrl;
           const order = await createOrder(orderToSave);
+          
+          await emailjs.send(
+            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+            {
+              to_name: `${userData?.user?.profile?.first_name || ''} ${userData?.user?.profile?.last_name || ''}`.trim() || 'Usuario',
+              email: userData.user.email || '',
+              order_id: order.id,
+              order_name: values.name,
+              tracking_code: order.tracking_code || '',
+              price: precioFinal.toFixed(2),
+              pickup_direction: values.pickup_direction,
+              delivery_direction: values.delivery_direction,
+            },
+            process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+          );
 
           const payment = await createPayment({
             orderId: order.id,
