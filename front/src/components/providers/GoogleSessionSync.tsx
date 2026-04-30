@@ -5,8 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import Swal from "sweetalert2";
 
-const APIURL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function GoogleSessionSync() {
   const { data: session, status } = useSession();
   const { checkSession, userData } = useAuth();
@@ -15,11 +13,19 @@ export default function GoogleSessionSync() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    console.log("1. status:", status);
+
+    console.log("3. session:", session?.user?.email);
     if (status !== "authenticated" || !session?.user) return;
+
+    console.log("4. synced.current:", synced.current);
     if (synced.current) return;
 
     const sessionKey = `google_synced_${session.user.email}`;
+    console.log("5. sessionKey:", sessionStorage.getItem(sessionKey));
     if (sessionStorage.getItem(sessionKey)) return;
+
+    console.log("6. llegamos al syncSession");
 
     synced.current = true;
     sessionStorage.setItem(sessionKey, "true");
@@ -30,7 +36,7 @@ export default function GoogleSessionSync() {
 
     const syncSession = async () => {
       try {
-        const googleRes = await fetch(`${APIURL}/auth/google`, {
+        const googleRes = await fetch(`/api/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -44,7 +50,24 @@ export default function GoogleSessionSync() {
 
         if (!googleRes.ok) return;
 
-        await checkSession();
+        let sessionLoaded = false;
+        let retries = 3;
+
+        while (retries > 0 && !sessionLoaded) {
+          await checkSession();
+          const meRes = await fetch(`/api/auth/me`, { credentials: "include" });
+          if (meRes.ok) {
+            sessionLoaded = true;
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            retries--;
+          }
+        }
+
+        if (!sessionLoaded) {
+          console.error("No se pudo cargar la sesión de Google");
+          return;
+        }
 
         // Vino desde register pero ya tenía cuenta
         if (googleMode === "register" && !isNew) {
