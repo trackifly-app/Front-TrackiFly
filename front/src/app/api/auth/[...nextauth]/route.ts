@@ -11,7 +11,7 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       try {
-        const res = await fetch(`${process.env.NEXTAUTH_URL}/auth/google`, {
+        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -22,15 +22,12 @@ const handler = NextAuth({
           }),
         });
 
-        console.log("Backend response status:", res.status); 
-
         if (!res.ok) return false;
 
         const data = await res.json() as { isNew: boolean };
         user.isNewGoogleUser = data.isNew;
         return true;
-      } catch (error) {
-        console.error("Error en signIn callback:", error);
+      } catch {
         return false;
       }
     },
