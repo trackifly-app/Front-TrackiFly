@@ -11,7 +11,7 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       try {
-        const res = await fetch(`${process.env.API_URL}/auth/google`, {
+        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

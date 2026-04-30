@@ -102,9 +102,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleLogout = async () => {
     try {
-      localStorage.setItem("manualLogout", "true");
       await logoutService();
       setUserData(null);
+      await signOut({ redirect: false });
       // limpiar google sync keys
       Object.keys(sessionStorage).forEach((key) => {
         if (key.startsWith("google_synced_")) {
