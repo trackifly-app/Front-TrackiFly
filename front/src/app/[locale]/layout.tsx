@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import Footer from "@/components/Footer";
@@ -10,17 +9,6 @@ import SessionProviderWrapper from "@/components/providers/SessionProviderWrappe
 import { AuthProvider } from "@/context/AuthContext";
 import FeedbackProvider from "@/context/feedback/FeedbackProvider";
 import "../globals.css";
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: "Trackifly - Gestion de Envios",
@@ -38,7 +26,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${poppins.variable} ${inter.variable}`}>
+    <html lang={locale}>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <SessionProviderWrapper>
           <NextIntlClientProvider messages={messages}>

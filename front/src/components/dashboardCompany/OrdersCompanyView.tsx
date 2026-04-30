@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Eye, PackageSearch, X } from 'lucide-react';
 
 import AdminMetricCard from '@/components/dashboardAdmin/AdminMetricCard';
-import { AdminApiOrder } from '@/interfaces/shipment';
+import { CompanyApiOrder } from '@/interfaces/shipment';
 import { getOrdersByCompanyEmployees } from '@/services/companyOrders.service';
 import { useAuth } from '@/context/AuthContext';
 import { ORDER_STATUS_LABEL, ORDER_STATUS_COLOR } from '@/constants/orderStatus';
@@ -13,9 +13,9 @@ import { ORDER_STATUS_LABEL, ORDER_STATUS_COLOR } from '@/constants/orderStatus'
 export default function OrdersCompanyView() {
   const { userData, loading: authLoading } = useAuth();
 
-  const [orders, setOrders] = useState<AdminApiOrder[]>([]);
+  const [orders, setOrders] = useState<CompanyApiOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<AdminApiOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<CompanyApiOrder | null>(null);
 
   useEffect(() => {
     async function loadCompanyOrders() {
@@ -117,7 +117,7 @@ export default function OrdersCompanyView() {
   );
 }
 
-function CompanyOrdersTable({ orders, onViewDetails }: { orders: AdminApiOrder[]; onViewDetails: (order: AdminApiOrder) => void }) {
+function CompanyOrdersTable({ orders, onViewDetails }: { orders: CompanyApiOrder[]; onViewDetails: (order: CompanyApiOrder) => void }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-surface-muted">
       <div className="grid grid-cols-[1.6fr_0.7fr_0.8fr_0.7fr] border-b border-border px-5 py-4 text-xs font-bold uppercase tracking-wide text-muted">
@@ -165,7 +165,7 @@ function CompanyOrdersTable({ orders, onViewDetails }: { orders: AdminApiOrder[]
   );
 }
 
-function OrderDetailsModal({ order, onClose }: { order: any; onClose: () => void }) {
+function OrderDetailsModal({ order, onClose }: { order: CompanyApiOrder; onClose: () => void }) {
   const pkg = order.package || {};
   const dims = pkg.dimensions || {};
 
@@ -248,7 +248,7 @@ function OrderDetailsModal({ order, onClose }: { order: any; onClose: () => void
   );
 }
 
-function Badge({ active, label, color }: { active: boolean; label: string; color: string }) {
+function Badge({ active, label, color }: { active?: boolean; label: string; color: string }) {
   if (!active) {
     return <span className="rounded-full bg-border px-3 py-1 text-[10px] font-bold uppercase text-muted opacity-30">{label}</span>;
   }

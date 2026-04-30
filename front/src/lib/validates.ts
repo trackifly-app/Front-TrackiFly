@@ -11,6 +11,9 @@ const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
 
 export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
   const errors: ShipmentErrors = {};
+  const height = Number(values.height);
+  const width = Number(values.width);
+  const depth = Number(values.depth);
 
   if (!values.name) {
     errors.name = 'El nombre es requerido';
@@ -28,9 +31,9 @@ export const validateShipment = (values: ShipmentValues): ShipmentErrors => {
     errors.pickup_direction = 'La dirección de retiro es obligatoria';
   }
 
-  if (values.height <= 0) errors.height = 'Debe ser mayor a 0';
-  if (values.width <= 0) errors.width = 'Debe ser mayor a 0';
-  if (values.depth <= 0) errors.depth = 'Debe ser mayor a 0';
+  if (height <= 0) errors.height = 'Debe ser mayor a 0';
+  if (width <= 0) errors.width = 'Debe ser mayor a 0';
+  if (depth <= 0) errors.depth = 'Debe ser mayor a 0';
 
   return errors;
 };
