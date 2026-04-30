@@ -1,5 +1,6 @@
 import { AdminRoleName, AdminUserRole, DetailItem, ModuleItem } from '@/types/types';
 import { LucideIcon } from 'lucide-react';
+import { OrderStatus } from '@/constants/orderStatus';
 
 // --- ENVÍOS Y CALCULADORA ---
 
@@ -487,7 +488,8 @@ export interface CompanyEmployeeApiUser {
 
 export interface CompanyApiOrder {
   id: string;
-  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled';
+  tracking_code?: string;
+  status: OrderStatus;
 
   price?: number | string;
   distance?: number | string;

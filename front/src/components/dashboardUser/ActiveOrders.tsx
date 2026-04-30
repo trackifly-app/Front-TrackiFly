@@ -11,11 +11,11 @@ export default function ActiveOrders({
   orders: initialOrders,
 }: ActiveOrdersProps) {
   const activeOrders = (initialOrders || []).filter(
-    (o) => !FINAL_ORDER_STATUSES.includes(o.status.toLowerCase()),
+    (o) => !(FINAL_ORDER_STATUSES as string[]).includes(o.status.toLowerCase()),
   );
 
   const [orders] = useState<ActiveOrder[]>(activeOrders);
-  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<ActiveOrder | null>(null);
 
   // --- VISTA DE DETALLE MOCKEADA ---
   if (selectedOrder) {
@@ -64,8 +64,8 @@ export default function ActiveOrders({
               <p className="text-muted font-mono">nombre: {pkg.name}</p>
               <p className="text-muted font-mono">
                 descripcion del producto:{" "}
-                {pkg.description?.length > 15
-                  ? `${pkg.description.substring(0, 15)}...`
+                {(pkg.description?.length ?? 0) > 15
+                  ? `${pkg.description!.substring(0, 15)}...`
                   : pkg.description}
               </p>
             </div>
@@ -138,18 +138,22 @@ export default function ActiveOrders({
             {/* Etiquetas Especiales Mockeadas */}
             <div className="flex flex-wrap gap-3">
               <Badge
-                active={pkg.fragile}
+                active={pkg.fragile ?? false}
                 label="Frágil"
                 color="bg-yellow-500"
               />
-              <Badge active={pkg.urgent} label="Urgente" color="bg-red-500" />
               <Badge
-                active={pkg.cooled}
+                active={pkg.urgent ?? false}
+                label="Urgente"
+                color="bg-red-500"
+              />
+              <Badge
+                active={pkg.cooled ?? false}
                 label="Refrigerado"
                 color="bg-blue-500"
               />
               <Badge
-                active={pkg.dangerous}
+                active={pkg.dangerous ?? false}
                 label="Peligroso"
                 color="bg-orange-600"
               />
@@ -178,7 +182,7 @@ export default function ActiveOrders({
             No tienes pedidos en camino por ahora.
           </div>
         ) : (
-          orders.map((order: any) => (
+          orders.map((order) => (
             <div
               key={order.id}
               className="border border-border rounded-2xl p-5 bg-surface-muted hover:border-primary/30 transition-colors group"
@@ -202,7 +206,7 @@ export default function ActiveOrders({
                         Seguimiento
                       </p>
                       <p className="font-bold text-foreground">
-                        {order.tracking_code}
+                        {order.trackingCode}
                       </p>
                     </div>
                     <div className="flex flex-col justify-center">

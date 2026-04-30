@@ -1,40 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import UserProfileCard from '@/components/dashboardUser/UserProfileCard';
-import ActiveOrders from '@/components/dashboardUser/ActiveOrders';
-import OrderHistory from '@/components/dashboardUser/OrderHistory';
-import { useAuth } from '@/context/AuthContext';
-import type { ActiveOrder, UserProfileCardProps } from '@/types/types';
-import { FINAL_ORDER_STATUSES, ACTIVE_ORDER_STATUSES } from '@/constants/orderStatus';
-import RoleGuard from '@/components/auth/RoleGuard';
-
-type User = UserProfileCardProps['user'];
-
+import { useEffect, useState } from "react";
+import UserProfileCard from "@/components/dashboardUser/UserProfileCard";
+import ActiveOrders from "@/components/dashboardUser/ActiveOrders";
+import OrderHistory from "@/components/dashboardUser/OrderHistory";
+import { useAuth } from "@/context/AuthContext";
+import type { ActiveOrder } from "@/types/types";
+import {
+  FINAL_ORDER_STATUSES,
+  ACTIVE_ORDER_STATUSES,
+  OrderStatus,
+} from "@/constants/orderStatus";
+import RoleGuard from "@/components/auth/RoleGuard";
+import { CompanyApiOrder } from "@/interfaces/shipment";
 // Mapeo unificado para que ambos componentes tengan toda la info necesaria
-const mapToOrder = (order: any): ActiveOrder => ({
-  ...order,
+const mapToOrder = (order: CompanyApiOrder): ActiveOrder => ({
   id: String(order.id),
-  tracking_code: order.tracking_code || `TRK-${String(order.id).substring(0, 8).toUpperCase()}`,
+  trackingCode:
+    order.tracking_code ||
+    `TRK-${String(order.id).substring(0, 8).toUpperCase()}`,
   status: order.status,
-  pickup_direction: order.pickup_direction || 'No disponible',
-  delivery_direction: order.delivery_direction || 'No disponible',
-});
-
-const mapSessionUserToCard = (userData: NonNullable<ReturnType<typeof useAuth>['userData']>): User => ({
-  email: userData.user.email || 'No disponible',
-  name: `${userData.user.profile?.first_name || ''} ${userData.user.profile?.last_name || ''}`.trim() || 'Usuario',
-  address: userData.user.profile?.address || 'No disponible',
-  phone: userData.user.profile?.phone || 'No disponible',
-  birthDate: userData.user.profile?.birthdate || 'No disponible',
-  gender: userData.user.profile?.gender || 'No disponible',
-  country: userData.user.profile?.country || 'No disponible',
-  image: userData.user.profile?.profile_image || undefined,
+  origin: order.pickup_direction || "No disponible",
+  destination: order.delivery_direction || "No disponible",
+  estimatedDelivery: order.updated_at || order.created_at || "No disponible",
+  image: order.package?.image || undefined,
 });
 
 export default function DashboardUserPage() {
   const { userData, loading: sessionLoading } = useAuth();
-  const [user, setUser] = useState<User | null>(null);
   const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
   const [orderHistory, setOrderHistory] = useState<ActiveOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -46,7 +39,7 @@ export default function DashboardUserPage() {
       if (sessionLoading) return;
 
       if (!userData?.user?.id) {
-        setSessionError('No hay sesión activa');
+        setSessionError("No hay sesión activa");
         setLoadingOrders(false);
         return;
       }
@@ -55,24 +48,38 @@ export default function DashboardUserPage() {
         setLoadingOrders(true);
         setSessionError(null);
         setOrdersError(null);
-        setUser(mapSessionUserToCard(userData));
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`, {
-          credentials: 'include',
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/orders?userId=${userData.user.id}`,
+          {
+            credentials: "include",
+          },
+        );
 
-        if (!response.ok) throw new Error('Error al obtener las órdenes');
+        if (!response.ok) throw new Error("Error al obtener las órdenes");
 
-        const rawOrders: any[] = await response.json();
+        const rawOrders: CompanyApiOrder[] = await response.json();
         const allMapped = rawOrders.map(mapToOrder);
 
         // Filtrado corregido
-        setActiveOrders(allMapped.filter((o) => ACTIVE_ORDER_STATUSES.includes(o.status?.toLowerCase() || '')));
+        setActiveOrders(
+          allMapped.filter((o) =>
+            (ACTIVE_ORDER_STATUSES as OrderStatus[]).includes(
+              o.status?.toLowerCase() as OrderStatus,
+            ),
+          ),
+        );
 
-        setOrderHistory(allMapped.filter((o) => FINAL_ORDER_STATUSES.includes(o.status?.toLowerCase() || '')));
+        setOrderHistory(
+          allMapped.filter((o) =>
+            (FINAL_ORDER_STATUSES as OrderStatus[]).includes(
+              o.status?.toLowerCase() as OrderStatus,
+            ),
+          ),
+        );
       } catch (err) {
-        console.error('Error en Dashboard:', err);
-        setOrdersError('No se pudieron cargar los pedidos del usuario');
+        console.error("Error en Dashboard:", err);
+        setOrdersError("No se pudieron cargar los pedidos del usuario");
       } finally {
         setLoadingOrders(false);
       }
@@ -102,23 +109,31 @@ export default function DashboardUserPage() {
   }
 
   return (
-    <RoleGuard allowedRoles={['user']}>
+    <RoleGuard allowedRoles={["user"]}>
       <main className="min-h-screen bg-background px-4 py-10 md:px-8">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Cabecera del Dashboard (ESTILO RESTAURADO) */}
           <section className="bg-surface rounded-3xl shadow-sm border border-border p-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <p className="text-primary font-semibold mb-2">Dashboard de usuario</p>
+                <p className="text-primary font-semibold mb-2">
+                  Dashboard de usuario
+                </p>
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-                  Bienvenido, {userData?.user.profile?.first_name || 'Usuario'} {userData?.user.profile?.last_name || 'Usuario'}
+                  Bienvenido, {userData?.user.profile?.first_name || "Usuario"}{" "}
+                  {userData?.user.profile?.last_name || "Usuario"}
                 </h1>
-                <p className="text-muted mt-2">Aquí puedes revisar tu información, tus pedidos en camino y tu historial.</p>
+                <p className="text-muted mt-2">
+                  Aquí puedes revisar tu información, tus pedidos en camino y tu
+                  historial.
+                </p>
               </div>
 
               <div className="bg-primary/10 border border-primary/30 rounded-2xl px-5 py-4">
                 <p className="text-sm text-muted">Pedidos activos</p>
-                <p className="text-3xl font-bold text-primary">{activeOrders.length}</p>
+                <p className="text-3xl font-bold text-primary">
+                  {activeOrders.length}
+                </p>
               </div>
             </div>
           </section>

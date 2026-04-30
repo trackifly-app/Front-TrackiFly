@@ -35,11 +35,34 @@ export type ModuleItem = {
 export type ActiveOrder = {
   id: string;
   trackingCode: string;
+  tracking_code?: string;
   status: string;
   origin: string;
   destination: string;
   estimatedDelivery: string;
   image?: string;
+  pickup_direction?: string;
+  delivery_direction?: string;
+  distance?: number | string;
+  price?: number | string;
+  package?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    image?: string;
+    weight?: number | string;
+    unit?: string;
+    category?: string;
+    fragile?: boolean;
+    urgent?: boolean;
+    cooled?: boolean;
+    dangerous?: boolean;
+    dimensions?: {
+      width?: number | string;
+      height?: number | string;
+      depth?: number | string;
+    };
+  };
 };
 
 export type ActiveOrdersProps = {
