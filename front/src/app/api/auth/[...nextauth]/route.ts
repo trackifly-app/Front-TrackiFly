@@ -1,6 +1,8 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 
+const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -11,7 +13,12 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       try {
-        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/google`, {
+        if (!API_URL) {
+          console.error("Google sign in failed: API_URL is not configured")
+          return false
+        }
+
+        const res = await fetch(`${API_URL.replace(/\/$/, "")}/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -22,12 +29,17 @@ const handler = NextAuth({
           }),
         });
 
-        if (!res.ok) return false;
+        if (!res.ok) {
+          const errorBody = await res.text()
+          console.error("Google sign in failed:", res.status, errorBody)
+          return false;
+        }
 
         const data = await res.json() as { isNew: boolean };
         user.isNewGoogleUser = data.isNew;
         return true;
-      } catch {
+      } catch (error) {
+        console.error("Google sign in callback error:", error)
         return false;
       }
     },
